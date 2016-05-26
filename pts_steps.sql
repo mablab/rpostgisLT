@@ -28,6 +28,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+CREATE TABLE example_data.steps (
+    gid integer PRIMARY KEY,
+    step geometry,
+    len float
+);
+
 /*
  * pts_steps
  * Calculates steps from subsequent relocations
@@ -37,5 +43,31 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION pts_steps (
     pts geometry
 ) RETURNS geometry AS $$
+DECLARE
+    line geometry;
+    dist float;
 BEGIN
 	
+	INSERT INTO example_data.steps (
+	   
+	)
+	
+
+DROP FUNCTION test_function(integer);
+
+CREATE OR REPLACE FUNCTION test_function (
+    rep integer
+) RETURNS integer AS $$
+DECLARE
+    ret integer := 0;
+BEGIN
+	FOR num IN 1..rep LOOP
+    	RAISE NOTICE 'ret = %', ret;   
+    	ret := ret + 1;
+	END LOOP;
+	
+	RETURN ret;
+END
+$$ LANGUAGE plpgsql;
+
+SELECT test_function(5);
