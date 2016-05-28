@@ -54,3 +54,37 @@ FROM (select geom from example_data.continental where gid=14894) AS a,
 (select geom from example_data.continental where gid=14892) AS b;
 
 
+
+/*
+ * Calculate Root Mean Square Error for the geometry-geography differences (rounded)
+ */
+CREATE OR REPLACE VIEW geom_vs_geog AS
+(
+    SELECT 
+        rmse.id,
+        rmse."RMSE_m",
+        s.sum_steps_km,
+        t.total_length_km
+    FROM 
+    (
+        SELECT 
+            diff.id, 
+            round(sqrt(sum(diff.d^2)/count(*))::numeric, 2) AS "RMSE_m"
+        FROM (
+            SELECT 
+                id,
+                length_geom-length_geog AS d
+            FROM example_data.steps) AS diff
+        GROUP BY diff.id) AS rmse,
+    (
+        SELECT id, round(sum(steps.length_geog)::numeric/1000::numeric, 2) AS sum_steps_km
+        FROM example_data.steps AS steps
+        GROUP BY id) AS s,
+    (
+        SELECT id, round(st_length(st_makeline(rel.geom)::geography)::numeric/1000::numeric, 2) AS total_length_km
+        FROM example_data.relocations AS rel
+        GROUP BY id) AS t
+    WHERE 
+        rmse.id = s.id AND
+        rmse.id = t.id
+);
