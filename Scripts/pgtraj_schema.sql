@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS pgtraj.bursts (
 );
 
 CREATE TABLE IF NOT EXISTS pgtraj.steps (
-    id          bigserial   PRIMARY KEY,
+    id          int8        PRIMARY KEY,
     step        geography   NOT NULL,
     "time"      timestamptz,
     dtime       INTERVAL,
@@ -48,20 +48,3 @@ CREATE UNIQUE INDEX ts_b_null_idx
 ON pgtraj.t_rel_b_rel_s (traj_id, step_id)
 WHERE burst_id IS NULL;
 
-
-/*
- * Example queries
- */
--- query all bursts of animal named 'buksi'
-SELECT pgtraj.bursts."name"
-FROM 
-    pgtraj.steps_rel_traj r,
-    pgtraj.bursts b,
-    pgtraj.trajectories t,
-    pgtraj.animals a
-WHERE
-    a."name" = 'buksi' AND
-    t.animal_id = a.id AND
-    t.id = r.trajectory_id AND
-    t.burst_id = b.id
-;
