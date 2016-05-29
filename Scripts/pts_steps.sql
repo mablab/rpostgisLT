@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS example_data.steps (
     step_geom geometry,
     step_geog geography,
     length_geom float4,
-    length_geog float4
+    length_geog float4,
+    "time" timestamptz,
+    dt interval
 );
 
 
@@ -57,14 +59,18 @@ SELECT
     step_geom,
     step_geog,
     st_length(st_transform(step_geom, 3395)) AS length_geom,
-    st_length(step_geog) AS length_geog
+    st_length(step_geog) AS length_geog,
+    steps.time,
+    steps.dt
 FROM (
     SELECT 
         a.gid AS startgid,
         b.gid,
         a.id,
         st_makeline(a.geom, b.geom) AS step_geom,
-        st_makeline(a.geom, b.geom)::geography AS step_geog
+        st_makeline(a.geom, b.geom)::geography AS step_geog,
+        a.time,
+        b.time - a.time AS dt
     FROM 
         example_data.relocations_sorted AS a
         INNER JOIN example_data.relocations_sorted AS b 
@@ -82,14 +88,16 @@ SELECT
     step_geom,
     step_geog,
     st_length(st_transform(step_geom, 3395)) AS length_geom,
-    st_length(step_geog) AS length_geog
+    st_length(step_geog) AS length_geog,
+    steps.time, steps.dt
 FROM (
     SELECT 
         a.gid AS startgid,
         b.gid,
         a.id,
         st_makeline(a.geom, b.geom) AS step_geom,
-        st_makeline(a.geom, b.geom)::geography AS step_geog
+        st_makeline(a.geom, b.geom)::geography AS step_geog,
+        a.time, b.time - a.time AS dt
     FROM 
         example_data.relocations_sorted AS a
         INNER JOIN example_data.relocations_sorted AS b 
@@ -107,14 +115,16 @@ SELECT
     step_geom,
     step_geog,
     st_length(st_transform(step_geom, 3395)) AS length_geom,
-    st_length(step_geog) AS length_geog
+    st_length(step_geog) AS length_geog,
+    steps.time, steps.dt
 FROM (
     SELECT 
         a.gid AS startgid,
         b.gid,
         a.id,
         st_makeline(a.geom, b.geom) AS step_geom,
-        st_makeline(a.geom, b.geom)::geography AS step_geog
+        st_makeline(a.geom, b.geom)::geography AS step_geog,
+        a.time, b.time - a.time AS dt
     FROM 
         example_data.relocations_sorted AS a
         INNER JOIN example_data.relocations_sorted AS b 
@@ -132,14 +142,16 @@ SELECT
     step_geom,
     step_geog,
     st_length(st_transform(step_geom, 3395)) AS length_geom,
-    st_length(step_geog) AS length_geog
+    st_length(step_geog) AS length_geog,
+    steps.time, steps.dt
 FROM (
     SELECT 
         a.gid AS startgid,
         b.gid,
         a.id,
         st_makeline(a.geom, b.geom) AS step_geom,
-        st_makeline(a.geom, b.geom)::geography AS step_geog
+        st_makeline(a.geom, b.geom)::geography AS step_geog,
+        a.time, b.time - a.time AS dt
     FROM 
         example_data.relocations_sorted AS a
         INNER JOIN example_data.relocations_sorted AS b 
@@ -157,14 +169,16 @@ SELECT
     step_geom,
     step_geog,
     st_length(st_transform(step_geom, 3395)) AS length_geom,
-    st_length(step_geog) AS length_geog
+    st_length(step_geog) AS length_geog,
+    steps.time, steps.dt
 FROM (
     SELECT 
         a.gid AS startgid,
         b.gid,
         a.id,
         st_makeline(a.geom, b.geom) AS step_geom,
-        st_makeline(a.geom, b.geom)::geography AS step_geog
+        st_makeline(a.geom, b.geom)::geography AS step_geog,
+        a.time, b.time - a.time AS dt
     FROM 
         example_data.relocations_sorted AS a
         INNER JOIN example_data.relocations_sorted AS b 
