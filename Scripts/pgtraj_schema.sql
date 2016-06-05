@@ -2,49 +2,45 @@
 CREATE SCHEMA IF NOT EXISTS pgtraj;
 
 /*
- * Create tables for the pgtraj schema
+ * pgtraj_v2
  */
 
-CREATE TABLE IF NOT EXISTS pgtraj.animals (
-    id          serial      PRIMARY KEY, 
-    "name"      text        UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS pgtraj.trajectories (
-    id          serial      PRIMARY KEY,
-    "name"      text        UNIQUE,
-    animal_id   int4        NOT NULL REFERENCES pgtraj.animals (id)
-                            ON DELETE CASCADE
-                            ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS pgtraj.traj_group (
+    g_id        serial      PRIMARY KEY,
+    g_name      text        NOT NULL UNIQUE 
 );
 
 CREATE TABLE IF NOT EXISTS pgtraj.bursts (
-    id          serial      PRIMARY KEY,
-    "name"      text        UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS pgtraj.steps (
-    id          int8        PRIMARY KEY,
-    step        geography   NOT NULL,
-    "time"      timestamptz,
-    dtime       INTERVAL,
-    "length"    float8
-);
-
-CREATE TABLE IF NOT EXISTS pgtraj.t_rel_b_rel_s (
-    id          serial      PRIMARY KEY,
-    traj_id     int4        NOT NULL REFERENCES pgtraj.trajectories (id)
-                            ON DELETE CASCADE
-                            ON UPDATE CASCADE,
-    burst_id    int4        REFERENCES pgtraj.bursts(id)
-                            ON DELETE CASCADE
-                            ON UPDATE CASCADE,
-    step_id     int8        NOT NULL REFERENCES pgtraj.steps (id)
+    b_id        serial      PRIMARY KEY,
+    b_name      text        NOT NULL UNIQUE,
+    animal_name text        NOT NULL UNIQUE,
+    g_id        int4        NOT NULL REFERENCES pgtraj.traj_group (g_id)
                             ON DELETE CASCADE
                             ON UPDATE CASCADE
 );
--- create complex constraint
-CREATE UNIQUE INDEX ts_b_null_idx 
-ON pgtraj.t_rel_b_rel_s (traj_id, step_id)
-WHERE burst_id IS NULL;
+
+CREATE TABLE IF NOT EXISTS pgtraj.steps (
+    s_id        int8        PRIMARY KEY,
+    step        geography   NOT NULL,
+    "time"      timestamptz,
+    dtime       INTERVAL,
+    b_id        int4        REFERENCES pgtraj.bursts (b_id)
+                            ON UPDATE CASCADE
+);
+
+COMMENT ON SCHEMA pgtraj IS 'Implements the pgtraj data model';
+COMMENT ON TABLE pgtraj.traj_group IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, for example a set of trajectories that are relevant for a particular project can form a group.';
+COMMENT ON COLUMN pgtraj.traj_group.g_id IS 'Numeric ID of trajectory group for internal use.';
+COMMENT ON COLUMN pgtraj.traj_group.g_name IS 'Name or identifier of trajectory group for external use, not null, unique.';
+COMMENT ON TABLE pgtraj.bursts IS 'Burst and animal identifiers and their relation to trajectory groups. Both burst and animal names are unique across trajectory groups.';
+COMMENT ON COLUMN pgtraj.bursts.b_id IS 'Numeric ID of burst for internal use.';
+COMMENT ON COLUMN pgtraj.bursts.b_name IS 'Name or identifier of burst for external use, not null, unique.';
+COMMENT ON COLUMN pgtraj.bursts.animal_name IS 'Name or identifier of animal for external use, not null, unique.';
+COMMENT ON COLUMN pgtraj.bursts.g_id IS 'ID of trajectory group.';
+COMMENT ON TABLE pgtraj.steps IS 'Steps derived from locations.';
+COMMENT ON COLUMN pgtraj.steps.s_id IS 'Numeric ID of steps. Equal to the ID of the first of the two successive locations that form the step.';
+COMMENT ON COLUMN pgtraj.steps.step IS 'Geometry of the step.';
+COMMENT ON COLUMN pgtraj.steps.time IS 'Timestamp of the first of the two successive locations that form the step.';
+COMMENT ON COLUMN pgtraj.steps.dtime IS 'Duration of the step.';
+COMMENT ON COLUMN pgtraj.steps.b_id IS 'ID of the burst to which the step belongs to.';
 
