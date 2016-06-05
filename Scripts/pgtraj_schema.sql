@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS pgtraj.bursts (
 CREATE TABLE IF NOT EXISTS pgtraj.steps (
     s_id        int8        PRIMARY KEY,
     step        geography   NOT NULL,
-    "time"      timestamptz,
-    dtime       INTERVAL,
+    "date"      timestamptz,
+    dt       INTERVAL,
     b_id        int4        NOT NULL REFERENCES pgtraj.bursts (b_id)
                             ON UPDATE CASCADE
 );
@@ -40,7 +40,7 @@ COMMENT ON COLUMN pgtraj.bursts.g_id IS 'ID of trajectory group.';
 COMMENT ON TABLE pgtraj.steps IS 'Steps derived from locations.';
 COMMENT ON COLUMN pgtraj.steps.s_id IS 'Numeric ID of steps. Equal to the ID of the first of the two successive locations that form the step.';
 COMMENT ON COLUMN pgtraj.steps.step IS 'Geometry of the step.';
-COMMENT ON COLUMN pgtraj.steps.time IS 'Timestamp of the first of the two successive locations that form the step.';
-COMMENT ON COLUMN pgtraj.steps.dtime IS 'Duration of the step.';
+COMMENT ON COLUMN pgtraj.steps.date IS 'Timestamp of the first of the two successive locations that form the step.';
+COMMENT ON COLUMN pgtraj.steps.dt IS 'Duration of the step.';
 COMMENT ON COLUMN pgtraj.steps.b_id IS 'ID of the burst to which the step belongs to, not null.';
 
