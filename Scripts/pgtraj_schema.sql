@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS pgtraj.steps (
     step        geography   NOT NULL,
     "time"      timestamptz,
     dtime       INTERVAL,
-    b_id        int4        REFERENCES pgtraj.bursts (b_id)
+    b_id        int4        NOT NULL REFERENCES pgtraj.bursts (b_id)
                             ON UPDATE CASCADE
 );
 
@@ -42,5 +42,5 @@ COMMENT ON COLUMN pgtraj.steps.s_id IS 'Numeric ID of steps. Equal to the ID of 
 COMMENT ON COLUMN pgtraj.steps.step IS 'Geometry of the step.';
 COMMENT ON COLUMN pgtraj.steps.time IS 'Timestamp of the first of the two successive locations that form the step.';
 COMMENT ON COLUMN pgtraj.steps.dtime IS 'Duration of the step.';
-COMMENT ON COLUMN pgtraj.steps.b_id IS 'ID of the burst to which the step belongs to.';
+COMMENT ON COLUMN pgtraj.steps.b_id IS 'ID of the burst to which the step belongs to, not null.';
 
