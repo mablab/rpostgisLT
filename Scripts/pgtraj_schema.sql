@@ -23,10 +23,11 @@ CREATE TABLE IF NOT EXISTS pgtraj.steps (
     s_id        int8        PRIMARY KEY,
     step        geography   NOT NULL,
     "date"      timestamptz,
-    dt       INTERVAL,
+    dt          INTERVAL,
     b_id        int4        NOT NULL REFERENCES pgtraj.bursts (b_id)
                             ON UPDATE CASCADE
 );
+CREATE INDEX step_idx ON pgtraj.steps USING gist (step);
 
 COMMENT ON SCHEMA pgtraj IS 'Implements the pgtraj data model';
 COMMENT ON TABLE pgtraj.traj_group IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, for example a set of trajectories that are relevant for a particular project can form a group.';
