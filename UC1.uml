@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xmi:id="_ht_54C_PEeaYn-Z1A9Q-3A" name="RootElement">
+  <packagedElement xmi:type="uml:Activity" xmi:id="_huCWIC_PEeaYn-Z1A9Q-3A" name="Create ltraj from database " precondition="_dGNFAC_zEeaYn-Z1A9Q-3A" node="_OsFSsC_QEeaYn-Z1A9Q-3A _R1fr8C_WEeaYn-Z1A9Q-3A _jLQd4C_WEeaYn-Z1A9Q-3A _ni5zkC_WEeaYn-Z1A9Q-3A _rZbZMC_WEeaYn-Z1A9Q-3A _zBR7YC_WEeaYn-Z1A9Q-3A _Pi1a4C_YEeaYn-Z1A9Q-3A _ktWpIC_eEeaYn-Z1A9Q-3A _u8kZsC_fEeaYn-Z1A9Q-3A _HV-68C_oEeaYn-Z1A9Q-3A _RT8Y4C_oEeaYn-Z1A9Q-3A __fSZkC_pEeaYn-Z1A9Q-3A _N1S10C_qEeaYn-Z1A9Q-3A _RDepEC_qEeaYn-Z1A9Q-3A" group="_n59F0C_PEeaYn-Z1A9Q-3A _zN9JoC_PEeaYn-Z1A9Q-3A">
+    <ownedRule xmi:type="uml:Constraint" xmi:id="_dGNFAC_zEeaYn-Z1A9Q-3A" name="pgtraj schema"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_13JVQC_WEeaYn-Z1A9Q-3A" name="" target="_zBR7YC_WEeaYn-Z1A9Q-3A" source="_OsFSsC_QEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_npXHQC_eEeaYn-Z1A9Q-3A" target="_ktWpIC_eEeaYn-Z1A9Q-3A" source="_R1fr8C_WEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_SeOw0C_fEeaYn-Z1A9Q-3A" name="pgtraj name" target="_jLQd4C_WEeaYn-Z1A9Q-3A" source="_ktWpIC_eEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_Vs-kwC_fEeaYn-Z1A9Q-3A" name="animal name" target="_ni5zkC_WEeaYn-Z1A9Q-3A" source="_ktWpIC_eEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_WyGZwC_fEeaYn-Z1A9Q-3A" name="burst name" target="_rZbZMC_WEeaYn-Z1A9Q-3A" source="_ktWpIC_eEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_7edM8C_fEeaYn-Z1A9Q-3A" target="_u8kZsC_fEeaYn-Z1A9Q-3A" source="_jLQd4C_WEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_8AcfsC_fEeaYn-Z1A9Q-3A" target="_u8kZsC_fEeaYn-Z1A9Q-3A" source="_ni5zkC_WEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_8d5QsC_fEeaYn-Z1A9Q-3A" target="_u8kZsC_fEeaYn-Z1A9Q-3A" source="_rZbZMC_WEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_97DyQC_fEeaYn-Z1A9Q-3A" target="_zBR7YC_WEeaYn-Z1A9Q-3A" source="_u8kZsC_fEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_UhvxoC_oEeaYn-Z1A9Q-3A" target="_RT8Y4C_oEeaYn-Z1A9Q-3A" source="_zBR7YC_WEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_EwSZIC_qEeaYn-Z1A9Q-3A" target="__fSZkC_pEeaYn-Z1A9Q-3A" source="_RT8Y4C_oEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_Gs4BoC_qEeaYn-Z1A9Q-3A" target="__fSZkC_pEeaYn-Z1A9Q-3A" source="_HV-68C_oEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_SxRnoC_qEeaYn-Z1A9Q-3A" target="_N1S10C_qEeaYn-Z1A9Q-3A" source="__fSZkC_pEeaYn-Z1A9Q-3A"/>
+    <edge xmi:type="uml:ControlFlow" xmi:id="_Tg4foC_qEeaYn-Z1A9Q-3A" target="_RDepEC_qEeaYn-Z1A9Q-3A" source="_N1S10C_qEeaYn-Z1A9Q-3A"/>
+    <group xmi:type="uml:ActivityPartition" xmi:id="_n59F0C_PEeaYn-Z1A9Q-3A" name="R" node="_R1fr8C_WEeaYn-Z1A9Q-3A _HV-68C_oEeaYn-Z1A9Q-3A __fSZkC_pEeaYn-Z1A9Q-3A _N1S10C_qEeaYn-Z1A9Q-3A _RDepEC_qEeaYn-Z1A9Q-3A"/>
+    <group xmi:type="uml:ActivityPartition" xmi:id="_zN9JoC_PEeaYn-Z1A9Q-3A" name="PostgreSQL" node="_jLQd4C_WEeaYn-Z1A9Q-3A _ni5zkC_WEeaYn-Z1A9Q-3A _rZbZMC_WEeaYn-Z1A9Q-3A _zBR7YC_WEeaYn-Z1A9Q-3A _OsFSsC_QEeaYn-Z1A9Q-3A _ktWpIC_eEeaYn-Z1A9Q-3A _u8kZsC_fEeaYn-Z1A9Q-3A _RT8Y4C_oEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:DataStoreNode" xmi:id="_OsFSsC_QEeaYn-Z1A9Q-3A" name="GPS recordings" outgoing="_13JVQC_WEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A">
+      <upperBound xmi:type="uml:LiteralInteger" xmi:id="_OsHu8C_QEeaYn-Z1A9Q-3A" value="1"/>
+    </node>
+    <node xmi:type="uml:SendSignalAction" xmi:id="_R1fr8C_WEeaYn-Z1A9Q-3A" name="as_pgtraj" outgoing="_npXHQC_eEeaYn-Z1A9Q-3A" inPartition="_n59F0C_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="_jLQd4C_WEeaYn-Z1A9Q-3A" name="create pgtraj" incoming="_SeOw0C_fEeaYn-Z1A9Q-3A" outgoing="_7edM8C_fEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="_ni5zkC_WEeaYn-Z1A9Q-3A" name="create animal" incoming="_Vs-kwC_fEeaYn-Z1A9Q-3A" outgoing="_8AcfsC_fEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="_rZbZMC_WEeaYn-Z1A9Q-3A" name="create burst" incoming="_WyGZwC_fEeaYn-Z1A9Q-3A" outgoing="_8d5QsC_fEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="_zBR7YC_WEeaYn-Z1A9Q-3A" name="create steps" incoming="_13JVQC_WEeaYn-Z1A9Q-3A _97DyQC_fEeaYn-Z1A9Q-3A" outgoing="_UhvxoC_oEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:ActivityParameterNode" xmi:id="_Pi1a4C_YEeaYn-Z1A9Q-3A" name="&lt;&lt;precondition>> pgtraj schema in PostgreSQL">
+      <upperBound xmi:type="uml:LiteralInteger" xmi:id="_Pi2pAC_YEeaYn-Z1A9Q-3A" value="1"/>
+    </node>
+    <node xmi:type="uml:ForkNode" xmi:id="_ktWpIC_eEeaYn-Z1A9Q-3A" name="" incoming="_npXHQC_eEeaYn-Z1A9Q-3A" outgoing="_SeOw0C_fEeaYn-Z1A9Q-3A _Vs-kwC_fEeaYn-Z1A9Q-3A _WyGZwC_fEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:JoinNode" xmi:id="_u8kZsC_fEeaYn-Z1A9Q-3A" name="" incoming="_7edM8C_fEeaYn-Z1A9Q-3A _8AcfsC_fEeaYn-Z1A9Q-3A _8d5QsC_fEeaYn-Z1A9Q-3A" outgoing="_97DyQC_fEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:SendSignalAction" xmi:id="_HV-68C_oEeaYn-Z1A9Q-3A" name="pgtraj2ltraj" outgoing="_Gs4BoC_qEeaYn-Z1A9Q-3A" inPartition="_n59F0C_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:DataStoreNode" xmi:id="_RT8Y4C_oEeaYn-Z1A9Q-3A" name="pgtraj dataset" incoming="_UhvxoC_oEeaYn-Z1A9Q-3A" outgoing="_EwSZIC_qEeaYn-Z1A9Q-3A" inPartition="_zN9JoC_PEeaYn-Z1A9Q-3A">
+      <upperBound xmi:type="uml:LiteralInteger" xmi:id="_RT8_8C_oEeaYn-Z1A9Q-3A" value="1"/>
+    </node>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="__fSZkC_pEeaYn-Z1A9Q-3A" name="&lt;&lt;as_locs>>" incoming="_EwSZIC_qEeaYn-Z1A9Q-3A _Gs4BoC_qEeaYn-Z1A9Q-3A" outgoing="_SxRnoC_qEeaYn-Z1A9Q-3A" inPartition="_n59F0C_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:CreateObjectAction" xmi:id="_N1S10C_qEeaYn-Z1A9Q-3A" name="parse to ltraj" incoming="_SxRnoC_qEeaYn-Z1A9Q-3A" outgoing="_Tg4foC_qEeaYn-Z1A9Q-3A" inPartition="_n59F0C_PEeaYn-Z1A9Q-3A"/>
+    <node xmi:type="uml:DataStoreNode" xmi:id="_RDepEC_qEeaYn-Z1A9Q-3A" name="ltraj" incoming="_Tg4foC_qEeaYn-Z1A9Q-3A" inPartition="_n59F0C_PEeaYn-Z1A9Q-3A">
+      <upperBound xmi:type="uml:LiteralInteger" xmi:id="_RDfQIC_qEeaYn-Z1A9Q-3A" value="1"/>
+    </node>
+  </packagedElement>
+</uml:Model>
