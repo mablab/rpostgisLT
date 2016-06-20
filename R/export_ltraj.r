@@ -6,10 +6,6 @@
 library(RPostgreSQL)
 library(adehabitatLT)
 
-drv <- dbDriver("PostgreSQL")
-conn <- dbConnect(drv, user="rpostgis", password="gsoc", dbname="rpostgis",
-        host="basille-flrec.ad.ufl.edu")
-
 # get sample ltraj
 data(ibex)
 ibex_df <- ld(ibex) # convert to data frame
