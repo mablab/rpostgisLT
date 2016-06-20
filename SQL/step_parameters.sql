@@ -32,6 +32,25 @@ SELECT
 FROM pgtraj.steps;
 
 
+SELECT 
+        b.startgid,
+        b.id,
+        degrees(
+               st_azimuth(
+                          st_startpoint(b.step_geog::geometry),
+                          st_endpoint(b.step_geog::geometry)
+                          )
+               -
+               st_azimuth(
+                          st_startpoint(a.step_geog::geometry),
+                          st_endpoint(a.step_geog::geometry)
+                         )
+               )
+FROM example_data.steps AS a INNER JOIN example_data.steps AS b 
+ON a.startgid = b.startgid + 1
+AND a.id = b.id;
+
+
 
 /* Use a spheroid for calculating dy, dy
  * WGS 84 spheroid

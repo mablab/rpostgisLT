@@ -47,7 +47,7 @@ CREATE TABLE pgtraj.p_b_rel (
                             ON DELETE CASCADE,
     b_id        integer     NOT NULL REFERENCES pgtraj.bursts (b_id)
                             ON DELETE CASCADE,
-    UNIQUE (p_id, b_id)
+    PRIMARY KEY (p_id, b_id)
 );
 
 CREATE TABLE pgtraj.steps (
@@ -69,7 +69,7 @@ CREATE TABLE pgtraj.s_i_b_rel (
                             ON DELETE CASCADE,
     b_id        integer     NOT NULL REFERENCES pgtraj.bursts (b_id)
                             ON DELETE CASCADE,
-    UNIQUE (s_id, b_id)
+    PRIMARY KEY (s_id, b_id)
 );
 
 -- create index on step geometry
@@ -80,12 +80,12 @@ COMMENT ON SCHEMA pgtraj IS 'Implements the pgtraj data model, based on the ltra
 
 COMMENT ON TABLE pgtraj.pgtrajs IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
 COMMENT ON COLUMN pgtraj.pgtrajs.p_id IS 'Auto-generated numeric ID of pgtraj.';
-COMMENT ON COLUMN pgtraj.pgtrajs.p_name IS 'Name or identifier of trajectory group for external use, not null, unique.';
+COMMENT ON COLUMN pgtraj.pgtrajs.p_name IS 'Name or identifier of trajectory group, not null, unique.';
 
 COMMENT ON TABLE pgtraj.bursts IS 'Contains burst information and their relation to animals.';
 COMMENT ON COLUMN pgtraj.bursts.b_id IS 'Auto-generated numeric ID of burst.';
 COMMENT ON COLUMN pgtraj.bursts.b_name IS 'Name or identifier of burst. Unique, defaults to the animal name based on the provided a_id.';
-COMMENT ON COLUMN pgtraj.bursts.a_id IS 'Reference to animals.a_id.';
+COMMENT ON COLUMN pgtraj.bursts.a_id IS 'Reference to animals.a_id. Not null.';
 
 COMMENT ON TABLE pgtraj.animals IS 'Contains animal descriptions.';
 COMMENT ON COLUMN pgtraj.animals.a_id IS 'Auto-generated numeric ID of animal.';
@@ -99,7 +99,7 @@ COMMENT ON COLUMN pgtraj.steps.dt IS 'Duration of the step.';
 
 COMMENT ON TABLE pgtraj.infolocs IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
 COMMENT ON COLUMN pgtraj.infolocs.i_id IS 'Auto-generated numeric ID of infoloc.';
-COMMENT ON COLUMN pgtraj.infolocs.infoloc IS 'Contains the additional information as JSON.';
+COMMENT ON COLUMN pgtraj.infolocs.infoloc IS 'Contains the additional information encoded in JSON.';
 
 COMMENT ON TABLE pgtraj.p_b_rel IS 'Relates pgtraj and burst.';
 COMMENT ON TABLE pgtraj.s_i_b_rel IS 'Relates step, infoloc and burst.';

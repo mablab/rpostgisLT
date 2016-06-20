@@ -23,3 +23,6 @@ dbSendQuery(conn, tbl)
 
 records <- pgInsertize(df=ibex_df)
 pgInsert(conn,c("example_data","ibex"),pgi=records)
+
+data(porpoise)
+(porpoise2 <- redisltraj(na.omit(porpoise[1:3]), 86400, type="time"))
