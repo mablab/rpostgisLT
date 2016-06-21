@@ -7,7 +7,8 @@ CREATE SCHEMA IF NOT EXISTS pgtraj;
 
 CREATE TABLE pgtraj.pgtrajs (
     p_id        serial      PRIMARY KEY,
-    p_name      text        NOT NULL UNIQUE 
+    p_name      text        NOT NULL UNIQUE,
+    r_proj      text
 );
 
 CREATE TABLE pgtraj.animals (
@@ -52,6 +53,7 @@ CREATE TABLE pgtraj.p_b_rel (
 
 CREATE TABLE pgtraj.steps (
     s_id        serial   PRIMARY KEY,
+    r_rowname   text,
     step        geography   NOT NULL,
     "date"      timestamptz DEFAULT NULL,
     dt          interval    DEFAULT NULL
@@ -81,6 +83,7 @@ COMMENT ON SCHEMA pgtraj IS 'Implements the pgtraj data model, based on the ltra
 COMMENT ON TABLE pgtraj.pgtrajs IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
 COMMENT ON COLUMN pgtraj.pgtrajs.p_id IS 'Auto-generated numeric ID of pgtraj.';
 COMMENT ON COLUMN pgtraj.pgtrajs.p_name IS 'Name or identifier of trajectory group, not null, unique.';
+COMMENT ON COLUMN pgtraj.pgtrajs.r_proj IS 'Projection string of the ltraj, imported from R.';
 
 COMMENT ON TABLE pgtraj.bursts IS 'Contains burst information and their relation to animals.';
 COMMENT ON COLUMN pgtraj.bursts.b_id IS 'Auto-generated numeric ID of burst.';
@@ -93,6 +96,7 @@ COMMENT ON COLUMN pgtraj.animals.a_name IS 'Name of the animal. Not null, unique
 
 COMMENT ON TABLE pgtraj.steps IS 'Steps derived from relocations.';
 COMMENT ON COLUMN pgtraj.steps.s_id IS 'Auto-generated numeric ID of step. Equal to the ID of the first of the two successive relocations that form the step.';
+COMMENT ON COLUMN pgtraj.steps.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
 COMMENT ON COLUMN pgtraj.steps.step IS 'Geometry of the step.';
 COMMENT ON COLUMN pgtraj.steps.date IS 'Timestamp of the first of the two successive locations that form the step.';
 COMMENT ON COLUMN pgtraj.steps.dt IS 'Duration of the step.';
@@ -103,3 +107,5 @@ COMMENT ON COLUMN pgtraj.infolocs.infoloc IS 'Contains the additional informatio
 
 COMMENT ON TABLE pgtraj.p_b_rel IS 'Relates pgtraj and burst.';
 COMMENT ON TABLE pgtraj.s_i_b_rel IS 'Relates step, infoloc and burst.';
+
+
