@@ -1,9 +1,11 @@
 -- create schema to store pgtraj
 /*
- * pgtraj_v4
+ * pgtraj_v5
  */
 
-CREATE SCHEMA IF NOT EXISTS pgtraj;
+-- create the schema and set the default search path
+-- CREATE SCHEMA IF NOT EXISTS pgtraj;
+-- SET search_path TO pgtraj,public;
 
 CREATE TABLE pgtrajs (
     p_id        serial      PRIMARY KEY,
@@ -108,4 +110,5 @@ COMMENT ON COLUMN infolocs.infoloc IS 'Contains the additional information encod
 COMMENT ON TABLE p_b_rel IS 'Relates pgtraj and burst.';
 COMMENT ON TABLE s_i_b_rel IS 'Relates step, infoloc and burst.';
 
-
+-- restore search path to public first
+-- SET search_path TO "$user",public;
