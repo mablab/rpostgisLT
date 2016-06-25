@@ -5,6 +5,7 @@
 
 -- create the schema and set the default search path
 -- CREATE SCHEMA IF NOT EXISTS pgtraj;
+-- SHOW search_path;
 -- SET search_path TO pgtraj,public;
 
 CREATE TABLE pgtrajs (
@@ -69,7 +70,7 @@ CREATE TABLE infolocs (
 CREATE TABLE s_i_b_rel (
     s_id        integer     NOT NULL REFERENCES steps (s_id)
                             ON DELETE CASCADE,
-    i_id        integer     NOT NULL REFERENCES infolocs (i_id)
+    i_id        integer     REFERENCES infolocs (i_id)
                             ON DELETE CASCADE,
     b_id        integer     NOT NULL REFERENCES bursts (b_id)
                             ON DELETE CASCADE,
