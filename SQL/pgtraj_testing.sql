@@ -159,3 +159,65 @@ DROP SEQUENCE pgtraj.steps_s_id_seq;
 DROP SEQUENCE pgtraj.infolocs_i_id_seq;
 
 DROP TYPE animals CASCADE;
+
+
+
+/* pgtraj v5
+ */
+-- insert pgtraj names
+INSERT INTO pgtraj.pgtrajs (p_name)
+SELECT DISTINCT id FROM example_data.relocations_sorted;
+-- insert animal names
+INSERT INTO pgtraj.animals (a_name) VALUES ('migrating animal');
+INSERT INTO pgtraj.animals (a_name) VALUES ('wood stork1');
+INSERT INTO pgtraj.animals (a_name) VALUES ('wood stork2');
+INSERT INTO pgtraj.animals (a_name) VALUES ('sea turtle');
+INSERT INTO pgtraj.animals (a_name) VALUES ('small animal');
+INSERT INTO pgtraj.animals (a_name) VALUES ('buksi');
+INSERT INTO pgtraj.animals (a_name) VALUES ('morzsi');
+
+-- insert animal names into relocations_sorted
+ALTER TABLE example_data.relocations_sorted ADD animal text;
+UPDATE example_data.relocations_sorted AS a
+SET animal = q.a_name
+FROM (
+    SELECT a.id, b.a_name
+    FROM example_data.relocations_sorted a,
+    pgtraj.animals b
+    WHERE (a.id = 'continental' AND b.a_name = 'migrating animal') OR
+    (a.id = 'small' AND b.a_name = 'small animal') OR 
+    (a.id = 'large' AND b.a_name = 'wood stork1') OR
+    (a.id = 'large2' AND b.a_name = 'wood stork2') OR
+    (a.id = 'medium' AND b.a_name = 'sea turtle')
+) q
+WHERE a.id = q.id;
+
+-- insert burst names into relocations_sorted
+ALTER TABLE example_data.relocations_sorted ADD burst text;
+UPDATE example_data.relocations_sorted AS a
+SET burst = q.a_name
+FROM (
+    SELECT a.id, b.a_name
+    FROM example_data.relocations_sorted a,
+    pgtraj.animals b
+    WHERE (a.id = 'continental' AND b.a_name = 'migrating animal') OR
+    (a.id = 'small' AND b.a_name = 'small animal') OR 
+    (a.id = 'large' AND b.a_name = 'wood stork1') OR
+    (a.id = 'large2' AND b.a_name = 'wood stork2') OR
+    (a.id = 'medium' AND b.a_name = 'sea turtle')
+) q
+WHERE a.id = q.id;
+
+/* Bursts with default name path
+ */
+-- insert bursts with default name
+INSERT INTO pgtraj.bursts(
+    a_id
+) (
+    SELECT DISTINCT a_id
+    FROM pgtraj.animals a JOIN example_data.relocations_sorted b
+    ON a.a_name = b.animal
+);
+
+
+
