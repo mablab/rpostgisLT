@@ -81,7 +81,6 @@ CREATE TABLE s_i_b_rel (
 CREATE INDEX step_idx ON steps USING gist (step);
 
 -- add comments to the schema
-COMMENT ON SCHEMA pgtraj IS 'Implements the pgtraj data model, based on the ltraj object class in R';
 
 COMMENT ON TABLE pgtrajs IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
 COMMENT ON COLUMN pgtrajs.p_id IS 'Auto-generated numeric ID of ';

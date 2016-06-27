@@ -25,4 +25,21 @@ SET burst =    CASE
                     WHEN id = 'large' THEN 'burst3'
                     WHEN id = 'large2' THEN 'burst4'
                     WHEN id = 'medium' THEN 'burst5'
-                END;
+                END
+;
+
+
+/* Just geometry and timestamp
+ */
+CREATE TABLE example_data.reloc_medium AS
+SELECT gid, geom, time
+FROM example_data.relocations
+WHERE id = 'medium';
+
+/* Trajectory Type I
+ */
+CREATE TABLE example_data.reloc_t1 AS
+SELECT gid, geom
+FROM example_data.relocations
+WHERE id = 'small'
+ORDER BY time;
