@@ -219,5 +219,18 @@ INSERT INTO pgtraj.bursts(
     ON a.a_name = b.animal
 );
 
+/* Insert into pgtraj schema from temporary table
+ */
 
+-- create temporary table
+CREATE TABLE pgtraj.relocs_temp AS
+SELECT 
+    gid AS r_id,
+    geom::geometry AS relocation,
+    time::timestamptz AS date, -- this should be optional
+    burst AS b_name, --could be provided by user OR default
+    animal AS a_name, --could be provided by user
+    id AS p_name --could be provided by user
+FROM example_data.relocations_sorted
+ORDER BY time;
 
