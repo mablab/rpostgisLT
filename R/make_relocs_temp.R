@@ -8,7 +8,7 @@
 make_relocs_temp <- function(conn, schema) {
     # Create 'relocs_temp' table
     query <- paste0("CREATE TABLE ", schema, ".relocs_temp (
-                    r_id    integer,
+                    r_id    serial,
                     relocation     geometry,
                     date    timestamptz,
                     b_name      text,
@@ -16,16 +16,10 @@ make_relocs_temp <- function(conn, schema) {
                     p_name      text
                     );")
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
-    # Create sequence for r_id
-    query2 <- paste0("CREATE SEQUENCE ", schema, ".temp_r_id_seq;")
-    query <- paste(query, query2)
-    
     invisible(dbGetQuery(conn, query))
 }
 
 drop_relocs_temp <- function(conn, schema) {
     query <- paste0("DROP TABLE ", schema, ".relocs_temp;")
-    query2 <- paste0("DROP SEQUENCE ", schema, ".temp_r_id_seq;")
-    query <- paste(query, query2)
     invisible(dbGetQuery(conn, query))
 }
