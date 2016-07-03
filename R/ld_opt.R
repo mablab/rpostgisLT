@@ -15,7 +15,7 @@
 #' functions, which enforce more verifications.
 #' @seealso See \code{\link[adehabitatLT]{ld}} for further details on
 #' the function and all available arguments.
-#' @author Modified by Mathieu Basille, Balázs Dukai
+#' @authors Modified by Mathieu Basille, Balázs Dukai
 #' \email{basille@@ase-research.org}, \email{balazs.dukai@@gmail.com}
 #' @export
 #' @examples

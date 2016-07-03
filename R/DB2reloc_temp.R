@@ -2,32 +2,38 @@
 #' relocations are given as X,Y coordinates, they are converted into a POINT 
 #' geometry in PostGIS.
 #' 
-#' It assumes valid input, thus pre-condition 
-#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param relocation_data String. Name of the table that stores the relocations, e.g. "public.relocations"
+#' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
+#' @param animals String. Name of the animal or name of the field that stores the animal names.
+#' @param bursts String. Name of the burst or name of the field that stores the burst names.
+#' @param timestamps String. Name of the field in relocation_data that contains the timestamps.
+#' @param rids String. Name of the field in relocation_data that contains the numeric IDs of relocations.
 #' @param relocations Vector of string(s). Name of the field(s) that contains 
 #' the relocations in relocation_data. If relocations are stored as pairs of (X,Y) or 
 #' (long, lat) coorindates, the coordinates should be separeted in two fields 
 #' and referenced accordingly.
+#' @param epsg Numeric. EPSG code of the CRS of 'relocations'.
 #' 
 #' @import RPostgreSQL
 #' 
 #' @examples 
-#' DB2reloc_temp(conn, schema = "traj_t1", 
-#'              relocation_data = "example_data.relocations_geom", 
-#'              pgtrajs = "id", animals = "animal", bursts = "burst", 
-#'              relocations = "geom", timestamps = "time", rids = "gid")
+#' DB2reloc_temp(conn, schema="traj_t1", 
+#'              relocation_data="example_data.relocations_geom", 
+#'              pgtrajs="id", animals="animal", bursts="burst", 
+#'              relocations="geom", timestamps="time", rids="gid",
+#'              epsg=4326)
 #' 
-#' DB2reloc_temp(conn, schema = "traj_t1", 
-#'              relocation_data = "example_data.relocations_XY", 
-#'              pgtrajs = "id", animals = "animal", bursts = "burst", 
-#'              relocations = c("x", "y"), timestamps = "time", rids = "gid")
+#' DB2reloc_temp(conn, schema="traj_t1", 
+#'              relocation_data="example_data.relocations_XY", 
+#'              pgtrajs="id", animals="animal", bursts="burst", 
+#'              relocations=c("x", "y"), timestamps="time", rids="gid", 
+#'              epsg=4326)
 #' 
 ###############################################################################
 DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
-        bursts=NA, relocations, timestamps, rids, srid) {
+        bursts=NA, relocations, timestamps, rids, epsg) {
     
     # Test for correct inputs
     test_input(pgtrajs, animals, relocations, bursts)
@@ -51,17 +57,17 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                             SELECT ",rids,",",relocations,"::geometry
                             FROM ",relocation_data,"
                             ORDER BY ",rids,";")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            query <- gsub(pattern='\\s', replacement=" ", x=query)
             t <- c(t, dbGetQuery(conn, query))
         } else if (length(relocations) == 2) {
             # Relocations provided as a coordinate pair
             x <- relocations[1]
             y <- relocations[2]
             query <- paste0("INSERT INTO reloc_temp (r_id, relocation)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
+                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",epsg,")
                             FROM ",relocation_data,"
                             ORDER BY ",rids,";")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            query <- gsub(pattern='\\s', replacement=" ", x=query)
             invisible(dbGetQuery(conn, query))
         }
     # If trajectory Type II
@@ -72,17 +78,17 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                             SELECT ",rids,",",relocations,"::geometry, ",timestamps,"
                             FROM ",relocation_data,"
                             ORDER BY ",timestamps,";")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            query <- gsub(pattern='\\s', replacement=" ", x=query)
             invisible(dbGetQuery(conn, query))
         } else if (length(relocations) == 2) {
             # Relocations provided as a coordinate pair
             x <- relocations[1]
             y <- relocations[2]
             query <- paste0("INSERT INTO reloc_temp (r_id, relocation, date)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps,"
+                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",epsg,"), ",timestamps,"
                             FROM ",relocation_data,"
                             ORDER BY ",timestamps,";")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            query <- gsub(pattern='\\s', replacement=" ", x=query)
             invisible(dbGetQuery(conn, query))
         }
     }
@@ -98,7 +104,7 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                         FROM ",relocation_data,"
                         ) a
                         WHERE r_id = a.",rids,";")
-        query <- gsub(pattern = '\\s', replacement = " ", x = query)
+        query <- gsub(pattern='\\s', replacement=" ", x=query)
         invisible(dbGetQuery(conn, query))
     } else {
         # Use the string
@@ -116,7 +122,7 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                         FROM ",relocation_data,"
                         ) a
                         WHERE r_id = a.",rids,";")
-        query <- gsub(pattern = '\\s', replacement = " ", x = query)
+        query <- gsub(pattern='\\s', replacement=" ", x=query)
         invisible(dbGetQuery(conn, query))
     } else {
         # Use the string
@@ -134,7 +140,7 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                         FROM ",relocation_data,"
                         ) a
                         WHERE r_id = a.",rids,";")
-        query <- gsub(pattern = '\\s', replacement = " ", x = query)
+        query <- gsub(pattern='\\s', replacement=" ", x=query)
         invisible(dbGetQuery(conn, query))
     } else if (is.na(bursts) & length(animals) > 1){
         # Use animal name as default burst name
@@ -145,7 +151,7 @@ DB2reloc_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
                         FROM ",relocation_data,"
                         ) a
                         WHERE r_id = a.",rids,";")
-        query <- gsub(pattern = '\\s', replacement = " ", x = query)
+        query <- gsub(pattern='\\s', replacement=" ", x=query)
         invisible(dbGetQuery(conn, query))
     } else if (is.na(bursts) & length(animals) == 1) {
         query <- paste0("UPDATE reloc_temp SET b_name = '",animals,"';")

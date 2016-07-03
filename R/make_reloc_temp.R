@@ -16,5 +16,5 @@ make_reloc_temp <- function(conn, schema) {
                     p_name      text
                     );")
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
-    dbGetQuery(conn, query)
+    invisible(dbGetQuery(conn, query))
 }
