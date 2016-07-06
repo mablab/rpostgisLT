@@ -6,44 +6,17 @@
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param dframe Data frame created from an ltraj with the function ld_opt().
 #' @param pgtraj String. Name of the new pgtraj. Defaults to the name of the 
 #' variable that stores the ltraj.
 #' @param epsg Numeric. The EPSG code of the Coordinate Reference System of the 
 #' relocation coordinates in the ltraj. Defaults to 0.
 #' 
-#' TODO add Type I handling (deal with columns 'pkey' and the presence of 'date')
 #' 
 ###############################################################################
-
-data(ibex)
-dframe <- ld_opt(ibex)
-
-pgtraj <- "ibex"
-
-ibexI <- typeII2typeI(ibex)
-dframeI <- ld_opt(ibexI)
-DF <- dframeI
-
-make_relocs_temp(conn, "traj_t1")
-make_pgtraj_schema(conn, "traj_t2")
-make_relocs_temp(conn, "traj_t2")
-make_pgtraj_schema(conn, "traj_t3")
-make_relocs_temp(conn, "traj_t3")
-
-drop_relocs_temp(conn, "traj_t2")
-
-
-R2relocs_temp(conn, "traj_t1", dframe, pgtraj = "ibex", epsg = 0) # Type II
-R2relocs_temp(conn, "traj_t2", dframeI, pgtraj = "ibex", epsg = 0) # Type I
-
 R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     # Prepare the data frame to match 'relocs_temp'
     DF <- cbind(dframeI, "r_id" = row.names(dframeI))
-    # TODO cannot create SpatialPoints form NAs, what now?
-#    coords <- SpatialPoints(DF[, c("x", "y")], proj4string = srs)
-#    spdf <- SpatialPointsDataFrame(coords, DF)
-    # TODO add check for pkey column and then include it
     DF$p_name <- pgtraj
     i <- sapply(DF, is.factor)
     DF[i] <- lapply(DF[i], as.character)
@@ -58,8 +31,6 @@ R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
                     strftime(x, format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE)
         )
     }
-#    pgi <- pgInsertizeGeom(spdf, geom = "relocation")
-#    pgInsert(conn, pgi, c(schema, "relocs_temp"))
     
     # Prepare column names for insert. X and Y columns must be DF[1:2].
     x <- colnames(DF)[3:length(DF)]
