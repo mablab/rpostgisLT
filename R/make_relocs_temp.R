@@ -9,6 +9,7 @@ make_relocs_temp <- function(conn, schema) {
     # Create 'relocs_temp' table
     query <- paste0("CREATE TABLE ", schema, ".relocs_temp (
                     r_id    serial,
+                    pkey    text,
                     relocation     geometry,
                     date    timestamptz,
                     b_name      text,
@@ -20,6 +21,6 @@ make_relocs_temp <- function(conn, schema) {
 }
 
 drop_relocs_temp <- function(conn, schema) {
-    query <- paste0("DROP TABLE ", schema, ".relocs_temp;")
+    query <- paste0("DROP TABLE IF EXISTS ", schema, ".relocs_temp;")
     invisible(dbGetQuery(conn, query))
 }
