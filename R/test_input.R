@@ -12,8 +12,6 @@
 #pgtrajs <- "pgt"
 #animals <- 1
 
-test_input(epsg = "abd")
-
 test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
         bursts = NULL, rids = NULL, epsg = NULL) {
     

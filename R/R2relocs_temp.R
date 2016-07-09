@@ -16,7 +16,7 @@
 ###############################################################################
 R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     # Prepare the data frame to match 'relocs_temp'
-    DF <- cbind(dframeI, "r_id" = row.names(dframeI))
+    DF <- cbind(dframe, "r_id" = row.names(dframe))
     DF$p_name <- pgtraj
     i <- sapply(DF, is.factor)
     DF[i] <- lapply(DF[i], as.character)
@@ -49,9 +49,16 @@ R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
                toString(paste(x[3:length(x)], collapse = "','")),
                "')")
     }
+    
     d1 <- apply(DF, 1, parse_row)
     values <- paste(d1, collapse = ",")
-    query_insert <- paste("INSERT INTO relocs_temp ", cols, " VALUES ", values,";")
+    query_insert <- paste("INSERT INTO relocs_temp ", cols, " VALUES ", values, ";")
+    # Order relocations by pkey (Type I) or by timestamp (Type II)
+#    if ("pkey" %in% colnames(DF)) {
+#        query_insert <- paste(query_insert, "ORDER BY pkey;")
+#    } else {
+#        query_insert <- paste(query_insert, "ORDER BY date;")
+#    }
     
     # Begin transaction block and set database search path
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
@@ -64,4 +71,6 @@ R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     invisible(dbGetQuery(conn, query))
     invisible(dbCommit(conn))
     message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))
+    
+    return(TRUE)
 }

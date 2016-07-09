@@ -26,8 +26,11 @@ ltraj2pgtraj <- function(ltraj, conn, schema, pgtraj = NULL, epsg = NULL,
     # Set projection
     if (is.null(epsg)) {
         epsg <- 0
+        srs <- CRS()@projargs
     } else if (!is.numeric(epsg)) {
         stop("EPSG code must be numeric")
+    } else {
+        srs <- CRS(paste0("+init=epsg:", epsg))@projargs
     }
     
     # Convert ltraj to data frame
@@ -36,25 +39,34 @@ ltraj2pgtraj <- function(ltraj, conn, schema, pgtraj = NULL, epsg = NULL,
     # Check and create a pgtraj schema
     x <- make_pgtraj_schema(conn, schema)
     # If schema doesn't exists and user doesn't want to create it
-    if (x == 0) {
+    if (x == "Exit") {
         stop("Returning from function...")
     }
     
     # Import data frame into a temporary table
     make_relocs_temp(conn, schema)
-    R2relocs_temp(conn, schema, dframe, pgtraj, epsg)
+    test <- R2relocs_temp(conn, schema, dframe, pgtraj, epsg)
     
     # Insert from temporary table into the schema
-    as_pgtraj(conn, schema, db = FALSE)
+    test <- as_pgtraj(conn, schema, db = FALSE)
     
     # Drop temporary table
     drop_relocs_temp(conn, schema)
     
-    # Insert comment on the pgtraj
-    # INSERT INTO pgtrajs (comment) VALUES () WHERE p_name LIKE pgtraj
-    
+    # Insert CRS and comment on the pgtraj
+    if (all(test)) {
+        
+        query <- paste0("UPDATE ",schema,".pgtrajs
+                        SET r_proj = '", srs, "', \"comment\" = '", comment, "'
+                        WHERE p_name = '", pgtraj, "';")
+#        query <- paste0("UPDATE pgtrajs (r_proj, comment) 
+#                        VALUES ('", srs, "', '", comment, "')
+#                        WHERE p_name = '", pgtraj, "';")
+        query <- gsub(pattern = '\\s', replacement = " ", x = query)
+        invisible(dbGetQuery(conn, query))
+        message(paste(pgtraj, "inserted into the database schema ", schema,"successfuly"))
+        return(TRUE)
+    } else {
+        stop("Ltraj insert failed")
+    }
 }
-
-#records <- ltraj2pgtraj(ibex)
-
-

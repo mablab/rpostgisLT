@@ -162,6 +162,10 @@ DB2relocs_temp <- function(conn, schema, relocation_data, pgtrajs, animals,
         invisible(dbGetQuery(conn, query))
     }
     
+    # Commit transaction
+    dbCommit(conn)
+    message("Values were successfully inserted into 'relocs_temp'.")
+    
     # Reset DB search path to the public schema
     query <- "SET search_path TO \"$user\",public;"
     invisible(dbGetQuery(conn, query))

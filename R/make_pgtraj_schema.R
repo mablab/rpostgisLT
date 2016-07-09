@@ -32,7 +32,7 @@ make_pgtraj_schema <- function(conn, schema) {
             acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
         }
         if (acr %in% "n") {
-            return(0)
+            return("Exit")
         } else {
             # Begin transaction block
             invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))

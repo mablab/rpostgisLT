@@ -1,11 +1,6 @@
 # 
 # Author: bdukai
 ###############################################################################
-library(RPostgreSQL)
-library(rpostgis)
-
-source("./R/as_pgtraj.r")
-
 # all variables stored with the raw data
 as_pgtraj(conn, 
         schema = "traj_t1",
@@ -36,7 +31,5 @@ as_pgtraj(conn,
         relocations = "geom",
         rid = "gid")
 
-dbGetQuery(conn, "set search_path to traj_t3, public;")
-suppressWarnings(dbGetQuery(conn, "select step from steps limit 1;"))
+ltraj2pgtraj(ibex, conn, "traj_t3")
 
-t <- c(t, dbGetQuery(conn, "select step from steps limit 1;"))

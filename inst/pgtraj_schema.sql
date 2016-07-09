@@ -11,7 +11,8 @@
 CREATE TABLE pgtrajs (
     p_id        serial      PRIMARY KEY,
     p_name      text        NOT NULL UNIQUE,
-    r_proj      text
+    r_proj      text,
+    comment     text
 );
 
 CREATE TABLE animals (
@@ -55,9 +56,10 @@ CREATE TABLE p_b_rel (
 );
 
 CREATE TABLE steps (
-    s_id        serial   PRIMARY KEY,
-    r_rowname   text,
-    step        geography   NOT NULL,
+    s_id        serial      PRIMARY KEY,
+    r_rowname   text        DEFAULT NULL,
+    reloc1      geometry    DEFAULT NULL,
+    step        geometry    DEFAULT NULL,
     "date"      timestamptz DEFAULT NULL,
     dt          interval    DEFAULT NULL
 );
