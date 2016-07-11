@@ -4,8 +4,9 @@ SET search_path TO traj_t1,public;
 SET search_path TO "$user",public;
 
 --CREATE OR REPLACE VIEW example_data.step_param AS
+CREATE MATERIALIZED VIEW ibex_params AS 
 SELECT 
-    r_rowname,
+    s.r_rowname,
     st_x(s.reloc1) AS x, 
     st_y(s.reloc1) AS y,
     s.date,
@@ -31,8 +32,8 @@ SELECT
         ST_Azimuth(st_startpoint(s2.step), st_endpoint(s2.step)) -
         ST_Azimuth(st_startpoint(s.step), st_endpoint(s.step))
     ) AS rel_angle,
-    b.b_name AS burst,
     a.a_name AS id,
+    b.b_name AS burst,
     p.p_name AS pgtraj
 FROM steps AS s 
 INNER JOIN steps AS s2 ON s.s_id + 1 = s2.s_id

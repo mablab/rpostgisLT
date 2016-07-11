@@ -143,7 +143,7 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
                             END as step,
                                 a.date,
                                 b.date - a.date AS dt,
-                                '",i,"'
+                                '", i, "'
                             FROM 
                                 relocs_temp AS a
                                 INNER JOIN relocs_temp AS b 
@@ -169,6 +169,12 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
     }
     # Drop temporary column
     invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
+    
+    # Create view for step parameters
+    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
+    for (i in pgt) {
+        make_params_view(conn, schema, i)
+    }
     
     # Commit transaction and reset search path in the database
     query <- "SET search_path TO \"$user\",public;"

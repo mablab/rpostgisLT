@@ -45,7 +45,7 @@ ltraj2pgtraj <- function(ltraj, conn, schema, pgtraj = NULL, epsg = NULL,
     
     # Import data frame into a temporary table
     make_relocs_temp(conn, schema)
-    test <- R2relocs_temp(conn, schema, dframe, pgtraj, epsg)
+    test <- suppressMessages(R2relocs_temp(conn, schema, dframe, pgtraj, epsg))
     
     # Insert from temporary table into the schema
     test <- as_pgtraj(conn, schema, db = FALSE)
@@ -64,7 +64,7 @@ ltraj2pgtraj <- function(ltraj, conn, schema, pgtraj = NULL, epsg = NULL,
 #                        WHERE p_name = '", pgtraj, "';")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbGetQuery(conn, query))
-        message(paste(pgtraj, "inserted into the database schema ", schema,"successfuly"))
+        message(paste0("The ltraj '", pgtraj, "' inserted into the database schema ", schema," successfully."))
         return(TRUE)
     } else {
         stop("Ltraj insert failed")

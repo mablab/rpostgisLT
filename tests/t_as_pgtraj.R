@@ -3,7 +3,7 @@
 ###############################################################################
 # all variables stored with the raw data
 as_pgtraj(conn, 
-        schema = "traj_t1",
+        schema = "traj_t3",
         relocation_data = "example_data.relocations_plus", 
         pgtrajs = "id",
         animals = "animal",
@@ -31,5 +31,5 @@ as_pgtraj(conn,
         relocations = "geom",
         rid = "gid")
 
-ltraj2pgtraj(ibex, conn, "traj_t3")
-
+ltraj2pgtraj(ibex, conn, "traj_t2")
+ibex_pg <- pgtraj2ltraj(conn, "traj_t2", "ibex")
