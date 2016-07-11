@@ -1,145 +1,63 @@
--- VIEW TO compute the step parameters
-/*CREATE MATERIALIZED VIEW pgtraj.step_parameters AS
-SELECT 
-    s_id,
-    x,
-    y,
-    time AS date,
-    dx,
-    dy,
-    st_length(step) AS dist,
-    dtime AS dt,
-    r2n,
-    abs_angle,
-    rel_angle,
-    b_id
-FROM pgtraj.steps*/
-
-CREATE MATERIALIZED VIEW pgtraj.step_parameters AS
-SELECT 
-    s_id,
-    st_x(st_startpoint(step::geometry)) AS x, 
-    st_y(st_startpoint(step::geometry)) AS y,
-    date,
-    ST_Distance_Sphere(st_startpoint(step::geometry),
-                st_makepoint(st_x(st_endpoint(step::geometry)), 
-                             st_y(st_startpoint(step::geometry)))) AS dx,
-    ST_Distance_Sphere(st_makepoint(st_x(st_endpoint(step::geometry)), 
-                             st_y(st_startpoint(step::geometry))),
-            st_endpoint(step::geometry)) AS dy,
-    st_length(step) AS dist,
-    dt
-FROM pgtraj.steps;
-
-
-SELECT 
-        b.startgid,
-        b.id,
-        degrees(
-               st_azimuth(
-                          st_startpoint(b.step_geog::geometry),
-                          st_endpoint(b.step_geog::geometry)
-                          )
-               -
-               st_azimuth(
-                          st_startpoint(a.step_geog::geometry),
-                          st_endpoint(a.step_geog::geometry)
-                         )
-               )
-FROM example_data.steps AS a INNER JOIN example_data.steps AS b 
-ON a.startgid = b.startgid + 1
-AND a.id = b.id;
-
-
-
-/* Use a spheroid for calculating dy, dy
- * WGS 84 spheroid
+/* Calculate step parameters pgtraj v6
  */
-CREATE VIEW example_data.step_param_test AS
+SET search_path TO traj_t1,public;
+SET search_path TO "$user",public;
+
+--CREATE OR REPLACE VIEW example_data.step_param AS
 SELECT 
-    startgid AS s_id,
-    st_x(st_startpoint(step_geog::geometry)) AS x, 
-    st_y(st_startpoint(step_geog::geometry)) AS y,
-    time AS date,
-    ST_Distance_Spheroid(
-                        st_startpoint(step_geog::geometry),
-                        st_setSRID(
-                                   st_makepoint(
-                                                st_x(st_endpoint(step_geog::geometry)), 
-                                                st_y(st_startpoint(step_geog::geometry))
-                                               ),
-                                   4326
-                                   ),
-                        'SPHEROID["WGS 84",6378137,298.257223563]'
-                         ) AS dx,
-    ST_Distance_Spheroid(
-                       st_setSRID(
-                                  st_makepoint(
-                                               st_x(st_endpoint(step_geog::geometry)), 
-                                               st_y(st_startpoint(step_geog::geometry))
-                                               ),
-                                  4326
-                                  ),
-                       st_endpoint(step_geog::geometry),
-                       'SPHEROID["WGS 84",6378137,298.257223563]'
-                       ) AS dy,
-    st_length(step_geog) AS dist,
-    dt
-FROM example_data.steps;
-
--- median error with using st_distance_spheroid when calculating dx, dy
--- -0.46
-SELECT sum(error) / count(*) 
-FROM (
-    SELECT sqrt(dx^2 + dy^2) AS test_dist, 
-           dist,
-           sqrt(dx^2 + dy^2) - dist AS error
-    FROM example_data.step_param_test
-) AS foo;
-
-
-/* Use ST_Distance_Sphere when calculating dx, dy
- * Using sphere, not spheroid
- */
-CREATE OR REPLACE VIEW example_data.step_param_t_sphere AS
-SELECT 
-    startgid AS s_id,
-    st_x(st_startpoint(step_geog::geometry)) AS x, 
-    st_y(st_startpoint(step_geog::geometry)) AS y,
-    time AS date,
-    ST_Distance_Sphere(
-                       st_startpoint(step_geog::geometry),
-                       st_setSRID(
-                                   st_makepoint(
-                                                st_x(st_endpoint(step_geog::geometry)), 
-                                                st_y(st_startpoint(step_geog::geometry))
-                                                ),
-                                  4326
-                                  )
-                       ) AS dx,
-    ST_Distance_Sphere(
-                        st_setSRID(
-                                    st_makepoint(
-                                                 st_x(st_endpoint(step_geog::geometry)), 
-                                                 st_y(st_startpoint(step_geog::geometry))
-                                                 ),
-                                   4326
-                                   ),
-                        st_endpoint(step_geog::geometry)
-                       ) AS dy,
-    st_length(step_geog) AS dist,
-    dt
-FROM example_data.steps;
-
--- median error with using st_distance_sphere when calculating dx, dy
--- 3.40
-SELECT sum(error) / count(*) 
-FROM (
-    SELECT sqrt(dx^2 + dy^2) AS test_dist, 
-           dist,
-           sqrt(dx^2 + dy^2) - dist AS error
-    FROM example_data.step_param_t_sphere
-) AS foo;
-
-
- 
+    r_rowname,
+    st_x(s.reloc1) AS x, 
+    st_y(s.reloc1) AS y,
+    s.date,
+    ST_Distance(
+               st_startpoint(s.step),
+               st_makepoint(
+                            st_x(st_endpoint(s.step)), 
+                            st_y(st_startpoint(s.step))
+                            )
+                ) AS dx,
+    ST_Distance(
+                st_makepoint(
+                             st_x(st_endpoint(s.step)), 
+                             st_y(st_startpoint(s.step))
+                             ),
+                st_endpoint(s.step)
+               ) AS dy,
+    st_length(s.step) AS dist,
+    s.dt,
+    ST_Distance(startp.reloc1, s.reloc1) AS r2n,
+    atan2(st_y(s.reloc1), st_x(s.reloc1)) AS abs_angle,
+    (
+        ST_Azimuth(st_startpoint(s2.step), st_endpoint(s2.step)) -
+        ST_Azimuth(st_startpoint(s.step), st_endpoint(s.step))
+    ) AS rel_angle,
+    b.b_name AS burst,
+    a.a_name AS id,
+    p.p_name AS pgtraj
+FROM steps AS s 
+INNER JOIN steps AS s2 ON s.s_id + 1 = s2.s_id
+JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
+JOIN bursts AS b ON s_rel.b_id = b.b_id
+JOIN animals AS a ON b.a_id = a.a_id
+JOIN p_b_rel AS p_rel ON p_rel.b_id = b.b_id
+JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
+JOIN 
+    (
+        SELECT 
+            m.*,
+            s.reloc1
+        FROM 
+        (
+            SELECT
+            min(s.s_id) AS s_id,
+            s_rel.b_id
+            FROM steps AS s
+            JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
+            JOIN p_b_rel AS p_rel ON p_rel.b_id = s_rel.b_id
+            JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
+            WHERE p_name LIKE 'ibex'
+            GROUP BY s_rel.b_id
+        ) AS m
+        JOIN steps AS s ON s.s_id = m.s_id
+    ) AS startp ON startp.b_id = s_rel.b_id
+WHERE p_name LIKE 'ibex';
