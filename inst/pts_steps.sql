@@ -6,7 +6,8 @@ INSERT INTO steps (
     reloc1,
     step,
     date,
-    dt
+    dt,
+    b_name
 ) (
     SELECT
     CASE 
@@ -26,7 +27,8 @@ INSERT INTO steps (
              (a.relocation IS NULL AND b.relocation IS NULL) THEN NULL
     END as step,
         a.date,
-        b.date - a.date AS dt
+        b.date - a.date AS dt,
+        'A153'
     FROM 
         relocs_temp AS a
         INNER JOIN relocs_temp AS b 

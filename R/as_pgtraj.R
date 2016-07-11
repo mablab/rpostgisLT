@@ -20,7 +20,9 @@
 #' 
 #' Not tested with capital letters for PostgreSQL field names, but it probably won't 
 #' work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercase.
-
+#' 
+#' @export 
+#' 
 # TODO test capital letters in field names
 # TODO subset raw data 
 # TODO ellaborate on transaction (t) test, probably tryCatch() with dbRollback would work
@@ -119,7 +121,8 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
                             reloc1,
                             step,
                             date,
-                            dt
+                            dt,
+                            b_name
                         ) (
                             SELECT
                             CASE 
@@ -139,7 +142,8 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
                                      (a.relocation IS NULL AND b.relocation IS NULL) THEN NULL
                             END as step,
                                 a.date,
-                                b.date - a.date AS dt
+                                b.date - a.date AS dt,
+                                '",i,"'
                             FROM 
                                 relocs_temp AS a
                                 INNER JOIN relocs_temp AS b 
@@ -163,6 +167,8 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
         # Delete b_names from temporary column
         invisible(dbGetQuery(conn, "UPDATE steps SET b_name = NULL;"))
     }
+    # Drop temporary column
+    invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
     
     # Commit transaction and reset search path in the database
     query <- "SET search_path TO \"$user\",public;"
