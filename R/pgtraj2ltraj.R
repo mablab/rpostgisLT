@@ -7,10 +7,10 @@
 #' @export 
 #' 
 #' @example
-#' pgtraj2ltraj()
+#' pgtraj2ltraj(conn, pgtraj = "ibex") # looks into 'traj' schema by default
 #' 
 ################################################################################
-pgtraj2ltraj <- function(conn, schema, pgtraj) {
+pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Begin transaction block
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     query <- paste0("SET search_path TO ", schema, ",public;")

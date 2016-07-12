@@ -23,16 +23,22 @@
 #' 
 #' @export 
 #' 
+#' @example 
+#' as_pgtraj(conn, schema = "traj_t3", relocation_data = "example_data.relocations_plus", 
+#'      pgtrajs = "id", animals = "animal", bursts = "burst", relocations = "geom",
+#'      timestamp = "time", rid = "gid")
+#' 
 # TODO test capital letters in field names
 # TODO subset raw data 
-# TODO ellaborate on transaction (t) test, probably tryCatch() with dbRollback would work
+# TODO ellaborate on transaction (t) test, probably tryCatch() with dbRollback would work,
+# TODO make sure that if any part breaks, the transaction is rolled back
+# TODO after DB2relocs_temp success, gives a warning that WARNING:  there is already a transaction in progress,
+# probably I'll need to end the tansaction with submitting a query manually, not with dbCommit()
 # line end comment
 ## below line comment
 ### standalone
-
-
 ###############################################################################
-as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL, 
+as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL, 
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations = NULL,
         timestamps = NULL, rids = "rid", db = TRUE) {
     
@@ -61,15 +67,15 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
                 acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
             }
             if (acr %in% "n") {
-                stop("Returning from function...")
+                stop("Projection is not set, returning from function.")
             }
         }
         
         # Create traj database schema if it doesn't exist
         x <- make_pgtraj_schema(conn, schema)
         # If schema doesn't exists and user doesn't want to create it
-        if (x == 0) {
-            stop("Returning from function...")
+        if (x == "Exit") {
+            stop("Schema not created, returning from function.")
         }
         
         ##### Data input
@@ -77,8 +83,8 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
         make_relocs_temp(conn, schema)
         
         # Insert values into 'relocs_temp'
-        DB2relocs_temp(conn, schema, relocation_data, pgtrajs, animals,
-                bursts, relocations, timestamps, rids, epsg)
+        suppressMessages(DB2relocs_temp(conn, schema, relocation_data, pgtrajs, animals,
+                bursts, relocations, timestamps, rids, epsg))
     }
     
     ##### Insert relocations from the temporary table into the schema
@@ -159,8 +165,7 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
                         SELECT a.s_id, b.b_id
                         FROM steps a, bursts b
                         WHERE a.b_name = '",i , "' 
-                        AND b.b_name = '", i, "'; "
-        )
+                        AND b.b_name = '", i, "'; ")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbGetQuery(conn, query))
        
@@ -170,11 +175,11 @@ as_pgtraj <- function(conn, schema = "pgtraj", relocation_data = NULL,
     # Drop temporary column
     invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
     
-    # Create view for step parameters
-    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
-    for (i in pgt) {
-        make_params_view(conn, schema, i)
-    }
+#    # Create view for step parameters
+#    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
+#    for (i in pgt) {
+#        make_params_view(conn, schema, i)
+#    }
     
     # Commit transaction and reset search path in the database
     query <- "SET search_path TO \"$user\",public;"

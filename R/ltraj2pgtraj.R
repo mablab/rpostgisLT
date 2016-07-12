@@ -12,11 +12,11 @@
 #' @export 
 #' 
 #' @example
-#' ltraj2pgtraj()
+#' ltraj2pgtraj(conn, ibex) # looks into 'traj' schema by default
 #' 
 # TODO once SRID is stored in the ltraj, include that too
 ################################################################################
-ltraj2pgtraj <- function(ltraj, conn, schema, pgtraj = NULL, epsg = NULL,
+ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NULL,
         comment = NULL) {
     # 'pgtraj' defaults to the name of ltraj
     if (is.null(pgtraj)) {
