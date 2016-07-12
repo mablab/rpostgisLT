@@ -4,51 +4,58 @@
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
+#' @param epsg Numeric. EPSG code of the relocation geometry.
 #' 
 #' @example 
-#' make_params_view(conn, "traj_t1", "ibex")
+#' make_params_view(conn, "traj_t1", "ibex", 6423)
 #' 
 ###############################################################################
-drop_params_view <- function(conn, schema, pgtraj) {
-    query <- paste0("DROP MATERIALIZED VIEW IF EXISTS ", schema, ".", pgtraj, "_params CASCADE;")
-    invisible(dbGetQuery(conn, query))
-}
+#drop_params_view <- function(conn, schema, pgtraj) {
+##    query <- paste0("DROP VIEW IF EXISTS ", schema, ".", pgtraj, "_params CASCADE;")
+#    invisible(dbGetQuery(conn, query))
+#}
 
-make_params_view <- function(conn, schema, pgtraj) {
+make_params_view <- function(conn, schema, pgtraj, epsg) {
     
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbGetQuery(conn, query))
     
-    drop_params_view(conn, schema, pgtraj)
+    # drop_params_view(conn, schema, pgtraj)
     
-    query <- paste0("CREATE MATERIALIZED VIEW ", pgtraj, "_params AS 
+    query <- paste0("CREATE OR REPLACE VIEW ", pgtraj, "_params AS 
             SELECT 
                 s.r_rowname,
-                st_x(s.reloc1) AS x, 
-                st_y(s.reloc1) AS y,
+                ST_x(s.reloc1) AS x, 
+                ST_y(s.reloc1) AS y,
                 s.date,
                 ST_Distance(
-                           st_startpoint(s.step),
-                           st_makepoint(
-                                        st_x(st_endpoint(s.step)), 
-                                        st_y(st_startpoint(s.step))
-                                        )
+                           ST_Startpoint(s.step),
+                           ST_SetSRID(
+                                      ST_Makepoint(
+                                                    ST_X(ST_endpoint(s.step)), 
+                                                    ST_Y(ST_startpoint(s.step))
+                                                  ),
+                                      ", epsg, "
+                                    )
                             ) AS dx,
                 ST_Distance(
-                            st_makepoint(
-                                         st_x(st_endpoint(s.step)), 
-                                         st_y(st_startpoint(s.step))
-                                         ),
-                            st_endpoint(s.step)
+                            ST_SetSRID(
+                                       ST_Makepoint(
+                                                     ST_x(ST_endpoint(s.step)), 
+                                                     ST_y(ST_startpoint(s.step))
+                                                    ),
+                                        ", epsg, "
+                                        ),
+                            ST_endpoint(s.step)
                            ) AS dy,
-                st_length(s.step) AS dist,
+                ST_length(s.step) AS dist,
                 s.dt,
                 ST_Distance(startp.reloc1, s.reloc1) AS r2n,
-                atan2(st_y(s.reloc1), st_x(s.reloc1)) AS abs_angle,
+                atan2(ST_y(s.reloc1), ST_x(s.reloc1)) AS abs_angle,
                 (
-                    ST_Azimuth(st_startpoint(s2.step), st_endpoint(s2.step)) -
-                    ST_Azimuth(st_startpoint(s.step), st_endpoint(s.step))
+                    ST_Azimuth(ST_startpoint(s2.step), ST_endpoint(s2.step)) -
+                    ST_Azimuth(ST_startpoint(s.step), ST_endpoint(s.step))
                 ) AS rel_angle,
                 a.a_name AS id,
                 b.b_name AS burst,
@@ -86,7 +93,7 @@ make_params_view <- function(conn, schema, pgtraj) {
     query <- "SET search_path TO \"$user\",public;"
     invisible(dbGetQuery(conn, query))
     dbCommit(conn)
-    message(paste0("Materialized view ", pgtraj, "_params successfully created on schema ", schema, "."))
+    message(paste0("View ", pgtraj, "_params successfully created on schema ", schema, "."))
     
     return(TRUE)
 }

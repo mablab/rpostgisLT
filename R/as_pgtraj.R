@@ -34,6 +34,7 @@
 # TODO make sure that if any part breaks, the transaction is rolled back
 # TODO after DB2relocs_temp success, gives a warning that WARNING:  there is already a transaction in progress,
 # probably I'll need to end the tansaction with submitting a query manually, not with dbCommit()
+# TODO refactor relocation_data to 'table' or 'relocation_table', refactor relocations to ?
 # line end comment
 ## below line comment
 ### standalone
@@ -175,11 +176,11 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
     # Drop temporary column
     invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
     
-#    # Create view for step parameters
-#    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
-#    for (i in pgt) {
-#        make_params_view(conn, schema, i)
-#    }
+    # Create view for step parameters
+    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
+    for (i in pgt) {
+        make_params_view(conn, schema, i, epsg)
+    }
     
     # Commit transaction and reset search path in the database
     query <- "SET search_path TO \"$user\",public;"
