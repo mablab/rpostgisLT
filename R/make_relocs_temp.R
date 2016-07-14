@@ -1,6 +1,8 @@
 #' Creates the table 'relocs_temp', which is a temporary table used by other
 #' function of the package.
 #' 
+#' @author Balázs Dukai
+#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' 

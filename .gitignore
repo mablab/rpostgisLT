@@ -8,3 +8,4 @@ rpostgisLT.Rproj
 /.dbeaver-data-sources.xml
 adehabitatLT
 /utility_functions.R
+inst/doc

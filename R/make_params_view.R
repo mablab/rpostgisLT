@@ -1,13 +1,13 @@
 #' Computes the trajectory parameters (as in ltraj) for a pgtraj and creates a 
 #' materialized view for the pgtraj. The views are always named as '<pgtraj>_params'.
 #' 
+#' @author Balázs Dukai
+#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' @param epsg Numeric. EPSG code of the relocation geometry.
 #' 
-#' @example 
-#' make_params_view(conn, "traj_t1", "ibex", 6423)
 #' 
 ###############################################################################
 #drop_params_view <- function(conn, schema, pgtraj) {

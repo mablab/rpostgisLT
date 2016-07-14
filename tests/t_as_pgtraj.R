@@ -65,4 +65,4 @@ DB2relocs_temp(conn, schema = "traj_t1",
               pgtrajs = "fires", animals = "fires_a", bursts = "fires_b", 
               relocation_geom = "wkb_geometry", timestamps = "time", rids = "ogc_fid",
               epsg = 900914)
- 
+

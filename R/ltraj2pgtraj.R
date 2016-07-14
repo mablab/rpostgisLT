@@ -1,4 +1,11 @@
-#' Import an ltraj object from R into a traj schema.
+#' Export an ltraj object from R into a traj database schema.
+#' 
+#' @description 
+#' \code{ltraj2pgtraj} creates a new traj schema or uses an existing one and 
+#' exports an ltraj to the database. Uses \code{as_pgtraj} to insert the values 
+#' into the traj schema.
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param ltraj An ltraj object.
 #' @param conn Connection object created with RPostgreSQL
@@ -9,10 +16,16 @@
 #' relocation coordinates in the ltraj. Defaults to 0.
 #' @param comment String. A comment that will be stored with the pgtraj in the database.
 #' 
-#' @export 
+#' @return TRUE on success
 #' 
-#' @example
-#' ltraj2pgtraj(conn, ibex) # looks into 'traj' schema by default
+#' @seealso \code{\link{as_pgtraj}}
+#' 
+#' @examples 
+#' \dontrun{ltraj2pgtraj(conn, ibex, "traj_t2")}
+#' 
+#' @import RPostgreSQL, rpostgis, testthat
+#' 
+#' @export 
 #' 
 # TODO once SRID is stored in the ltraj, include that too
 ################################################################################

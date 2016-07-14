@@ -1,0 +1,112 @@
+---
+title: "rpostgisLT: Managing and visualizing movement data with PostGIS and R"
+author: "Balázs Dukai"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Motivation for the package and relation to adehabitatLT
+
+## The pgtraj database model
+
+### General remarks
+It is possible, but not recommended, to add extra columns to the tables to store
+additional information. For example to preserve the old, non-integer burst IDs
+additionally to the burst names (b_name), and also create new burst IDs (b_id),
+the user might want to add a column to store the old burst IDs (e.g. b_old_id).
+Note that although the columns *_id use auto-incrementing integers, it is
+possible to provide own integer values for these columns. Also note that
+additional information about the data can be provided in the infolocs tables,
+which the the recommended procedure See further at the table description. 
+
+The default schema name is ‘pgtraj’, and can store as many pgtrajes as needed.
+Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all
+functions default to schema ‘pgtraj’, but the user can change the target schema.
+
+It is possible to modify steps and bursts. The procedure in this case is to
+create a new step or burst and delete the old one.
+
+### Database model
+
+![ER diagram of the pgtraj database model](./figure/database_model.png)
+
+**animals table**\
+Contains animal names.
+
+| Name   | Type   | Constraint       | Description                          |
+|--------|--------|------------------|--------------------------------------|
+|a_id   | serial | PK               | Auto-generated numeric ID of animal. |
+|a_name | text   | Not Null, unique | Name of the animal.                  |
+
+**bursts table**\
+Contains burst information and their relation to animals. One burst can belong
+only to one animal, but one animal can have many bursts.
+
+| Name   | Type    | Constraint| Description|
+|--------|---------|-----------------------------------------------------------------|-------------------------------------------------------------------------------|
+| b_id   | serial  | PK | Auto-generated numeric ID of burst.| 
+| b_name | text | default: animal name corresponding to the provided unique | Name or other identifier of burst.             |  
+| a_id  | integer | FK| ID ofthe animal that made the burst. Pointing to the entry in animals table. |
+
+**infolocs table**\
+Contains additional information on steps. Mirrors the infolocs attribute of an ltraj object.
+
+| Name    | Type   | Constraint | Description                                          |
+|---------|--------|------------|------------------------------------------------------|
+| i_id    | serial | PK         | Auto-generated numeric ID of infoloc.                |
+| infoloc | json   |            | Contains the additional information encoded in JSON. |
+
+**pgtrajs table**\
+Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
+
+| Name    | Type   | Constraint       | Description                                      |
+|---------|--------|------------------|--------------------------------------------------|
+| p_id    | serial | PK               | Auto-generated numeric ID of pgtraj.             |
+| p_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
+| r_proj  | text   |                  | Projection string of the ltraj, imported from R. |
+| comment | text   |                  |                                                  |
+
+**p_b_rel table**\
+Relates pgtraj and burst. The exact same burst (ID and name) can belong to many pgtrajs, as well as a pgtraj can contain many bursts.
+
+| Name | Type    | Constraint       | Description                             |
+|------|---------|------------------|-----------------------------------------|
+| p_id | integer | PK, FK, Not Null | Pointing to the entry in pgtrajs table. |
+| b_id | integer | PK, FK, Not Null | Pointing to the entry in bursts table.  |
+
+**steps table**\
+Steps and their first relocations.
+
+| Name      | Type        | Constraint    | Description                                                                                                           |
+|-----------|-------------|---------------|-----------------------------------------------------------------------------------------------------------------------|
+| s_id      | serial      | PK            | Auto-generated numeric ID of step. Equal to the ID of the first of the two successive relocations that form the step. |
+| r_rowname | text        | default: Null | Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.                          |
+| reloc1    | geometry    | default: Null | Geometry of the first relocation in a step. POINT                                                                     |
+| step      | geometry    | default: Null | Geometry of the step. LINESTRING                                                                                      |
+| date      | timestamptz | default: Null | Timestamp of the first of the two successive locations that form the step.                                            |
+| dt        | interval    | default: Null | Duration of the step.                                                                                                 |
+
+**s_i_b_rel table**\
+Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step–burst pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.
+
+| Name | Type    | Constraint       | Description                              |
+|------|---------|------------------|------------------------------------------|
+| s_id | integer | PK, FK, Not Null | Pointing to the entry in steps table.    |
+| i_id | integer | FK, Not Null     | Pointing to the entry in infolocs table. |
+| b_id | integer | PK, FK, Not Null | Pointing to the entry in bursts table.   |
+
+### Storing geometries in PostGIS
+
+### Managing projections in PostGIS and R
+
+### Managing time zones in PostgreSQL and R
+
+## Use cases

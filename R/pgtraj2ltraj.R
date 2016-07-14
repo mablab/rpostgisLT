@@ -1,23 +1,28 @@
-#' Export a pgtraj into an ltraj.
+#' Import a pgtraj into an ltraj.
+#' 
+#' @description 
+#' \code{pgtraj2ltraj} imports a single pgtraj from a database into an ltraj object.
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' 
-#' @export 
+#' @return an ltraj object
 #' 
-#' @example
-#' pgtraj2ltraj(conn, pgtraj = "ibex") # looks into 'traj' schema by default
+#' @examples 
+#' \dontrun{pgtraj2ltraj(conn, "traj_t2", "ibex")}
+#' 
+#' @import RPostgreSQL, rpostgis, testthat
+#' 
+#' @export 
 #' 
 ################################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Begin transaction block
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
-    
-    # Refresh view
-    query <- paste0("REFRESH MATERIALIZED VIEW ", pgtraj, "_params;")
     invisible(dbGetQuery(conn, query))
     
     # Get parameters

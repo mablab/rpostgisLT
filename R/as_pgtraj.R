@@ -1,9 +1,27 @@
-#' Function converts relocation data into the pgtraj data model.
+#' Converts relocation data into the pgtraj data model.
 #' 
+#' @description
+#' This is the core function of the \code{rpostgisLT} package and it is also 
+#' used by \code{\link{ltraj2pgtraj}} to import trajectory data into a pgtraj 
+#' data model. \code{as_pgtraj} copies the trajectory data which is stored in 
+#' a database to a traj schema. If the provided schema doesn't exist, it is 
+#' created on demand. On successful data input, \code{as_pgtraj} creates a view for
+#' each pgtraj, with the views named as <pgtraj>_params. The view contains the same step parameters 
+#' as an ltraj object (e.g. R2n, rel.angle, dt...). If the input geometries
+#' are projected, their projection is used to create the steps in the schema, 
+#' otherwise either no projection is used or the fuction exits.
+#' 
+#' @details
 #' Opening and closing connections have to be done manually by the user. 
-#' However, the function checks if the provided connection is still valid.
-#'
-#' @author Balázs Dukai
+#' However, the function checks if the provided connection is still valid. 
+#' Not tested with capital letters for PostgreSQL field names, but it probably won't 
+#' work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercase.
+#' 
+#' @seealso Section on pgtraj data model in the package vignette. 
+#' 
+#' @references \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
@@ -13,20 +31,32 @@
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
 #' @param relocations String. Name of the field that contains the relocations in relocation_data.
 #' @param timestamps String. Name of the field in relocation_data that contains the timestamps.
+#' If NULL, Type I trajectory is assumed.
 #' @param rids String. Name of the field in relocation_data that contains the numeric IDs of relocations.
 #' @param db Boolean. If TRUE, the relocations are stored in a database table, 
 #' if FALSE relocations are stored in an R object. It is meant to be used by other functions internally. 
 #' If you want to import an ltraj from R, use ltraj2pgtraj().
 #' 
-#' Not tested with capital letters for PostgreSQL field names, but it probably won't 
-#' work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercase.
+#' @return TRUE on success
+#' 
+#' @examples 
+#' \dontrun{
+#' as_pgtraj(conn, 
+#'         schema = "traj_t4",
+#'         relocation_data = "example_data.relocations_plus",
+#'         pgtrajs = "id",
+#'         animals = "animal",
+#'         bursts = "burst",
+#'         relocations = "geom",
+#'         timestamp = "time",
+#'         rid = "gid")
+#' }
+
+#' 
+#' @import RPostgreSQL, rpostgis, testthat
 #' 
 #' @export 
 #' 
-#' @example 
-#' as_pgtraj(conn, schema = "traj_t3", relocation_data = "example_data.relocations_plus", 
-#'      pgtrajs = "id", animals = "animal", bursts = "burst", relocations = "geom",
-#'      timestamp = "time", rid = "gid")
 #' 
 # TODO test capital letters in field names
 # TODO subset raw data 

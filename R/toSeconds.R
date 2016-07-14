@@ -1,4 +1,6 @@
-# Converts hours to seconds
+#' Converts hours to seconds
+#' @param x Character string of the form H:M:S
+#' @references http://stackoverflow.com/a/10836412/3717824
 ###############################################################################
 toSeconds <- function(x){
     if (!is.character(x)) stop("x must be a character string of the form H:M:S")

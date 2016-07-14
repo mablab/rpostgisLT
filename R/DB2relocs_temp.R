@@ -1,6 +1,9 @@
-#' Insert relocations from a source table into the table 'relocs_temp'. If 
-#' relocations are given as X,Y coordinates, they are converted into a POINT 
+#' Insert relocations from a source table into the table 'relocs_temp'. 
+#' 
+#' If relocations are given as X,Y coordinates, they are converted into a POINT 
 #' geometry in PostGIS.
+#' 
+#' @author Balázs Dukai
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
@@ -16,20 +19,7 @@
 #' and referenced accordingly.
 #' @param epsg Numeric. EPSG code of the CRS of 'relocations'.
 #' 
-#' @import RPostgreSQL
 #' 
-#' @examples 
-#' DB2relocs_temp(conn, schema = "traj_t1", 
-#'              relocation_table = "example_data.relocations_geom", 
-#'              pgtrajs = "id", animals = "animal", bursts = "burst", 
-#'              relocation_geom = "geom", timestamps = "time", rids = "gid",
-#'              epsg = 4326)
-#' 
-#' DB2relocs_temp(conn, schema = "traj_t1", 
-#'              relocation_table = "example_data.relocations_XY", 
-#'              pgtrajs = "id", animals = "animal", bursts = "burst", 
-#'              relocation_geom = c("x", "y"), timestamps = "time", rids = "gid", 
-#'              epsg = 4326)
 #' 
 ###############################################################################
 DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,

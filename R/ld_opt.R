@@ -10,14 +10,10 @@
 #' locations have been removed).
 #' @title Quick Conversion of Objects of Class ltraj from and to
 #' Dataframes
-#' @param strict Logical. Whether to use the regular
-#' \code{\link[adehabitatLT]{ld}} or \code{\link[adehabitatLT]{dl}}
-#' functions, which enforce more verifications.
 #' @seealso See \code{\link[adehabitatLT]{ld}} for further details on
 #' the function and all available arguments.
-#' @authors Modified by Mathieu Basille, Balázs Dukai
+#' @author Modified by Mathieu Basille, Balázs Dukai,
 #' \email{basille@@ase-research.org}, \email{balazs.dukai@@gmail.com}
-#' @export
 #' @examples
 #' data(puechcirc)
 #' puechcirc ## class ltraj
@@ -43,7 +39,6 @@
 # dl
 #
 #' @rdname ld
-#' @export
 dl_opt <- function(x) {
     if (!inherits(x, "data.frame"))
         stop("x should be of class data.frame")

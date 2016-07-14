@@ -6,13 +6,7 @@
 #' @param schema String. Name of the schema that stores or will store the 
 #' pgtraj data model.
 #' 
-#' @import rpostgis
-#' @import RPostgreSQL
 #' 
-#' @return TRUE if new schema is created. FALSE if schema already exists.
-#' 
-#' @example 
-#' make_pgtraj_schema(conn, "traj_t1")
 ###############################################################################
 make_pgtraj_schema <- function(conn, schema) {
     # Create traj database schema if it doesn't exist

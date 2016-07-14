@@ -32,3 +32,13 @@ source("./R/ld_opt.R")
 ibex_df2 <- ld_opt(ibex) # convert to data frame with Mathieu's function
 ibex2 <- dl_opt(ibex_df2)
 identical(ibex, ibex2)
+
+schema <- "traj_t4"
+
+dframe <- ld_opt(ibex)
+
+DF <- dframe[complete.cases(dframe[,c("x", "y")]),]
+
+ibex2 <- dl_opt(DF)
+
+identical(ibex, ibex2)
