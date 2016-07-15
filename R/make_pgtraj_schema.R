@@ -33,19 +33,14 @@ make_pgtraj_schema <- function(conn, name = "traj") {
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     ## Create schema
     pgSchema(conn, name, display = FALSE, exec = TRUE)
-    ## Set DB search path for the schema [why would you do that?
-    ## Seems dangerous to me\342\200\246]
+    ## Set DB search path for the schema
     query <- paste0("SET search_path TO ", name, ",public;")
     invisible(dbGetQuery(conn, query))
     ## SQL query to set up schema
-    if (file.exists("./inst/pgtraj_schema.sql")) {
-        query <- paste(readLines("./inst/pgtraj_schema.sql"),
-            collapse = "\n")
-        invisible(dbGetQuery(conn, query))
-    } else {
-        dbRollback(conn)
-        stop("Cannot find 'pgtraj_schema.sql'")
-    }
+    pgtraj_schema_file <- paste0(path.package("rpostgisLT"),
+        "/sql/pgtraj_schema.sql")
+    query <- paste(readLines(pgtraj_schema_file), collapse = "\n")
+    invisible(dbGetQuery(conn, query))
     ## Reset DB search path to the public schema
     query <- "SET search_path TO \"$user\",public;"
     invisible(dbGetQuery(conn, query))
