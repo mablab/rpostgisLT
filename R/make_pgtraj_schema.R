@@ -1,13 +1,13 @@
-#' Checks if the provided schema exists in the database, and creates if it doesn't.
-#' 
-#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-#' 
-#' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the 
-#' pgtraj data model.
-#' 
-#' 
-###############################################################################
+##' Checks if the provided schema exists in the database, and creates
+##' if it doesn't.
+##'
+##' [provide details on how the function operates]
+##' @title Check 'traj' schema.
+##' @param conn Connection object created with RPostgreSQL.
+##' @param schema String. Name of the schema that stores or will store
+##'     the pgtraj data model.
+##' @return
+##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 make_pgtraj_schema <- function(conn, schema) {
     # Create traj database schema if it doesn't exist
     # TODO Check if also all necessary tables exist
@@ -18,7 +18,7 @@ make_pgtraj_schema <- function(conn, schema) {
                         "already exists in the database."))
         return(FALSE)
     } else {
-        # Create traj schema 
+        # Create traj schema
         acr <- NA
         while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
             acr <- readline(paste("Schema", schema,
@@ -46,12 +46,12 @@ make_pgtraj_schema <- function(conn, schema) {
             # Reset DB search path to the public schema
             query <- "SET search_path TO \"$user\",public;"
             invisible(dbGetQuery(conn, query))
-            
+
             # Commit transaction block
             invisible(dbCommit(conn))
-            
+
             message(paste("Schema", schema, "successfully created in the database."))
-            
+
             return(TRUE)
         }
     }
