@@ -21,6 +21,8 @@ Description: The `rpostgisLT` package develops the integration of R
     functions to create and manage `pgtraj` data, and convert from and
     to both format (`pgtraj` in PostGIS, `ltraj` in R). For a list of
     documented functions, use `library(help = "rpostgisLT")`
+SystemRequirements:
+    PostgreSQL with PostGIS extension
 Depends:
     R (>= 3.3.0)
 License: GPL (>= 3)
