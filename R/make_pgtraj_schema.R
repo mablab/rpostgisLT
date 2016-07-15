@@ -4,11 +4,13 @@
 ##' [provide details on how the function operates]
 ##' @title Check 'traj' schema.
 ##' @param conn Connection object created with RPostgreSQL.
-##' @param schema String. Name of the schema that stores or will store
-##'     the pgtraj data model.
-##' @return
+##' @param schema Chaaracter string. Name of the schema that stores or
+##'     will store the pgtraj data model.
+##' @return [what does it return?]
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-make_pgtraj_schema <- function(conn, schema) {
+##' @export
+##' @example [provide example]
+make_pgtraj_schema <- function(conn, name = "traj") {
     # Create traj database schema if it doesn't exist
     # TODO Check if also all necessary tables exist
     query <- "SELECT nspname FROM pg_catalog.pg_namespace;"
