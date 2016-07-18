@@ -1,19 +1,28 @@
 Package: rpostgisLT
-Title: Managing and visualizing animal movement data with PostGIS and R
+Title: Managing and visualizing animal movement data with PostGIS and
+    R
 Version: 0.1.0
 Authors@R: c(
-    person("Mathieu", "Basille", email = "basille@ufl.edu", role = c("aut")), 
-    person("David", "Bucklin", email = "dbucklin@ufl.edu", role = c("aut")), 
-    person("Clément", "Calenge", email = "clement.calenge@oncfs.gouv.fr", role = "ctb"), 
-    person("Balázs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut", "cre"))
-    )
-Description: The project develops the integration of R and PostGIS for managing
-    movement trajectories. The focus is on streamlining the workflow for biologists
-    to store and process animal trajectories in PostGIS and analyze these in R, thus
-    utilizing the strengths of both software. Therefore the main outcome is a new
-    R package rpostgisLT, which will simplify the processing of location datasets
-    into trajectories in PostGIS and provide full integration with the R package
-    adehabitatlt data type ltraj.
+    person("Mathieu", "Basille", email = "basille@ufl.edu", role =
+           c("aut")),
+    person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
+           c("aut")),
+    person("Clément", "Calenge", email =
+           "clement.calenge@oncfs.gouv.fr", role = "ctb"),
+    person("Balázs", "Dukai", email = "balazs.dukai@gmail.com", role =
+        c("aut", "cre")) )
+Description: The `rpostgisLT` package develops the integration of R
+    and PostGIS for managing movement trajectories. The focus is on
+    streamlining the workflow for biologists to store and process
+    animal trajectories in PostGIS and analyze them in R, thus
+    utilizing the strengths of both software. The package relies on
+    `ltraj` objects from the R package `adehabitatLT`, and provides
+    the analogous `pgtraj` data structure in PostGIS, with all
+    functions to create and manage `pgtraj` data, and convert from and
+    to both format (`pgtraj` in PostGIS, `ltraj` in R). For a list of
+    documented functions, use `library(help = "rpostgisLT")`
+SystemRequirements:
+    PostgreSQL with PostGIS extension
 Depends:
     R (>= 3.3.0)
 License: GPL (>= 3)
@@ -24,7 +33,11 @@ Author: Balázs Dukai [aut, cre],
     Mathieu Basille [aut],
     David Bucklin [aut],
     Clément Calenge [ctb]
-Imports: RPostgreSQL, testthat, rpostgis, sp
-Suggests: knitr,
+Imports:
+    testthat,
+    rpostgis,
+    RPostgreSQL
+Suggests:
+    knitr,
     rmarkdown
 VignetteBuilder: knitr
