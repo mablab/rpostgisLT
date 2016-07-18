@@ -19,8 +19,8 @@ build(pkg, binary = FALSE)
 
 library(rpostgisLT)
 detach(package:rpostgisLT, unload=TRUE)
-uninstall(rpostgisLT)
+uninstall("rpostgisLT")
 
 #devtools::use_vignette("rpostgisLT")
-render("./vignettes/rpostgisLT.Rmd")
+render("/home/bdukai/Development/rpostgisLT/vignettes/rpostgisLT.Rmd")
 

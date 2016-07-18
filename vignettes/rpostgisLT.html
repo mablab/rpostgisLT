@@ -10,9 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Balázs Dukai" />
+<meta name="author" content="Mathieu Basille, Balázs Dukai" />
 
-<meta name="date" content="2016-07-14" />
+<meta name="date" content="2016-07-15" />
 
 <title>rpostgisLT: Managing and visualizing movement data with PostGIS and R</title>
 
@@ -31,20 +31,25 @@
 
 
 <h1 class="title toc-ignore">rpostgisLT: Managing and visualizing movement data with PostGIS and R</h1>
-<h4 class="author"><em>Balázs Dukai</em></h4>
-<h4 class="date"><em>2016-07-14</em></h4>
+<h4 class="author"><em>Mathieu Basille, Balázs Dukai</em></h4>
+<h4 class="date"><em>2016-07-15</em></h4>
 
 
 <div id="TOC">
 <ul>
-<li><a href="#motivation-for-the-package-and-relation-to-adehabitatlt">Motivation for the package and relation to adehabitatLT</a></li>
+<li><a href="#motivation-for-the-package-and-its-relation-to-adehabitatlt">Motivation for the package and its relation to adehabitatLT</a></li>
 <li><a href="#the-pgtraj-database-model">The pgtraj database model</a></li>
 <li><a href="#use-cases">Use cases</a></li>
 </ul>
 </div>
 
-<div id="motivation-for-the-package-and-relation-to-adehabitatlt" class="section level2">
-<h2>Motivation for the package and relation to adehabitatLT</h2>
+<div id="motivation-for-the-package-and-its-relation-to-adehabitatlt" class="section level2">
+<h2>Motivation for the package and its relation to adehabitatLT</h2>
+<p>Recent technological progress allowed ecologists to obtain a huge amount and diversity of animal movement data sets of increasing spatial and temporal resolution and size, together with complex associated information related to the environmental context, such as habitat types based on remote sensing, population density, weather. Most advanced movement data management now relies on the use of an integrated database system based on PostGIS, an extension of the open-source database management system PostgreSQL that adds support for spatial data.</p>
+<p>Storing spatial objects in a PostGIS-enabled database is particularly useful for movement data (usually from wildlife collars/sensors), which are often very large, regularly updated, and require cleaning and manipulation prior to being used in research. On the other end of the process, the advancement of a movement ecology theoretical framework led to an unprecedented development of new analytical tools and methods, mostly available in the R statistical environment.</p>
+<p>The package <em>rpostgisLT</em> focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data.</p>
+<p>The package <a href="https://cran.r-project.org/web/packages/adehabitatLT/index.html">adehabitatLT</a> is a collection of tools for the analysis of animal movements. In particular, it builds on a dedicated class for animal movement data (<em>ltraj</em>), which abstracts movement to a set of trajectories and its geometrical descriptors. Then <em>rpostgisLT</em> streamlines location dataset processing into trajectories, including full integration with the R package <em>adehabitatLT</em> data type <em>ltraj</em>.</p>
+<p>Although the <a href="https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf">vignette of <em>adehabitatLT</em></a> defines a trajectory and its elements clearly, it is worth to repeat a few key concepts that are regularly used in this vignette. Thus a <strong>trajectory</strong> is a continuous curve described by an animal, person or object when it moves. If a trajectory is sampled with e.g. a GPS tracker, each measurement represent a <strong>relocation</strong>, while each two successive relocations form the start- and endpoint of a <strong>step</strong> respectively.</p>
 </div>
 <div id="the-pgtraj-database-model" class="section level2">
 <h2>The pgtraj database model</h2>
@@ -305,6 +310,8 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 </div>
 <div id="storing-geometries-in-postgis" class="section level3">
 <h3>Storing geometries in PostGIS</h3>
+<p>PostGIS stores spatial data in either <em>geometry</em> or <em>geography</em> data types. The key difference between the two is that the <em>geometry</em> type is based on the Cartesian grid, while the <em>geography</em> type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS) <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered flat anymore and the data must be appropriately projected. Hence the <em>geography</em> type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the <em>geography</em> type <a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>, and many of the <em>geometry-only</em> functions are used to calculate the step parameters.</p>
+<p>The R object class <em>ltraj</em> assumes that the coordinates stored in the object are projected and their projection is known. However, in many cases the projection is not known or ignored, therefore the data should be treated as unprojected. Because the <em>geography</em> type stores the data in the WGS 84 lon/lat CRS, this case cannot be handled and assuming the WGS 84 projection for each dataset would be clearly erroneous.</p>
 </div>
 <div id="managing-projections-in-postgis-and-r" class="section level3">
 <h3>Managing projections in PostGIS and R</h3>
@@ -315,6 +322,13 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 </div>
 <div id="use-cases" class="section level2">
 <h2>Use cases</h2>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Obe, R.O., Hsu, L.S., 2015. PostGIS in action, Second edition. ed. Manning, Shelter Island, NY.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>(<a href="http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix" class="uri">http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix</a>)<a href="#fnref2">↩</a></p></li>
+</ol>
 </div>
 
 

@@ -23,8 +23,6 @@
 #' @examples 
 #' \dontrun{ltraj2pgtraj(conn, ibex, "traj_t2")}
 #' 
-#' @import RPostgreSQL, rpostgis, testthat
-#' 
 #' @export 
 #' 
 # TODO once SRID is stored in the ltraj, include that too
@@ -39,11 +37,11 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NUL
     # Set projection
     if (is.null(epsg)) {
         epsg <- 0
-        srs <- CRS()@projargs
+        srs <- sp::CRS()@projargs
     } else if (!is.numeric(epsg)) {
         stop("EPSG code must be numeric")
     } else {
-        srs <- CRS(paste0("+init=epsg:", epsg))@projargs
+        srs <- sp::CRS(paste0("+init=epsg:", epsg))@projargs
     }
     
     # Convert ltraj to data frame
@@ -76,7 +74,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NUL
 #                        VALUES ('", srs, "', '", comment, "')
 #                        WHERE p_name = '", pgtraj, "';")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
         message(paste0("The ltraj '", pgtraj, "' inserted into the database schema ", schema," successfully."))
         return(TRUE)
     } else {

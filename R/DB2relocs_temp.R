@@ -30,13 +30,13 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
     
     # Set DB search path for the schema
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
     
     # Table name is separated from schema declaration
     rd_split <- unlist(strsplit(relocation_table, "[.]"))
     
     # Begin transaction block (hence make_relocs_temp() operation is "all or nothing")
-    invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
     
     # Populate 'relocs_temp'----------------------------------------------------
     # Insert relocation_geom if trajectory Type I
@@ -48,7 +48,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                             FROM ",relocation_table,"
                             ORDER BY ",rids,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            t <- c(t, dbGetQuery(conn, query))
+            t <- c(t, RPostgreSQL::dbGetQuery(conn, query))
         } else if (length(relocation_geom) == 2) {
             # Relocations provided as a coordinate pair
             x <- relocation_geom[1]
@@ -58,7 +58,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                             FROM ",relocation_table,"
                             ORDER BY ",rids,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbGetQuery(conn, query))
+            invisible(RPostgreSQL::dbGetQuery(conn, query))
         }
     # If trajectory Type II
     } else {
@@ -69,7 +69,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                             FROM ",relocation_table,"
                             ORDER BY ",timestamps,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbGetQuery(conn, query))
+            invisible(RPostgreSQL::dbGetQuery(conn, query))
         } else if (length(relocation_geom) == 2) {
             # relocation_geom provided as a coordinate pair
             x <- relocation_geom[1]
@@ -79,7 +79,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                             FROM ",relocation_table,"
                             ORDER BY ",timestamps,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbGetQuery(conn, query))
+            invisible(RPostgreSQL::dbGetQuery(conn, query))
         }
     }
     
@@ -95,11 +95,11 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                         ) a
                         WHERE r_id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     } else {
         # Use the string
         query <- paste0("UPDATE relocs_temp SET p_name = '", pgtrajs, "';")
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     }
     
     # Insert animal
@@ -113,11 +113,11 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                         ) a
                         WHERE r_id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     } else {
         # Use the string
         query <- paste("UPDATE relocs_temp SET a_name = '", animals, "';")
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     }
     
     # Insert burst
@@ -131,7 +131,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                         ) a
                         WHERE r_id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     } else if (is.na(bursts) & length(animals) > 1){
         # Use animal name as default burst name
         query <- paste0("UPDATE relocs_temp
@@ -142,23 +142,23 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
                         ) a
                         WHERE r_id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     } else if (is.na(bursts) & length(animals) == 1) {
         query <- paste0("UPDATE relocs_temp SET b_name = '",animals,"';")
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     } else {
         # Use the string
         query <- paste("UPDATE relocs_temp SET b_name = '", bursts, "';")
-        invisible(dbGetQuery(conn, query))
+        invisible(RPostgreSQL::dbGetQuery(conn, query))
     }
     
     # Commit transaction
-    dbCommit(conn)
+    RPostgreSQL::dbCommit(conn)
     message("Values were successfully inserted into 'relocs_temp'.")
     
     # Reset DB search path to the public schema
     query <- "SET search_path TO \"$user\",public;"
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
 }
 
 

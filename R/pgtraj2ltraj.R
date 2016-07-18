@@ -14,20 +14,18 @@
 #' @examples 
 #' \dontrun{pgtraj2ltraj(conn, "traj_t2", "ibex")}
 #' 
-#' @import RPostgreSQL, rpostgis, testthat
-#' 
 #' @export 
 #' 
 ################################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Begin transaction block
-    invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
     
     # Get parameters
     query <- paste0("SELECT * FROM ", pgtraj, "_params;")
-    DF <- invisible(dbGetQuery(conn, query))
+    DF <- invisible(RPostgreSQL::dbGetQuery(conn, query))
     DF$dt <- toSeconds(DF[["dt"]])
     DF2 <- data.frame(
             x = DF[["x"]],
@@ -49,8 +47,8 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # Commit transaction and reset search path in the database
     query <- "SET search_path TO \"$user\",public;"
-    invisible(dbGetQuery(conn, query))
-    dbCommit(conn)
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
+    RPostgreSQL::dbCommit(conn)
     message(paste0("Ltraj successfully created from ", pgtraj, "."))
     
     return(ltraj)

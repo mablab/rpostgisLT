@@ -56,7 +56,7 @@ query <- paste0("SELECT ST_SRID(", relocations,
         ") FROM ", relocation_data," LIMIT 1;")
 
 query <- "select st_srid(wkb_geometry) from public.fires limit 1;"
-epsg <- dbGetQuery(conn, query)[1,1]
+epsg <- RPostgreSQL::dbGetQuery(conn, query)[1,1]
 
 make_relocs_temp(conn, "traj_t1")
 

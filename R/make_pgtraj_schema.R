@@ -12,7 +12,7 @@ make_pgtraj_schema <- function(conn, schema) {
     # Create traj database schema if it doesn't exist
     # TODO Check if also all necessary tables exist
     query <- "SELECT nspname FROM pg_catalog.pg_namespace;"
-    schemas <- dbGetQuery(conn, query)[,1]
+    schemas <- RPostgreSQL::dbGetQuery(conn, query)[,1]
     if (schema %in% schemas) {
         message(paste("Schema", schema ,
                         "already exists in the database."))
@@ -29,26 +29,26 @@ make_pgtraj_schema <- function(conn, schema) {
             return("Exit")
         } else {
             # Begin transaction block
-            invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+            invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
             # Create schema
-            pgSchema(conn, schema, display=FALSE, exec=TRUE)
+            rpostgis::pgSchema(conn, schema, display=FALSE, exec=TRUE)
             # Set DB search path for the schema
             query <- paste0("SET search_path TO ", schema, ",public;")
-            invisible(dbGetQuery(conn, query))
+            invisible(RPostgreSQL::dbGetQuery(conn, query))
             # SQL query to set up schema
             if (file.exists("./inst/pgtraj_schema.sql")) {
                 query <- paste(readLines("./inst/pgtraj_schema.sql"), collapse="\n")
-                invisible(dbGetQuery(conn, query))
+                invisible(RPostgreSQL::dbGetQuery(conn, query))
             } else {
-                dbRollback(conn)
+                RPostgreSQL::dbRollback(conn)
                 stop("Cannot find 'pgtraj_schema.sql'")
             }
             # Reset DB search path to the public schema
             query <- "SET search_path TO \"$user\",public;"
-            invisible(dbGetQuery(conn, query))
+            invisible(RPostgreSQL::dbGetQuery(conn, query))
             
             # Commit transaction block
-            invisible(dbCommit(conn))
+            invisible(RPostgreSQL::dbCommit(conn))
             
             message(paste("Schema", schema, "successfully created in the database."))
             

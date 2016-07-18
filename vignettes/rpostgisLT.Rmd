@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Managing and visualizing movement data with PostGIS and R"
-author: "Balázs Dukai"
+author: "Mathieu Basille, Balázs Dukai"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -13,7 +13,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Motivation for the package and relation to adehabitatLT
+## Motivation for the package and its relation to adehabitatLT
+
+Recent technological progress allowed ecologists to obtain a huge amount and diversity of animal movement data sets of increasing spatial and temporal resolution and size, together with complex associated information related to the environmental context, such as habitat types based on remote sensing, population density, weather. Most advanced movement data management now relies on the use of an integrated database system based on PostGIS, an extension of the open-source database management system PostgreSQL that adds support for spatial data.
+
+Storing spatial objects in a PostGIS-enabled database is particularly useful for movement data (usually from wildlife collars/sensors), which are often very large, regularly updated, and require cleaning and manipulation prior to being used in research. On the other end of the process, the advancement of a movement ecology theoretical framework led to an unprecedented development of new analytical tools and methods, mostly available in the R statistical environment.
+
+The package *rpostgisLT* focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data.
+
+The package [adehabitatLT](https://cran.r-project.org/web/packages/adehabitatLT/index.html) is a collection of tools for the analysis of animal movements. In particular, it builds on a dedicated class for animal movement data (*ltraj*), which abstracts movement to a set of trajectories and its geometrical descriptors. Then *rpostgisLT* streamlines location dataset processing into trajectories, including full integration with the R package *adehabitatLT* data type *ltraj*.
+
+Although the [vignette of *adehabitatLT*](https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf) defines a trajectory and its elements clearly, it is worth to repeat a few key concepts that are regularly used in this vignette. Thus a **trajectory** is a continuous curve described by an animal, person or object when it moves. If a trajectory is sampled with e.g. a GPS tracker, each measurement represent a **relocation**, while each two successive relocations form the start- and endpoint of a **step** respectively.
 
 ## The pgtraj database model
 
@@ -104,9 +114,17 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 | b_id | integer | PK, FK, Not Null | Pointing to the entry in bursts table.   |
 
 ### Storing geometries in PostGIS
+PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS) [^1]. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered flat anymore and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type [^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
+
+The R object class *ltraj* assumes that the coordinates stored in the object are projected and their projection is known. However, in many cases the projection is not known or ignored, therefore the data should be treated as unprojected. Because the *geography* type stores the data in the WGS 84 lon/lat CRS, this case cannot be handled and assuming the WGS 84 projection for each dataset would be clearly erroneous.
+
+[^1]: Obe, R.O., Hsu, L.S., 2015. PostGIS in action, Second edition. ed. Manning, Shelter Island, NY.
+[^2]: http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix
 
 ### Managing projections in PostGIS and R
+Complete this section after the *ltraj* is updated by Clément.
 
 ### Managing time zones in PostgreSQL and R
+Complete this section after the *ltraj* is updated by Clément.
 
 ## Use cases

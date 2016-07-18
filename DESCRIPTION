@@ -1,6 +1,6 @@
 Package: rpostgisLT
 Title: Managing and visualizing animal movement data with PostGIS and R
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: c(
     person("Mathieu", "Basille", email = "basille@ufl.edu", role = c("aut")), 
     person("David", "Bucklin", email = "dbucklin@ufl.edu", role = c("aut")), 
@@ -24,7 +24,7 @@ Author: Balázs Dukai [aut, cre],
     Mathieu Basille [aut],
     David Bucklin [aut],
     Clément Calenge [ctb]
-Imports: RPostgreSQL, testthat, rpostgis
+Imports: RPostgreSQL, testthat, rpostgis, sp
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

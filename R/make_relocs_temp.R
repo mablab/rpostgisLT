@@ -9,13 +9,13 @@
 ###############################################################################
 drop_relocs_temp <- function(conn, schema) {
     query <- paste0("DROP TABLE IF EXISTS ", schema, ".relocs_temp;")
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
 }
 
 make_relocs_temp <- function(conn, schema) {
     # Check if table already exists
     query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
-    tables <- invisible(dbGetQuery(conn, query))
+    tables <- invisible(RPostgreSQL::dbGetQuery(conn, query))
     if ('relocs_temp' %in% tables$tablename) {
         acr <- NA
         while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
@@ -41,5 +41,5 @@ make_relocs_temp <- function(conn, schema) {
                     p_name      text
                     );")
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
 }

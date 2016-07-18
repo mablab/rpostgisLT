@@ -61,15 +61,15 @@ R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
 #    }
     
     # Begin transaction block and set database search path
-    invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
     
-    invisible(dbGetQuery(conn, query_insert))
+    invisible(RPostgreSQL::dbGetQuery(conn, query_insert))
     
     query <- "SET search_path TO \"$user\",public;"
-    invisible(dbGetQuery(conn, query))
-    invisible(dbCommit(conn))
+    invisible(RPostgreSQL::dbGetQuery(conn, query))
+    invisible(RPostgreSQL::dbCommit(conn))
     message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))
     
     return(TRUE)

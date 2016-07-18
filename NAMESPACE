@@ -3,6 +3,3 @@
 export(as_pgtraj)
 export(ltraj2pgtraj)
 export(pgtraj2ltraj)
-import(RPostgreSQL)
-import(rpostgis)
-import(testthat)
