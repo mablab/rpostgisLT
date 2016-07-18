@@ -40,8 +40,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
             abs.angle = DF[["abs_angle"]],
             rel.angle = DF[["rel_angle"]],
             id = DF[["id"]],
-            burst = DF[["burst"]],
-            rowname = DF[["r_rowname"]])
+            burst = DF[["burst"]])
     
     # Cast into ltraj
     ltraj <- dl_opt(DF2)
