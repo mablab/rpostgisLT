@@ -1,6 +1,6 @@
 -- create schema to store pgtraj
 /*
- * pgtraj_v5
+ * pgtraj_v6
  */
 
 -- create the schema and set the default search path

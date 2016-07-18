@@ -22,20 +22,21 @@
 #' 
 #' 
 ###############################################################################
-DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
+pgTrajDB2TempT <- function(conn, schema, relocation_table, pgtrajs, animals,
         bursts = NA, relocation_geom, timestamps, rids, epsg) {
     
     # Test for correct inputs
     test_input(pgtrajs, animals, relocation_geom, bursts)
     
     # Set DB search path for the schema
+    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     
     # Table name is separated from schema declaration
     rd_split <- unlist(strsplit(relocation_table, "[.]"))
     
-    # Begin transaction block (hence make_relocs_temp() operation is "all or nothing")
+    # Begin transaction block (hence pgTrajTempT() operation is "all or nothing")
     invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
     
     # Populate 'relocs_temp'----------------------------------------------------
@@ -157,7 +158,7 @@ DB2relocs_temp <- function(conn, schema, relocation_table, pgtrajs, animals,
     message("Values were successfully inserted into 'relocs_temp'.")
     
     # Reset DB search path to the public schema
-    query <- "SET search_path TO \"$user\",public;"
+    query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
 }
 

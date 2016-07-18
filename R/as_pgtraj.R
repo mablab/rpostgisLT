@@ -59,7 +59,7 @@
 # TODO subset raw data 
 # TODO ellaborate on transaction (t) test, probably tryCatch() with RPostgreSQL::dbRollback would work,
 # TODO make sure that if any part breaks, the transaction is rolled back
-# TODO after DB2relocs_temp success, gives a warning that WARNING:  there is already a transaction in progress,
+# TODO after pgTrajDB2TempT success, gives a warning that WARNING:  there is already a transaction in progress,
 # probably I'll need to end the tansaction with submitting a query manually, not with RPostgreSQL::dbCommit()
 # TODO refactor relocation_data to 'table' or 'relocation_table', refactor relocations to ?
 # line end comment
@@ -68,7 +68,7 @@
 ###############################################################################
 as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL, 
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations = NULL,
-        timestamps = NULL, rids = "rid", db = TRUE) {
+        timestamps = NULL, rids = "rid", epsg = NULL, db = TRUE) {
     
     ##### Insert relocations into temporary table if they are stored in the 
     # database. Otherwise proceed with an existing temporary table.
@@ -100,7 +100,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
         }
         
         # Create traj database schema if it doesn't exist
-        x <- make_pgtraj_schema(conn, schema)
+        x <- pgTrajSchema(conn, schema)
         # If schema doesn't exists and user doesn't want to create it
         if (x == "Exit") {
             stop("Schema not created, returning from function.")
@@ -108,10 +108,10 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
         
         ##### Data input
         # Create temporary table 'relocs_temp'
-        make_relocs_temp(conn, schema)
+        pgTrajTempT(conn, schema)
         
         # Insert values into 'relocs_temp'
-        suppressMessages(DB2relocs_temp(conn, schema, relocation_data, pgtrajs, animals,
+        suppressMessages(pgTrajDB2TempT(conn, schema, relocation_data, pgtrajs, animals,
                 bursts, relocations, timestamps, rids, epsg))
     }
     
@@ -119,6 +119,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
     
     # Begin transaction block and set search path in the database
     invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     
@@ -206,16 +207,16 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
     # Create view for step parameters
     pgt <- RPostgreSQL::dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
     for (i in pgt) {
-        make_params_view(conn, schema, i, epsg)
+        pgTrajParamsView(conn, schema, i, epsg)
     }
     
     # Commit transaction and reset search path in the database
-    query <- "SET search_path TO \"$user\",public;"
+    query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     RPostgreSQL::dbCommit(conn)
     
     # Drop temporary table
-    drop_relocs_temp(conn, schema)
+    pgTrajDropTempT(conn, schema)
     
     return(TRUE)
 }

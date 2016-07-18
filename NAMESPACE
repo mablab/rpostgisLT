@@ -2,4 +2,6 @@
 
 export(as_pgtraj)
 export(ltraj2pgtraj)
+export(pgTrajSchema)
 export(pgtraj2ltraj)
+import(rpostgis)

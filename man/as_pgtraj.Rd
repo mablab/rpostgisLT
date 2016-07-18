@@ -6,7 +6,8 @@
 \usage{
 as_pgtraj(conn, schema = "traj", relocation_data = NULL,
   pgtrajs = "pgtraj", animals = "animal", bursts = NULL,
-  relocations = NULL, timestamps = NULL, rids = "rid", db = TRUE)
+  relocations = NULL, timestamps = NULL, rids = "rid", epsg = NULL,
+  db = TRUE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}

@@ -20,6 +20,7 @@
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Begin transaction block
     invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     
@@ -46,7 +47,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     ltraj <- dl_opt(DF2)
     
     # Commit transaction and reset search path in the database
-    query <- "SET search_path TO \"$user\",public;"
+    query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     RPostgreSQL::dbCommit(conn)
     message(paste0("Ltraj successfully created from ", pgtraj, "."))

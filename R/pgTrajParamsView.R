@@ -10,18 +10,12 @@
 #' 
 #' 
 ###############################################################################
-#drop_params_view <- function(conn, schema, pgtraj) {
-##    query <- paste0("DROP VIEW IF EXISTS ", schema, ".", pgtraj, "_params CASCADE;")
-#    invisible(RPostgreSQL::dbGetQuery(conn, query))
-#}
-
-make_params_view <- function(conn, schema, pgtraj, epsg) {
+pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
     
     invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
-    
-    # drop_params_view(conn, schema, pgtraj)
     
     query <- paste0("CREATE OR REPLACE VIEW ", pgtraj, "_params AS 
             SELECT 
@@ -90,7 +84,7 @@ make_params_view <- function(conn, schema, pgtraj, epsg) {
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     
-    query <- "SET search_path TO \"$user\",public;"
+    query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     RPostgreSQL::dbCommit(conn)
     message(paste0("View ", pgtraj, "_params successfully created on schema ", schema, "."))

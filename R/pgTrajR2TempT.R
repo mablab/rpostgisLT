@@ -14,7 +14,7 @@
 #' 
 #' 
 ###############################################################################
-R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
+pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     # Prepare the data frame to match 'relocs_temp'
     DF <- cbind(dframe, "r_id" = row.names(dframe))
     DF$p_name <- pgtraj
@@ -62,12 +62,13 @@ R2relocs_temp <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     
     # Begin transaction block and set database search path
     invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     
     invisible(RPostgreSQL::dbGetQuery(conn, query_insert))
     
-    query <- "SET search_path TO \"$user\",public;"
+    query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
     invisible(RPostgreSQL::dbCommit(conn))
     message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))

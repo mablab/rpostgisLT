@@ -1,18 +1,24 @@
-#' Creates the table 'relocs_temp', which is a temporary table used by other
-#' function of the package.
+#' Creates a temporary table in the 'traj' schema.
 #' 
-#' @author Balázs Dukai
+#' @description
+#' Used by \code{pgTrajDB2TempT} and \code{pgTrajR2TempT} to create a temporary
+#' table which will be populated by these functions.
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' 
+#' @examples
+#' \dontrun{pgTrajTempT(conn, "traj_1")}
+#' 
 ###############################################################################
-drop_relocs_temp <- function(conn, schema) {
+pgTrajDropTempT <- function(conn, schema) {
     query <- paste0("DROP TABLE IF EXISTS ", schema, ".relocs_temp;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
 }
 
-make_relocs_temp <- function(conn, schema) {
+pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
     query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
     tables <- invisible(RPostgreSQL::dbGetQuery(conn, query))
@@ -26,7 +32,7 @@ make_relocs_temp <- function(conn, schema) {
         if (acr %in% "n") {
             return(FALSE)
         } else {
-            drop_relocs_temp(conn, schema)
+            pgTrajDropTempT(conn, schema)
         }
     }
     

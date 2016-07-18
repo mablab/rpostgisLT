@@ -48,21 +48,21 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NUL
     dframe <- ld_opt(ltraj)
     
     # Check and create a pgtraj schema
-    x <- make_pgtraj_schema(conn, schema)
+    x <- pgTrajSchema(conn, schema)
     # If schema doesn't exists and user doesn't want to create it
     if (x == "Exit") {
         stop("Returning from function...")
     }
     
     # Import data frame into a temporary table
-    make_relocs_temp(conn, schema)
-    test <- suppressMessages(R2relocs_temp(conn, schema, dframe, pgtraj, epsg))
+    pgTrajTempT(conn, schema)
+    test <- suppressMessages(pgTrajR2TempT(conn, schema, dframe, pgtraj, epsg))
     
     # Insert from temporary table into the schema
-    test <- as_pgtraj(conn, schema, db = FALSE)
+    test <- as_pgtraj(conn, schema = schema, epsg = epsg, db = FALSE)
     
     # Drop temporary table
-    drop_relocs_temp(conn, schema)
+    pgTrajDropTempT(conn, schema)
     
     # Insert CRS and comment on the pgtraj
     if (all(test)) {

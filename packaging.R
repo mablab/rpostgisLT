@@ -7,6 +7,7 @@ setwd("/home/bdukai/Development/rpostgisLT/")
 #Note:
 # For internal functions: delete Rd-file, leave out export-command in Namespace
 
+#pkg <- "rpostgis"
 pkg <- "rpostgisLT"
 #create(pkg)
 load_all(pkg)
@@ -19,7 +20,7 @@ build(pkg, binary = FALSE)
 
 library(rpostgisLT)
 detach(package:rpostgisLT, unload=TRUE)
-uninstall("rpostgisLT")
+uninstall(pkg)
 
 #devtools::use_vignette("rpostgisLT")
 render("/home/bdukai/Development/rpostgisLT/vignettes/rpostgisLT.Rmd")
