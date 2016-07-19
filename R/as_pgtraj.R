@@ -118,7 +118,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
     ##### Insert relocations from the temporary table into the schema
     
     # Begin transaction block and set search path in the database
-    invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    #invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
     current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
@@ -178,10 +178,10 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
                             END as step,
                                 a.date,
                                 b.date - a.date AS dt,
-                                '", i, "'
+                                '", i, "' as b_name
                             FROM 
                                 relocs_temp AS a
-                                INNER JOIN relocs_temp AS b 
+                                LEFT JOIN relocs_temp AS b 
                                     ON a.r_id + 1 = b.r_id AND
                                     a.b_name = b.b_name
                             WHERE a.b_name = '", i, "'
@@ -213,7 +213,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(RPostgreSQL::dbGetQuery(conn, query))
-    RPostgreSQL::dbCommit(conn)
+    #RPostgreSQL::dbCommit(conn)
     
     # Drop temporary table
     pgTrajDropTempT(conn, schema)

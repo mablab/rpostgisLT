@@ -12,7 +12,7 @@
 #' @param epsg Numeric. The EPSG code of the Coordinate Reference System of the 
 #' relocation coordinates in the ltraj. Defaults to 0.
 #' 
-#' 
+#' TODO check if the dataframe is an ltraj-dataframe
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, epsg = NULL) {
     # Prepare the data frame to match 'relocs_temp'

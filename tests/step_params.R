@@ -39,6 +39,9 @@ rpostgisLT:::pgTrajR2TempT(conn, schema = "params_test", dframe = ib_df,
         pgtraj = "ibexraw", epsg = 0)
 # Insert the ltraj completely
 ltraj2pgtraj(conn, schema = "params_test", ltraj = ib)
+ltraj2pgtraj(conn, schema = "traj_t1", ltraj = ib_rec)
+ltraj2pgtraj(conn, schema = "params_test2", ltraj = ib_rec)
+ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 
 #######
 # 1. Coordinates
@@ -142,6 +145,7 @@ ltraj2pgtraj(conn, schema = "params_test", ltraj = ib)
 #92  756  587
 #93  313   44
 #94   NA   NA
+
 
 # TODO The last record is missing from the 'steps' table, which is NA in the ltraj
 # TODO Seems like that I confused which point to take first to calculate dx, dy

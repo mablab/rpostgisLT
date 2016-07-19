@@ -28,14 +28,14 @@ INSERT INTO steps (
     END as step,
         a.date,
         b.date - a.date AS dt,
-        'A153'
+        'A153' AS b_name
     FROM 
         relocs_temp AS a
-        INNER JOIN relocs_temp AS b 
+        LEFT JOIN relocs_temp AS b 
             ON a.r_id + 1 = b.r_id AND
             a.b_name = b.b_name
     WHERE a.b_name = 'A153'--here comes i
     ORDER BY a.r_id
 );
 
---SET search_path TO traj_t1, public;
+--SET search_path TO params_test, public;

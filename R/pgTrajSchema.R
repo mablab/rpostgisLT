@@ -18,7 +18,7 @@ pgTrajSchema <- function(conn, name = "traj") {
     # tables exist
     
     ## Check if PostGIS is installed
-    invisible(pgPostGIS(conn))
+    suppressMessages(pgPostGIS(conn))
     ## Begin transaction block
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     ## Create schema
