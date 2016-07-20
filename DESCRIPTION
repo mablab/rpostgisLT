@@ -24,7 +24,8 @@ Description: The `rpostgisLT` package develops the integration of R
 SystemRequirements:
     PostgreSQL with PostGIS extension
 Depends:
-    R (>= 3.3.0)
+    R (>= 3.3.0),
+    rpostgis
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -34,10 +35,7 @@ Author: Balázs Dukai [aut, cre],
     David Bucklin [aut],
     Clément Calenge [ctb]
 Imports:
-    testthat,
-    rpostgis,
-    RPostgreSQL,
-    sp
+    testthat
 Suggests:
     knitr,
     rmarkdown

@@ -27,7 +27,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Get parameters
     query <- paste0("SELECT * FROM ", pgtraj, "_params;")
     DF <- invisible(RPostgreSQL::dbGetQuery(conn, query))
-    DF$dt <- toSeconds(DF[["dt"]])
+    #DF$dt <- toSeconds(DF[["dt"]])
     DF2 <- data.frame(
             x = DF[["x"]],
             y = DF[["y"]],

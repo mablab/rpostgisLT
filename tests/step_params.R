@@ -42,7 +42,8 @@ ltraj2pgtraj(conn, schema = "params_test", ltraj = ib)
 ltraj2pgtraj(conn, schema = "traj_t1", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test2", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
-
+ltraj2pgtraj(conn, schema = "params_test4", ltraj = ib_rec)
+ib_rec_re <- pgtraj2ltraj(conn, schema = "params_test4", pgtraj = "ib_rec")
 #######
 # 1. Coordinates
 
@@ -74,7 +75,7 @@ ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 #----------------|
 #2.0             |
 
-# TODO Which is my local time zone...
+# DONE Which is my local time zone and it is correct
 
 #date                |
 #--------------------|
@@ -147,8 +148,8 @@ ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 #94   NA   NA
 
 
-# TODO The last record is missing from the 'steps' table, which is NA in the ltraj
-# TODO Seems like that I confused which point to take first to calculate dx, dy
+# DONE The last record is missing from the 'steps' table, which is NA in the ltraj
+# DONE Seems like that I confused which point to take first to calculate dx, dy
 
 ########
 # 4. dist
@@ -256,8 +257,8 @@ ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 #93 31493309
 #94 34046082
 
-# TODO in the parameters view there are only 8 records left from 10
-# TODO the results are completely different, but the 'dist' parameter
+# DONE in the parameters view there are only 8 records left from 10
+# DONE the results are completely different, but the 'dist' parameter
 # gives the same results, thus the error is probably due to a relocation mismatch
 
 ##############
@@ -294,8 +295,9 @@ ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 #93  0.1396599
 #94         NA
 
+
 # The majority of the values are correct
-# TODO apart from the diffs. in sign, some records are incorrect (85, 89)
+# DONE apart from the diffs. in sign, some records are incorrect (85, 89)
 
 ############
 # 8. rel.angle
@@ -331,6 +333,7 @@ ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 #93 -0.52055854
 #94          NA
 
+
 # The majority of the values are correct
-# TODO first and last value missing
-# TODO diffs. in some signs
+# DONE first and last value missing
+# DONE diffs. in some signs

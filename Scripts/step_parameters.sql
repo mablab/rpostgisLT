@@ -1,9 +1,11 @@
 /* Calculate step parameters pgtraj v6
  */
-SET search_path TO params_test2,public;
+SET search_path TO params_test3,public;
 SET search_path TO "$user",public;
 
-CREATE OR REPLACE VIEW ib_rec_params AS 
+SHOW search_path;
+
+CREATE OR REPLACE VIEW ib_rec_params AS
 SELECT
     t.r_rowname,
     t.x,
@@ -15,7 +17,11 @@ SELECT
     t.dt,
     t.r2n,
     atan2(t.dy, t.dx) AS abs_angle,
-    t.rel_angle,
+    CASE
+        WHEN t.rel_angle <= -pi() THEN 2 * pi() + t.rel_angle
+        WHEN t.rel_angle > pi() THEN t.rel_angle - 2 * pi()
+        ELSE t.rel_angle
+    END AS rel_angle,
     t.id,
     t.burst,
     t.pgtraj
@@ -30,15 +36,12 @@ SELECT
     ST_Y(ST_endpoint(s.step)) - ST_Y(ST_startpoint(s.step)) AS dy,
     ST_length(s.step) AS dist,
     extract(epoch FROM s.dt) AS dt,
-    ST_Distance(startp.reloc1, s.reloc1) AS r2n,
-    --atan2(ST_y(s.reloc1), ST_x(s.reloc1)) AS abs_angle,
-    (
-        ST_Azimuth(ST_startpoint(s2.step), ST_endpoint(s2.step)) -
-        ST_Azimuth(ST_startpoint(s.step), ST_endpoint(s.step))
-    ) AS rel_angle,
+    ST_Distance(startp.reloc1, s.reloc1)^2 AS r2n,
+    r_angle.rel_angle,
     a.a_name AS id,
     b.b_name AS burst,
-    p.p_name AS pgtraj
+    p.p_name AS pgtraj,
+    s.s_id
 FROM steps AS s 
 LEFT JOIN steps AS s2 ON s.s_id + 1 = s2.s_id
 JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
@@ -46,7 +49,7 @@ JOIN bursts AS b ON s_rel.b_id = b.b_id
 JOIN animals AS a ON b.a_id = a.a_id
 JOIN p_b_rel AS p_rel ON p_rel.b_id = b.b_id
 JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
-JOIN 
+JOIN
     (
         SELECT 
             m.*,
@@ -65,8 +68,27 @@ JOIN
         ) AS m
         JOIN steps AS s ON s.s_id = m.s_id
     ) AS startp ON startp.b_id = s_rel.b_id
+LEFT JOIN
+    (
+        SELECT
+            s2.r_rowname AS rname,
+            (
+                ST_Azimuth(ST_startpoint(s.step), ST_endpoint(s.step)) -
+                ST_Azimuth(ST_startpoint(s2.step), ST_endpoint(s2.step))
+            ) AS rel_angle
+        FROM steps AS s 
+        LEFT JOIN steps AS s2 ON s.s_id + 1 = s2.s_id
+        JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
+        JOIN bursts AS b ON s_rel.b_id = b.b_id
+        JOIN animals AS a ON b.a_id = a.a_id
+        JOIN p_b_rel AS p_rel ON p_rel.b_id = b.b_id
+        JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
+        WHERE p_name LIKE 'ib_rec'
+    ) AS r_angle ON s.r_rowname = r_angle.rname
 WHERE p_name LIKE 'ib_rec'
+ORDER BY s.s_id
 ) AS t;
+
 
 -- x,y
 SELECT
@@ -122,10 +144,10 @@ SELECT extract(epoch FROM dt)
 FROM params_test.steps s;
 
 -- R2n
-SELECT r2n FROM params_test.ib_params;
+SELECT r2n FROM ib_rec_params;
 
 -- abs_angle
-SELECT abs_angle FROM params_test.ib_params;
+SELECT abs_angle FROM ib_rec_params;
 
--- abs_angle
-SELECT rel_angle FROM params_test.ib_params;
+-- rel_angle
+SELECT rel_angle FROM ib_rec_params;
