@@ -94,6 +94,7 @@ ld_opt <- function(ltraj) {
             rel.angle = unlist(lapply(ltraj, function(x) x$rel.angle)),
             id = rep(id(ltraj), sapply(ltraj, nrow)),
             burst = rep(burst(ltraj), sapply(ltraj, nrow)))
+    rownames(df) <- unlist(lapply(ltraj, function(x) rownames(x)))
     class(df$date) <-  c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")
     if (!is.null(inf)) {

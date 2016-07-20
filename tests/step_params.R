@@ -44,6 +44,13 @@ ltraj2pgtraj(conn, schema = "params_test2", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test4", ltraj = ib_rec)
 ib_rec_re <- pgtraj2ltraj(conn, schema = "params_test4", pgtraj = "ib_rec")
+ltraj2pgtraj(conn, schema = "params_test5", ltraj = ib_rec)
+ib_rec_re <- pgtraj2ltraj(conn, schema = "params_test5", pgtraj = "ib_rec")
+
+all.equal(ib_rec, ib_rec_re)
+identical(ib_rec, ib_rec_re)
+
+
 #######
 # 1. Coordinates
 
