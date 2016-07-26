@@ -4,8 +4,7 @@
 \alias{ltraj2pgtraj}
 \title{Export an ltraj object from R into a traj database schema.}
 \usage{
-ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NULL,
-  comment = NULL)
+ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -17,10 +16,10 @@ ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NULL,
 \item{pgtraj}{String. Name of the new pgtraj. Defaults to the name of the 
 variable that stores the ltraj.}
 
+\item{comment}{String. A comment that will be stored with the pgtraj in the database.}
+
 \item{epsg}{Numeric. The EPSG code of the Coordinate Reference System of the 
 relocation coordinates in the ltraj. Defaults to 0.}
-
-\item{comment}{String. A comment that will be stored with the pgtraj in the database.}
 }
 \value{
 TRUE on success

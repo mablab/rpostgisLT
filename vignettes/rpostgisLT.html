@@ -12,12 +12,50 @@
 
 <meta name="author" content="Mathieu Basille, Balázs Dukai" />
 
-<meta name="date" content="2016-07-18" />
+<meta name="date" content="2016-07-26" />
 
 <title>rpostgisLT: Managing and visualizing movement data with PostGIS and R</title>
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 
 
@@ -32,7 +70,7 @@
 
 <h1 class="title toc-ignore">rpostgisLT: Managing and visualizing movement data with PostGIS and R</h1>
 <h4 class="author"><em>Mathieu Basille, Balázs Dukai</em></h4>
-<h4 class="date"><em>2016-07-18</em></h4>
+<h4 class="date"><em>2016-07-26</em></h4>
 
 
 <div id="TOC">
@@ -186,6 +224,12 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 <td align="left">Projection string of the ltraj, imported from R.</td>
 </tr>
 <tr class="even">
+<td align="left">r_tz</td>
+<td align="left">text</td>
+<td align="left"></td>
+<td align="left">Time zone of the corresponding ltraj.</td>
+</tr>
+<tr class="odd">
 <td align="left">comment</td>
 <td align="left">text</td>
 <td align="left"></td>
@@ -319,7 +363,17 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 </div>
 <div id="managing-time-zones-in-postgresql-and-r" class="section level3">
 <h3>Managing time zones in PostgreSQL and R</h3>
-<p>Complete this section after the <em>ltraj</em> is updated by Clément.</p>
+<p>In PostgreSQL all timezone-aware dates and times are stored internally in UTC. They are converted to local time in the zone specified in the server. Therefore the time zone of the input <em>ltraj</em> is stored in the <em>pgtrajs</em> table <em>r_tz</em> field in order to restore the <em>ltraj</em> with the original time zone when using <em>pgtraj2ltraj()</em>.</p>
+<p><strong>A note on managing time zones in R</strong> Care must be taken when changing the time zone of a POSIXt object in R. Consider the following example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(adehabitatLT)
+<span class="kw">data</span>(ibexraw)
+<span class="kw">attr</span>(ibexraw[[<span class="dv">1</span>]]$date, <span class="st">&quot;tzone&quot;</span>)
+<span class="co"># [1] &quot;Europe/Paris&quot;</span>
+ibexraw[[<span class="dv">1</span>]][<span class="dv">1</span>, <span class="st">&quot;date&quot;</span>]
+<span class="co"># [1] &quot;2003-06-01 00:00:56 CEST&quot;</span>
+<span class="kw">format</span>(ibexraw[[<span class="dv">1</span>]][<span class="dv">1</span>, <span class="st">&quot;date&quot;</span>], <span class="dt">tz=</span><span class="st">&quot;America/Florida&quot;</span>, <span class="dt">usetz=</span><span class="ot">TRUE</span>)
+<span class="co"># [1] &quot;2003-05-31 22:00:56 America&quot;</span></code></pre></div>
+<p>Notice that the time zone ‘America/Florida’ is not valid, as it is not in the system’s time zone database. Therefore the dates are assumed to be in the standard time zone (UTC) and no warning is given. To check the valid time zone names in your system use <code>OlsonNames()</code><a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>.</p>
 </div>
 </div>
 <div id="use-cases" class="section level2">
@@ -330,6 +384,7 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 <ol>
 <li id="fn1"><p>Obe, R.O., Hsu, L.S., 2015. PostGIS in action, Second edition. ed. Manning, Shelter Island, NY.<a href="#fnref1">↩</a></p></li>
 <li id="fn2"><p><a href="http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix" class="uri">http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html" class="uri">http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html</a><a href="#fnref3">↩</a></p></li>
 </ol>
 </div>
 

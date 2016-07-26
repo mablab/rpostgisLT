@@ -12,6 +12,7 @@ CREATE TABLE pgtrajs (
     p_id        serial      PRIMARY KEY,
     p_name      text        NOT NULL UNIQUE,
     r_proj      text,
+    r_tz        text,
     comment     text
 );
 

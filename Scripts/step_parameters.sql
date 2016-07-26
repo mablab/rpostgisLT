@@ -1,9 +1,9 @@
 /* Calculate step parameters pgtraj v6
  */
-SET search_path TO params_test3,public;
+/*SET search_path TO params_test3,public;
 SET search_path TO "$user",public;
 
-SHOW search_path;
+SHOW search_path;*/
 
 CREATE OR REPLACE VIEW ib_rec_params AS
 SELECT
@@ -88,66 +88,3 @@ LEFT JOIN
 WHERE p_name LIKE 'ib_rec'
 ORDER BY s.s_id
 ) AS t;
-
-
--- x,y
-SELECT
-ST_x(relocation) AS x, 
-ST_y(relocation) AS y
-FROM params_test.relocs_temp;
-
--- date
-SELECT extract(timezone FROM 
-(SELECT date FROM params_test.relocs_temp LIMIT 1))/3600.0 AS offset_from_UTC;
-
-SELECT extract(timezone FROM date)/3600.0 AS offset_from_UTC
-FROM params_test.steps
-LIMIT 1;
-
-
--- dx, dy
-SELECT
-    ST_Distance(
-               ST_Startpoint(s.step)
-               ST_SetSRID(
-                          ST_Makepoint(
-                                        ST_X(ST_endpoint(s.step)), 
-                                        ST_Y(ST_startpoint(s.step))
-                                      ),
-                          0
-                        )
-                ) AS dx,
-    ST_Distance(
-                ST_SetSRID(
-                           ST_Makepoint(
-                                         ST_x(ST_endpoint(s.step)), 
-                                         ST_y(ST_startpoint(s.step))
-                                        ),
-                            0
-                            ),
-                ST_endpoint(s.step)
-               ) AS dy
-FROM params_test.steps s
-
-SELECT 
-ST_X(ST_endpoint(s.step)) - ST_X(ST_startpoint(s.step)) AS dx,
-ST_Y(ST_endpoint(s.step)) - ST_Y(ST_startpoint(s.step)) AS dy
-FROM params_test2.steps s;
-
--- dist
-SELECT
-ST_length(s.step) AS dist
-FROM params_test.steps s;
-
--- dt
-SELECT extract(epoch FROM dt)
-FROM params_test.steps s;
-
--- R2n
-SELECT r2n FROM ib_rec_params;
-
--- abs_angle
-SELECT abs_angle FROM ib_rec_params;
-
--- rel_angle
-SELECT rel_angle FROM ib_rec_params;

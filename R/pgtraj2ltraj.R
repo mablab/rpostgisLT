@@ -27,6 +27,9 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Get parameters
     query <- paste0("SELECT * FROM ", pgtraj, "_params;")
     DF <- invisible(RPostgreSQL::dbGetQuery(conn, query))
+    query <- paste0("SELECT r_tz FROM pgtrajs WHERE p_name = '",pgtraj,"';")
+    tz <- dbGetQuery(conn, query)[1,1]
+    
     DF2 <- data.frame(
             x = DF[["x"]],
             y = DF[["y"]],
@@ -40,7 +43,13 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
             rel.angle = DF[["rel_angle"]],
             id = DF[["id"]],
             burst = DF[["burst"]])
+    
+    # Set row names
     rownames(DF2) <- DF[["r_rowname"]]
+    
+    # Set time zone
+    attr(DF2$date, "tzone") <- tz
+    
     # Cast into ltraj
     ltraj <- dl_opt(DF2)
     

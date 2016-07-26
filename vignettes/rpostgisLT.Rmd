@@ -82,6 +82,7 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 | p_id    | serial | PK               | Auto-generated numeric ID of pgtraj.             |
 | p_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
 | r_proj  | text   |                  | Projection string of the ltraj, imported from R. |
+| r_tz    | text   |                  | Time zone of the corresponding ltraj.            |
 | comment | text   |                  |                                                  |
 
 **p_b_rel table**\
@@ -125,6 +126,32 @@ The R object class *ltraj* assumes that the coordinates stored in the object are
 Complete this section after the *ltraj* is updated by Clément.
 
 ### Managing time zones in PostgreSQL and R
-Complete this section after the *ltraj* is updated by Clément.
+In PostgreSQL all timezone-aware dates and times are stored internally in UTC.
+They are converted to local time in the zone specified in the server. Therefore
+the time zone of the input *ltraj* is stored in the *pgtrajs* table *r_tz*
+field in order to restore the *ltraj* with the original time zone when using
+*pgtraj2ltraj()*.
+
+**A note on managing time zones in R**
+Care must be taken when changing the time zone of a POSIXt object in R. 
+Consider the following example:
+
+```{r, eval=FALSE}
+library(adehabitatLT)
+data(ibexraw)
+attr(ibexraw[[1]]$date, "tzone")
+# [1] "Europe/Paris"
+ibexraw[[1]][1, "date"]
+# [1] "2003-06-01 00:00:56 CEST"
+format(ibexraw[[1]][1, "date"], tz="America/Florida", usetz=TRUE)
+# [1] "2003-05-31 22:00:56 America"
+```
+
+Notice that the time zone 'America/Florida' is not valid, as it is not in the
+system's time zone database. Therefore the dates are assumed to be in the 
+standard time zone (UTC) and no warning is given. To check the valid time
+zone names in your system use ```OlsonNames()```[^3].
+
+[^3]: http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html
 
 ## Use cases

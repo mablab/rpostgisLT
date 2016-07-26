@@ -27,22 +27,31 @@
 #' 
 # TODO once SRID is stored in the ltraj, include that too
 ################################################################################
-ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NULL,
-        comment = NULL) {
+ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL) {
     # 'pgtraj' defaults to the name of ltraj
     if (is.null(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     }
     
     # Set projection
-    if (is.null(epsg)) {
+    srs <- attr(ltraj, "proj4string")@projargs
+    if (is.na(srs)) {
         epsg <- 0
-        srs <- sp::CRS()@projargs
-    } else if (!is.numeric(epsg)) {
-        stop("EPSG code must be numeric")
     } else {
-        srs <- sp::CRS(paste0("+init=epsg:", epsg))@projargs
+        s <- RPostgreSQL:::dbGetQuery(conn, "SELECT schemaname FROM pg_catalog.pg_tables WHERE tablename LIKE 'spatial_ref_sys';")
+        if (nrow(s) != 1) {
+            stop("There are either 0 or more than 1 'spatial_ref_sys' tables in the database.")
+        } else {
+            query <- paste0("SELECT srid FROM ", s$schemaname,".spatial_ref_sys 
+                             WHERE proj4text ILIKE '%",srs,"%';")
+            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            srid <- RPostgreSQL:::dbGetQuery(conn, query)
+            
+        }
     }
+    
+    # Get time zone
+    tz <- attr(ltraj[[1]]$date, "tzone")
     
     # Convert ltraj to data frame
     dframe <- ld_opt(ltraj)
@@ -64,15 +73,15 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, epsg = NUL
     # Drop temporary table
     pgTrajDropTempT(conn, schema)
     
-    # Insert CRS and comment on the pgtraj
+    # Insert CRS, comment and time zone on the pgtraj
     if (all(test)) {
         
         query <- paste0("UPDATE ",schema,".pgtrajs
-                        SET r_proj = '", srs, "', \"comment\" = '", comment, "'
+                        SET r_proj = '", srs, "', 
+                            \"comment\" = '", comment, "',
+                            r_tz = '",tz,"'
                         WHERE p_name = '", pgtraj, "';")
-#        query <- paste0("UPDATE pgtrajs (r_proj, comment) 
-#                        VALUES ('", srs, "', '", comment, "')
-#                        WHERE p_name = '", pgtraj, "';")
+        
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(RPostgreSQL::dbGetQuery(conn, query))
         message(paste0("The ltraj '", pgtraj, "' inserted into the database schema ", schema," successfully."))
