@@ -24,10 +24,10 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
         bursts = NULL, rids = NULL, epsg = NULL) {
     
     test_pa <- function(x) {
-        test_that("arguments 'pgtrajs', 'animals' and 'rids' have correct inputs", {
-                    expect_that(length(x) == 1, is_true())
-                    expect_that(all(!is.na(x)), is_true())
-                    expect_that(all(is.character(x)), is_true())
+        testthat::test_that("arguments 'pgtrajs', 'animals' and 'rids' have correct inputs", {
+                    testthat::expect_that(length(x) == 1, testthat::is_true())
+                    testthat::expect_that(all(!is.na(x)), testthat::is_true())
+                    testthat::expect_that(all(is.character(x)), testthat::is_true())
                 })
     }
     
@@ -44,24 +44,24 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
     }
     
     if (!is.null(bursts)) {
-        test_that("argument 'bursts' has a correct input", {
-                    expect_that(length(bursts) == 1, is_true())
+        testthat::test_that("argument 'bursts' has a correct input", {
+                    testthat::expect_that(length(bursts) == 1, testthat::is_true())
                 })
     }
     
     if (!is.null(relocations)) {
-        test_that("argument 'relocations' has a correct input", {
-                    expect_that(all(!is.na(relocations)), is_true())
-                    expect_that(length(relocations) >= 1, is_true())
-                    expect_that(length(relocations) <= 2, is_true())
-                    expect_that(all(is.character(relocations)), is_true())
+        testthat::test_that("argument 'relocations' has a correct input", {
+                    testthat::expect_that(all(!is.na(relocations)), testthat::is_true())
+                    testthat::expect_that(length(relocations) >= 1, testthat::is_true())
+                    testthat::expect_that(length(relocations) <= 2, testthat::is_true())
+                    testthat::expect_that(all(is.character(relocations)), testthat::is_true())
                 })
     }
     
     if (!is.null(epsg)) {
-        test_that("argument 'epsg' has a correct input", {
-                    expect_that(is.numeric(epsg), is_true())
-                    expect_that(epsg %% 1 == 0, is_true())
+        testthat::test_that("argument 'epsg' has a correct input", {
+                    testthat::expect_that(is.numeric(epsg), testthat::is_true())
+                    testthat::expect_that(epsg %% 1 == 0, testthat::is_true())
                 })
     }
 }
