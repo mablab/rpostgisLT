@@ -7,6 +7,9 @@
 ##' all the required tables. The function does not attempt to repair the schema
 ##' if not all traj tables are present (e.g. because some were manually deleted).
 ##' In this case, a new traj schema needs to be created.
+##'
+##' @details
+##' The function has it's standalone transaction control.
 ##' @title Check 'traj' schema.
 ##' @param conn Connection object created with RPostgreSQL.
 ##' @param schema Chaaracter string. Name of the schema that stores or
@@ -57,7 +60,7 @@ pgTrajSchema <- function(conn, name = "traj") {
             ## Commit transaction block
             invisible(dbCommit(conn))
             
-            message(paste("The traj schema", name, "successfully created in the database."))
+            message(paste("The traj schema", name, "created in the database."))
             
             return(TRUE)
         } else if (all(traj_tables %in% dbtables)) {
