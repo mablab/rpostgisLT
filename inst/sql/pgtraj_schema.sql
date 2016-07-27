@@ -11,8 +11,8 @@
 CREATE TABLE pgtrajs (
     p_id        serial      PRIMARY KEY,
     p_name      text        NOT NULL UNIQUE,
-    r_proj      text,
-    r_tz        text,
+    proj4string      text,
+    ltraj_tz        text,
     comment     text
 );
 
@@ -88,7 +88,7 @@ CREATE INDEX step_idx ON steps USING gist (step);
 COMMENT ON TABLE pgtrajs IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
 COMMENT ON COLUMN pgtrajs.p_id IS 'Auto-generated numeric ID of ';
 COMMENT ON COLUMN pgtrajs.p_name IS 'Name or identifier of trajectory group, not null, unique.';
-COMMENT ON COLUMN pgtrajs.r_proj IS 'Projection string of the ltraj, imported from R.';
+COMMENT ON COLUMN pgtrajs.proj4string IS 'Projection string of the ltraj, imported from R.';
 
 COMMENT ON TABLE bursts IS 'Contains burst information and their relation to animals.';
 COMMENT ON COLUMN bursts.b_id IS 'Auto-generated numeric ID of burst.';

@@ -17,13 +17,13 @@
 #' the relocations in relocation_table. If relocations are stored as pairs of (X,Y) or 
 #' (long, lat) coorindates, the coordinates should be separeted in two fields 
 #' and referenced accordingly.
-#' @param epsg Numeric. EPSG code of the CRS of 'relocations'.
+#' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
 #' 
 #' 
 #' 
 ###############################################################################
 pgTrajDB2TempT <- function(conn, schema, relocation_table, pgtrajs, animals,
-        bursts = NA, relocation_geom, timestamps, rids, epsg) {
+        bursts = NA, relocation_geom, timestamps, rids, srid) {
     
     # Test for correct inputs
     test_input(pgtrajs, animals, relocation_geom, bursts)
@@ -55,7 +55,7 @@ pgTrajDB2TempT <- function(conn, schema, relocation_table, pgtrajs, animals,
             x <- relocation_geom[1]
             y <- relocation_geom[2]
             query <- paste0("INSERT INTO relocs_temp (r_id, relocation)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",epsg,")
+                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
                             FROM ",relocation_table,"
                             ORDER BY ",rids,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
@@ -76,7 +76,7 @@ pgTrajDB2TempT <- function(conn, schema, relocation_table, pgtrajs, animals,
             x <- relocation_geom[1]
             y <- relocation_geom[2]
             query <- paste0("INSERT INTO relocs_temp (r_id, relocation, date)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",epsg,"), ",timestamps,"
+                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps,"
                             FROM ",relocation_table,"
                             ORDER BY ",timestamps,";")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)

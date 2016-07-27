@@ -27,8 +27,12 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Get parameters
     query <- paste0("SELECT * FROM ", pgtraj, "_params;")
     DF <- invisible(RPostgreSQL::dbGetQuery(conn, query))
-    query <- paste0("SELECT r_tz FROM pgtrajs WHERE p_name = '",pgtraj,"';")
+    
+    query <- paste0("SELECT ltraj_tz FROM pgtrajs WHERE p_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
+    
+    query <- paste0("SELECT proj4string FROM pgtrajs WHERE p_name = '",pgtraj,"';")
+    proj4string <- dbGetQuery(conn, query)[1,1]
     
     DF2 <- data.frame(
             x = DF[["x"]],
@@ -52,6 +56,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # Cast into ltraj
     ltraj <- dl_opt(DF2)
+    attr(ltraj, "proj4string") <- CRS(proj4string)
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")

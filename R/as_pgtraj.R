@@ -57,10 +57,10 @@
 #' 
 # TODO test capital letters in field names
 # TODO subset raw data 
-# TODO ellaborate on transaction (t) test, probably tryCatch() with RPostgreSQL::dbRollback would work,
+# TODO ellaborate on transaction (t) test, probably tryCatch() with dbRollback would work,
 # TODO make sure that if any part breaks, the transaction is rolled back
 # TODO after pgTrajDB2TempT success, gives a warning that WARNING:  there is already a transaction in progress,
-# probably I'll need to end the tansaction with submitting a query manually, not with RPostgreSQL::dbCommit()
+# probably I'll need to end the tansaction with submitting a query manually, not with dbCommit()
 # TODO refactor relocation_data to 'table' or 'relocation_table', refactor relocations to ?
 # line end comment
 ## below line comment
@@ -68,7 +68,7 @@
 ###############################################################################
 as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL, 
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations = NULL,
-        timestamps = NULL, rids = "rid", epsg = NULL, db = TRUE) {
+        timestamps = NULL, rids = "rid", srid = NULL, db = TRUE) {
     
     ##### Insert relocations into temporary table if they are stored in the 
     # database. Otherwise proceed with an existing temporary table.
@@ -78,7 +78,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
         # Test connection, table, field and values
         query <- paste0("SELECT ", relocations, " FROM ",
                 relocation_data," LIMIT 1;")
-        if (is.na(RPostgreSQL::dbGetQuery(conn, query)[1,1])) {
+        if (is.na(dbGetQuery(conn, query)[1,1])) {
             print(paste("Field", relocations ,"does not contain values."))
         }
         
@@ -87,8 +87,8 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
         # make the code more complex, particulary with testing for valid SRID input
         query <- paste0("SELECT ST_SRID(", relocations,
                 ") FROM ", relocation_data," LIMIT 1;")
-        epsg <- RPostgreSQL::dbGetQuery(conn, query)[1,1]
-        if (epsg == 0) {
+        srid <- dbGetQuery(conn, query)[1,1]
+        if (srid == 0) {
             acr <- NA
             while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
                 acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
@@ -112,16 +112,16 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
         
         # Insert values into 'relocs_temp'
         suppressMessages(pgTrajDB2TempT(conn, schema, relocation_data, pgtrajs, animals,
-                bursts, relocations, timestamps, rids, epsg))
+                bursts, relocations, timestamps, rids, srid))
     }
     
     ##### Insert relocations from the temporary table into the schema
     
     # Begin transaction block and set search path in the database
-    #invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
-    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
+    #invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(RPostgreSQL::dbGetQuery(conn, query))
+    invisible(dbGetQuery(conn, query))
     
     # Insert relocations
     query <- paste0("INSERT INTO pgtrajs (p_name)
@@ -145,11 +145,11 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
                     JOIN bursts c
                     ON a.b_name = c.b_name;")
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
-    invisible(RPostgreSQL::dbGetQuery(conn, query))
+    invisible(dbGetQuery(conn, query))
     
     # Insert steps into the schema
-    bst <- RPostgreSQL::dbGetQuery(conn,"SELECT DISTINCT b_name FROM relocs_temp;")[,1]
-    invisible(RPostgreSQL::dbGetQuery(conn,"ALTER TABLE steps ADD b_name text;"))
+    bst <- dbGetQuery(conn,"SELECT DISTINCT b_name FROM relocs_temp;")[,1]
+    invisible(dbGetQuery(conn,"ALTER TABLE steps ADD b_name text;"))
     for (i in bst) {
         query <- paste0("INSERT INTO steps (
                             r_rowname,
@@ -188,7 +188,7 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
                             ORDER BY a.r_id
                         );")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(RPostgreSQL::dbGetQuery(conn, query))
+        invisible(dbGetQuery(conn, query))
         # Insert step-burst relations
         query <- paste0("INSERT INTO s_i_b_rel (s_id, b_id)
                         SELECT a.s_id, b.b_id
@@ -196,24 +196,24 @@ as_pgtraj <- function(conn, schema = "traj", relocation_data = NULL,
                         WHERE a.b_name = '",i , "' 
                         AND b.b_name = '", i, "'; ")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(RPostgreSQL::dbGetQuery(conn, query))
+        invisible(dbGetQuery(conn, query))
        
         # Delete b_names from temporary column
-        invisible(RPostgreSQL::dbGetQuery(conn, "UPDATE steps SET b_name = NULL;"))
+        invisible(dbGetQuery(conn, "UPDATE steps SET b_name = NULL;"))
     }
     # Drop temporary column
-    invisible(RPostgreSQL::dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
+    invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
     
     # Create view for step parameters
-    pgt <- RPostgreSQL::dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
+    pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
     for (i in pgt) {
-        pgTrajParamsView(conn, schema, i, epsg)
+        pgTrajParamsView(conn, schema, i, srid)
     }
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(RPostgreSQL::dbGetQuery(conn, query))
-    #RPostgreSQL::dbCommit(conn)
+    invisible(dbGetQuery(conn, query))
+    #dbCommit(conn)
     
     # Drop temporary table
     pgTrajDropTempT(conn, schema)
