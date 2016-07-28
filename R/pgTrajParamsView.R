@@ -103,18 +103,18 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
     res <- tryCatch({
                 
                 invisible(dbSendQuery(conn, create_query))
-                message(paste0("View ", pgtraj, "_params created in schema ", schema, "."))
+                message(paste0("View '", pgtraj, "_params' created in schema '", schema, "'."))
                 return(TRUE)
                 
             }, warning = function(war) {
                 
-                message(paste0("WARNING in creating view ",pgtraj,"_params :"))
+                message(paste0("WARNING in creating view '",pgtraj,"_params' :"))
                 message(war)
                 return(war)
                 
             }, error = function(err) {
                 
-                message(paste0("ERROR in creating view ",pgtraj,"_params :"))
+                message(paste0("ERROR in creating view '",pgtraj,"_params' :"))
                 message(err)
                 return(err)
                 

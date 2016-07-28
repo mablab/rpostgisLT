@@ -1,238 +1,41 @@
-/*
- * Testing the pgtraj_v2
- */
-INSERT INTO pgtraj.traj_group (g_name) VALUES ('group1');
-INSERT INTO pgtraj.traj_group (g_name) VALUES ('group2');
+SELECT schemaname FROM pg_catalog.pg_tables WHERE tablename LIKE 'spatial_ref_sys';
 
-INSERT INTO pgtraj.bursts (
-    b_name,
-    animal_name,
-    g_id
-) VALUES (
-    'continental',
-    'migrating animal',
-    1
-);
-INSERT INTO pgtraj.bursts (
-    b_name,
-    animal_name,
-    g_id
-) VALUES (
-    'large',
-    'wood stork1',
-    1
-);
-INSERT INTO pgtraj.bursts (
-    b_name,
-    animal_name,
-    g_id
-) VALUES (
-    'large2',
-    'wood stork2',
-    1
-);
-INSERT INTO pgtraj.bursts (
-    b_name,
-    animal_name,
-    g_id
-) VALUES (
-    'medium',
-    'sea turtle',
-    2
-);
-INSERT INTO pgtraj.bursts (
-    b_name,
-    animal_name,
-    g_id
-) VALUES (
-    'small',
-    'small animal',
-    2
-);
+SELECT srid FROM public.spatial_ref_sys WHERE proj4text ILIKE '%+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs%'; --should give 3395
+SELECT proj4text FROM public.spatial_ref_sys WHERE auth_srid = 3395;
+SELECT srtext FROM public.spatial_ref_sys WHERE auth_srid = 3395;
 
--- insert steps
-INSERT INTO pgtraj.steps (
-    s_id,
-    step,
-    date,
-    dt,
-    b_id
-) (
-    SELECT 
-        e.startgid AS s_id,
-        e.step_geog AS step,
-        e.time AS date,
-        e.dt,
-        r.b_id
-    FROM example_data.steps AS e INNER JOIN pgtraj.bursts AS r
-    ON r.b_name = e.id
-);
+SELECT srid FROM public.spatial_ref_sys WHERE srtext ILIKE '%PROJCS["Mercator",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Mercator"],PARAMETER["central_meridian",0],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1],PARAMETER["standard_parallel_1",0.0]]%';
+PROJCS["WGS 84 / World Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","3395"]]
+PROJCS["WGS 84 / World Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],AUTHORITY["EPSG","3395"],AXIS["Easting",EAST],AXIS["Northing",NORTH]]
 
 
-/* pgtraj testing v4
- */
+SELECT * FROM public.spatial_ref_sys WHERE proj4text LIKE '%+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs%';
 
-INSERT INTO pgtraj.animals (a_id, a_name) 
-SELECT nextval('pgtraj.animals_id_seq'), 'buksi';
-INSERT INTO pgtraj.animals (a_id, a_name) 
-SELECT nextval('pgtraj.animals_id_seq'), 'kutya';
+SELECT 3.110534542240202426910::numeric * 4.146736776456236839294::numeric;
 
-INSERT INTO pgtraj.bursts (b_id, a_id) 
-SELECT nextval('pgtraj.bursts_id_seq'), 1;
-INSERT INTO pgtraj.bursts (b_id, b_name, a_id) 
-SELECT nextval('pgtraj.bursts_id_seq'), 'burst2', 2;
+SELECT extract(timezone FROM date)/3600.0 AS offset_from_UTC
+FROM traj_est.steps
+LIMIT 1;
 
-INSERT INTO pgtraj.bursts (b_id, b_name, a_id) 
-SELECT nextval('pgtraj.bursts_id_seq'), 'burst1',1;
+SELECT date
+FROM traj_est.steps
+LIMIT 1;
 
-INSERT INTO pgtraj.pgtrajs (p_id, p_name) VALUES (55, 'ltraj-one');
-INSERT INTO pgtraj.pgtrajs (p_name) VALUES ( 'ltraj-two');
+CREATE TABLE test_tz (id serial, date timestamptz);
+INSERT INTO test_tz (date) VALUES ('2003-06-01 00:00:56 CET'); -- timezone is ignored in case of invalid input
+INSERT INTO test_tz (date) VALUES ('2003-06-01 00:00:56 EST'); -- timezone is ignored in case of invalid input
+INSERT INTO test_tz (date) VALUES ('2003-06-01 00:00:56 -5:00');
+INSERT INTO test_tz (date) VALUES ('2003-06-01 00:00:56 UTC');
+SELECT extract(timezone FROM date)/3600.0 AS offset_from_UTC
+FROM test_tz;
 
-INSERT INTO pgtraj.steps (step) 
-select st_makeline(a.geom, b.geom)::geography
-FROM example_data.relocations_sorted AS a JOIN example_data.relocations_sorted AS b
-ON a.gid + 1 = b.gid
-WHERE a.gid = 5;
+SELECT '2003-06-01 00:00:56 Europe/Paris'::timestamptz;
 
-INSERT INTO pgtraj.steps (step) 
-select b.geom::geography
-FROM example_data.relocations_sorted AS b
-WHERE b.gid = 8;
+SELECT tablename FROM pg_tables WHERE schemaname='public';
 
 
-/* Infolocs table
- * 
- */
-INSERT INTO pgtraj.infolocs (infoloc) VALUES ('{"a":1,"b":2}');
-INSERT INTO pgtraj.infolocs (infoloc) VALUES ('{"a":3,"b":4}');
-INSERT INTO pgtraj.infolocs (infoloc) VALUES ('{"accuracy":1.6,"land use":"forest", "activity":"foraging"}');
-INSERT INTO pgtraj.infolocs (infoloc) VALUES ('{"accuracy":0.76,"land use":"meadow", "activity":"migrating"}');
-INSERT INTO pgtraj.infolocs (infoloc) VALUES ('{"accuracy":0.71,"land use":"meadow", "activity":"migrating"}');
+DROP TABLE traj_test7.animals CASCADE;
 
-SELECT 
-    infoloc->'accuracy' AS accuracy --get all values as json
-FROM pgtraj.infolocs;
-
-SELECT 
-    infoloc->>'land use' AS land_use --get all values as text
-FROM pgtraj.infolocs;
-
-SELECT 
-    json_each(infoloc)
-FROM pgtraj.infolocs;
-
-SELECT 
-    json_object_keys(infoloc)
-FROM pgtraj.infolocs;
-
--- check server encoding (should be UTF8)
-SHOW SERVER_ENCODING;
--- check postgres version (should be >=9.3)
-SELECT version();
-
--- insert steps
-EXPLAIN ANALYZE
-INSERT INTO pgtraj.steps (
-    s_id,
-    step,
-    date,
-    dt
-) (
-    SELECT 
-        e.startgid AS s_id,
-        e.step_geog AS step,
-        e.time AS date,
-        e.dt
-    FROM example_data.steps e
-);
-
-
-/* Delete stuff
- */
-
-DROP SEQUENCE pgtraj.animals_id_seq;
-DROP SEQUENCE pgtraj.bursts_id_seq;
-DROP SEQUENCE pgtraj.pgtrajs_id_seq;
-DROP SEQUENCE pgtraj.pgtrajs_p_id_seq;
-DROP SEQUENCE pgtraj.steps_id_seq;
-DROP SEQUENCE pgtraj.steps_s_id_seq;
-DROP SEQUENCE pgtraj.infolocs_i_id_seq;
-
-DROP TYPE animals CASCADE;
-
-
-
-/* pgtraj v5
- */
--- insert pgtraj names
-INSERT INTO pgtraj.pgtrajs (p_name)
-SELECT DISTINCT id FROM example_data.relocations_sorted;
--- insert animal names
-INSERT INTO pgtraj.animals (a_name) VALUES ('migrating animal');
-INSERT INTO pgtraj.animals (a_name) VALUES ('wood stork1');
-INSERT INTO pgtraj.animals (a_name) VALUES ('wood stork2');
-INSERT INTO pgtraj.animals (a_name) VALUES ('sea turtle');
-INSERT INTO pgtraj.animals (a_name) VALUES ('small animal');
-INSERT INTO pgtraj.animals (a_name) VALUES ('buksi');
-INSERT INTO pgtraj.animals (a_name) VALUES ('morzsi');
-
--- insert animal names into relocations_sorted
-ALTER TABLE example_data.relocations_sorted ADD animal text;
-UPDATE example_data.relocations_sorted AS a
-SET animal = q.a_name
-FROM (
-    SELECT a.id, b.a_name
-    FROM example_data.relocations_sorted a,
-    pgtraj.animals b
-    WHERE (a.id = 'continental' AND b.a_name = 'migrating animal') OR
-    (a.id = 'small' AND b.a_name = 'small animal') OR 
-    (a.id = 'large' AND b.a_name = 'wood stork1') OR
-    (a.id = 'large2' AND b.a_name = 'wood stork2') OR
-    (a.id = 'medium' AND b.a_name = 'sea turtle')
-) q
-WHERE a.id = q.id;
-
--- insert burst names into relocations_sorted
-ALTER TABLE example_data.relocations_sorted ADD burst text;
-UPDATE example_data.relocations_sorted AS a
-SET burst = q.a_name
-FROM (
-    SELECT a.id, b.a_name
-    FROM example_data.relocations_sorted a,
-    pgtraj.animals b
-    WHERE (a.id = 'continental' AND b.a_name = 'migrating animal') OR
-    (a.id = 'small' AND b.a_name = 'small animal') OR 
-    (a.id = 'large' AND b.a_name = 'wood stork1') OR
-    (a.id = 'large2' AND b.a_name = 'wood stork2') OR
-    (a.id = 'medium' AND b.a_name = 'sea turtle')
-) q
-WHERE a.id = q.id;
-
-/* Bursts with default name path
- */
--- insert bursts with default name
-INSERT INTO pgtraj.bursts(
-    a_id
-) (
-    SELECT DISTINCT a_id
-    FROM pgtraj.animals a JOIN example_data.relocations_sorted b
-    ON a.a_name = b.animal
-);
-
-/* Insert into pgtraj schema from temporary table
- */
-
--- create temporary table
-CREATE TABLE pgtraj.relocs_temp AS
-SELECT 
-    gid AS r_id,
-    geom::geometry AS relocation,
-    time::timestamptz AS date, -- this should be optional
-    burst AS b_name, --could be provided by user OR default
-    animal AS a_name, --could be provided by user
-    id AS p_name --could be provided by user
-FROM example_data.relocations_sorted
-ORDER BY time;
-
-
+SELECT * FROM pg_locks pl LEFT JOIN pg_stat_activity psa
+    ON pl.pid = psa.pid;
 

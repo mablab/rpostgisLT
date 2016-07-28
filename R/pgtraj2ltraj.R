@@ -18,15 +18,14 @@
 #' 
 ################################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
-    # Begin transaction block
-    invisible(RPostgreSQL::dbGetQuery(conn, "BEGIN TRANSACTION;"))
-    current_search_path <- RPostgreSQL::dbGetQuery(conn, "SHOW search_path;")
+    
+    current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(RPostgreSQL::dbGetQuery(conn, query))
+    invisible(dbSendQuery(conn, query))
     
     # Get parameters
     query <- paste0("SELECT * FROM ", pgtraj, "_params;")
-    DF <- invisible(RPostgreSQL::dbGetQuery(conn, query))
+    DF <- invisible(dbGetQuery(conn, query))
     
     query <- paste0("SELECT ltraj_tz FROM pgtrajs WHERE p_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
@@ -60,8 +59,8 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(RPostgreSQL::dbGetQuery(conn, query))
-    RPostgreSQL::dbCommit(conn)
+    invisible(dbGetQuery(conn, query))
+    
     message(paste0("Ltraj successfully created from ", pgtraj, "."))
     
     return(ltraj)

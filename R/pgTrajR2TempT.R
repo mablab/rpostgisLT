@@ -12,7 +12,8 @@
 #' @param srid Numeric. The PostGIS SRID of the Coordinate Reference System of the 
 #' relocation coordinates in the ltraj. Defaults to 0.
 #' 
-#' TODO check if the dataframe is an ltraj-dataframe
+#' @return TRUE on success, otherwise warning/error
+#' 
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     # Prepare the data frame to match 'relocs_temp'
@@ -53,19 +54,37 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     d1 <- apply(DF, 1, parse_row)
     values <- paste(d1, collapse = ",")
     query_insert <- paste("INSERT INTO relocs_temp ", cols, " VALUES ", values, ";")
+    # FIXME refactor 'relocs_temp' to a random name
     
-    # Begin transaction block and set database search path
-    invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
+    # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbGetQuery(conn, query))
     
-    invisible(dbGetQuery(conn, query_insert))
+    res <- tryCatch({
+                
+        invisible(dbSendQuery(conn, query_insert))
+        return(TRUE)
+        
+    }, warning = function(war) {
+        
+        message("WARNING in insert into the temporary table:")
+        message(war)
+        return(war)
+        
+    }, error = function(err) {
+        
+        message("ERROR in insert into the temporary table:")
+        message(err)
+        return(err)
+        
+    })
     
+    # Restore database search path
     query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbGetQuery(conn, query))
-    invisible(dbCommit(conn))
+    invisible(dbSendQuery(conn, query))
+    
     message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))
     
-    return(TRUE)
+    return(res)
 }

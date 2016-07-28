@@ -3,8 +3,8 @@
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
-#' @param relocations String. Name of the field that contains the relocations in relocation_data.
-#' @param rids String. Name of the field in relocation_data that contains the numeric IDs of relocations.
+#' @param relocations String. Name of the field that contains the relocations in relocations_table.
+#' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
 #' @param epsg Numeric. The EPSG code of the Coordinate Reference System of the 
 #' relocation coordinates in the ltraj. Defaults to 0.
 #' 

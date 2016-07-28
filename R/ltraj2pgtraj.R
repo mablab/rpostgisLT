@@ -28,7 +28,6 @@
 #' 
 #' @export 
 #' 
-# TODO once SRID is stored in the ltraj, include that too
 ################################################################################
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
         comment = NULL, create = FALSE, new.srid = NULL) {
@@ -36,13 +35,15 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (is.null(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     }
+    # FIXME pgtraj can only contain DB table-name-proof characters, include in test_input()
     
     # Set projection
     srs <- attr(ltraj, "proj4string")
-    if (is.na(srs)) {
+    if (is.null(srs)) {
         srid <- 0
     } else {
         srid <- pgSRID(srs, conn, create = create, new.srid = new.srid)
+        srs <- srs@projargs
     }
     
     # Get time zone
@@ -52,37 +53,104 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     dframe <- ld_opt(ltraj)
     
     # Check and create a pgtraj schema
+    # pgTrajSchema() has its own transaction contral
     x <- pgTrajSchema(conn, schema)
-    # If schema doesn't exists and user doesn't want to create it
-    if (x == "Exit") {
-        stop("Returning from function...")
+    # If schema creation unsuccessful
+    if (!isTRUE(x)) {
+        stop("Traj schema couln't be created, returning from function.")
     }
     
+    # Begin transaction block
+    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    
     # Import data frame into a temporary table
-    pgTrajTempT(conn, schema)
-    test <- suppressMessages(pgTrajR2TempT(conn, schema = schema, 
-                    dframe = dframe, pgtraj = pgtraj, srid = srid))
+    res <- tryCatch({
+                
+                pgTrajTempT(conn, schema)
+                
+            }, warning = function(x) {
+                
+                message(x)
+                message(". Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message(x)
+                message(". Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
+    
+    res2 <- tryCatch({
+                
+                suppressMessages(pgTrajR2TempT(conn, schema = schema, 
+                                dframe = dframe, pgtraj = pgtraj, srid = srid))
+                
+            }, warning = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message(x)
+                message(". Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
+    
+    res <- c(res, res2)
     
     # Insert from temporary table into the schema
-    test <- as_pgtraj(conn, schema = schema, srid = srid, db = FALSE)
+    res3 <- tryCatch({
+                
+                as_pgtraj(conn, schema = schema, srid = srid, db = FALSE)
+                
+            }, warning = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn) # needs to be here because tryCatch() in 
+                # as_pgtraj() only evaluates withing its own scope and does
+                # not pass the dbRollback() to ltraj2pgtraj().
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message(x)
+                message(". Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
     
-    # Drop temporary table
-    pgTrajDropTempT(conn, schema)
+    res <- c(res, res3)
     
     # Insert CRS, comment and time zone on the pgtraj
-    if (all(test)) {
+    if (all(res)) {
         
         query <- paste0("UPDATE ",schema,".pgtrajs
-                        SET proj4string = '", srs@projargs, "', 
+                        SET proj4string = '", srs, "', 
                             \"comment\" = '", comment, "',
                             ltraj_tz = '",tz,"'
                         WHERE p_name = '", pgtraj, "';")
         
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
-        invisible(dbGetQuery(conn, query))
-        message(paste0("The ltraj '", pgtraj, "' inserted into the database schema ", schema," successfully."))
+        invisible(dbSendQuery(conn, query))
+        
+        dbCommit(conn)
+        
+        message(paste0("The ltraj '", pgtraj, "' successfully inserted into the database schema '", schema,"'."))
         return(TRUE)
+        
     } else {
+        dbRollback(conn)
         stop("Ltraj insert failed")
     }
 }

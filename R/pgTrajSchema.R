@@ -60,23 +60,23 @@ pgTrajSchema <- function(conn, name = "traj") {
             ## Commit transaction block
             invisible(dbCommit(conn))
             
-            message(paste("The traj schema", name, "created in the database."))
+            message(paste0("The traj schema '", name, "' created in the database."))
             
             return(TRUE)
         } else if (all(traj_tables %in% dbtables)) {
             # All required tables are present in the schema
             invisible(dbCommit(conn))
             
-            message(paste("The traj schema", name, "is already present in the database."))
+            message(paste0 ("The traj schema '", name, "' is already present in the database."))
             
             return(TRUE)
         } else {
             invisible(dbRollback(conn))
             
-            stop(paste0("The traj schema ",name," appears to be incomplete. Please create a new schema."))
+            stop(paste0("The traj schema '",name,"' appears to be incomplete. Please create a new schema."))
         }
     } else {
         invisible(dbRollback(conn))
-        stop(paste0("Schema ",name," couldn't be created."))
+        stop(paste0("Schema '",name,"' couldn't be created."))
     }
 }

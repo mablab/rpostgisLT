@@ -127,10 +127,12 @@ Complete this section after the *ltraj* is updated by Clément.
 
 ### Managing time zones in PostgreSQL and R
 In PostgreSQL all timezone-aware dates and times are stored internally in UTC.
-They are converted to local time in the zone specified in the server. Therefore
-the time zone of the input *ltraj* is stored in the *pgtrajs* table *ltraj_tz*
+For display they are converted to local time in the zone specified on the server. Therefore
+the time zone of the input *ltraj* is stored in the *pgtrajs* table's *ltraj_tz*
 field in order to restore the *ltraj* with the original time zone when using
 *pgtraj2ltraj()*.
+
+This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. "2003-05-31 17:00:56 EST"), puts the ltraj into the database, then for the same date he will see "2003-06-01 00:00:56" in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.
 
 **A note on managing time zones in R**
 Care must be taken when changing the time zone of a POSIXt object in R. 

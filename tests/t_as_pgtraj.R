@@ -2,34 +2,38 @@
 # Author: bdukai
 ###############################################################################
 # all variables stored with the raw data
+
 as_pgtraj(conn, 
         schema = "traj_t2",
-        relocation_data = "example_data.relocations_plus",
+        relocations_table = "example_data.relocations_plus",
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",
         relocations = "geom",
-        timestamp = "time",
+        timestamps = "time",
         rid = "gid")
 
 # variables provided manually
 as_pgtraj(conn, 
         schema = "traj_t4",
-        relocation_data = "example_data.reloc_medium", 
+        relocations_table = "example_data.reloc_medium", 
         pgtrajs = "medium",
         animals = "sea turtle",
         relocations = "geom",
-        timestamp = "time",
+        timestamps = "time",
         rid = "gid")
 
 # trajectory Type I
 as_pgtraj(conn, 
-        schema = "traj_t3",
-        relocation_data = "example_data.reloc_t1", 
+        schema = "traj_t4",
+        relocations_table = "example_data.reloc_t1", 
         pgtrajs = "small",
         animals = "small animal",
         relocations = "geom",
         rid = "gid")
+
+
+
 
 data(ibex)
 ltraj2pgtraj(conn, ibex, "traj_9")
@@ -43,7 +47,7 @@ ltraj2pgtraj(conn, ibex_raw, "traj_t4")
 
 as_pgtraj(conn, 
         schema = "traj_t3",
-        relocation_data = "public.fires",
+        relocations_table = "public.fires",
         pgtrajs = "fires",
         animals = "fires_a",
         bursts = "fires_b",
@@ -52,16 +56,16 @@ as_pgtraj(conn,
         rid = "ogc_fid")
 
 query <- paste0("SELECT ST_SRID(", relocations,
-        ") FROM ", relocation_data," LIMIT 1;")
+        ") FROM ", relocations_table," LIMIT 1;")
 
 query <- "select st_srid(wkb_geometry) from public.fires limit 1;"
 epsg <- RPostgreSQL::dbGetQuery(conn, query)[1,1]
 
 
 pgTrajDB2TempT(conn, schema = "traj_t1", 
-              relocation_table = "public.fires", 
+              relocations_table = "public.fires", 
               pgtrajs = "fires", animals = "fires_a", bursts = "fires_b", 
-              relocation_geom = "wkb_geometry", timestamps = "time", rids = "ogc_fid",
+              relocations = "wkb_geometry", timestamps = "time", rids = "ogc_fid",
               epsg = 900914)
 
 rpostgisLT:::pgTrajTempT(conn, "traj_5")

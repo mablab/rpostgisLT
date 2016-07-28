@@ -57,6 +57,7 @@ dl_opt <- function(x) {
     ## In case of 'infolocs' data
     if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
         ## Split the infolocs by burst
+        # FIXME also split the row names on the burst level
         inf <- split(x[, !(names(x) %in% c(trajnam, "id",
                                             "burst")), drop = FALSE], x$burst)
         ## Loop in the ltraj to add 'id', 'burst' and 'infolocs'
@@ -94,6 +95,7 @@ ld_opt <- function(ltraj) {
             rel.angle = unlist(lapply(ltraj, function(x) x$rel.angle)),
             id = rep(id(ltraj), sapply(ltraj, nrow)),
             burst = rep(burst(ltraj), sapply(ltraj, nrow)))
+            #r.row.names = unlist(lapply(ltraj, function(x) x$dt))
     rownames(df) <- unlist(lapply(ltraj, function(x) rownames(x)))
     class(df$date) <-  c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")

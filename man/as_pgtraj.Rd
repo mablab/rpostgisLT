@@ -4,7 +4,7 @@
 \alias{as_pgtraj}
 \title{Converts relocation data into the pgtraj data model.}
 \usage{
-as_pgtraj(conn, schema = "traj", relocation_data = NULL,
+as_pgtraj(conn, schema = "traj", relocations_table = NULL,
   pgtrajs = "pgtraj", animals = "animal", bursts = NULL,
   relocations = NULL, timestamps = NULL, rids = "rid", epsg = NULL,
   db = TRUE)
@@ -14,7 +14,7 @@ as_pgtraj(conn, schema = "traj", relocation_data = NULL,
 
 \item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 
-\item{relocation_data}{String. Name of the table that stores the relocations, e.g. "public.relocations"}
+\item{relocations_table}{String. Name of the table that stores the relocations, e.g. "public.relocations"}
 
 \item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
 
@@ -22,12 +22,12 @@ as_pgtraj(conn, schema = "traj", relocation_data = NULL,
 
 \item{bursts}{String. Name of the burst or name of the field that stores the burst names.}
 
-\item{relocations}{String. Name of the field that contains the relocations in relocation_data.}
+\item{relocations}{String. Name of the field that contains the relocations in relocations_table.}
 
-\item{timestamps}{String. Name of the field in relocation_data that contains the timestamps.
+\item{timestamps}{String. Name of the field in relocations_table that contains the timestamps.
 If NULL, Type I trajectory is assumed.}
 
-\item{rids}{String. Name of the field in relocation_data that contains the numeric IDs of relocations.}
+\item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.}
 
 \item{db}{Boolean. If TRUE, the relocations are stored in a database table, 
 if FALSE relocations are stored in an R object. It is meant to be used by other functions internally. 
@@ -57,7 +57,7 @@ work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercas
 \dontrun{
 as_pgtraj(conn, 
         schema = "traj_t4",
-        relocation_data = "example_data.relocations_plus",
+        relocations_table = "example_data.relocations_plus",
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",

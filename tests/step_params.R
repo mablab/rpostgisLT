@@ -44,11 +44,61 @@ ltraj2pgtraj(conn, schema = "params_test2", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec)
 ltraj2pgtraj(conn, schema = "params_test4", ltraj = ib_rec)
 ib_rec_re <- pgtraj2ltraj(conn, schema = "params_test4", pgtraj = "ib_rec")
-ltraj2pgtraj(conn, schema = "params_test5", ltraj = ib_rec)
-ib_rec_re <- pgtraj2ltraj(conn, schema = "params_test5", pgtraj = "ib_rec")
+
+ltraj2pgtraj(conn, schema = "params_test1", ltraj = ib_rec)
+ib_rec_re1 <- pgtraj2ltraj(conn, schema = "params_test1", pgtraj = "ib_rec")
+ltraj2pgtraj(conn, schema = "params_test2", ltraj = ib_rec_re1)
+ib_rec_re2 <- pgtraj2ltraj(conn, schema = "params_test2", pgtraj = "ib_rec_re1")
+ltraj2pgtraj(conn, schema = "params_test3", ltraj = ib_rec_re2)
+ib_rec_re3 <- pgtraj2ltraj(conn, schema = "params_test3", pgtraj = "ib_rec_re2")
+ltraj2pgtraj(conn, schema = "params_test4", ltraj = ib_rec_re3)
+ib_rec_re4 <- pgtraj2ltraj(conn, schema = "params_test4", pgtraj = "ib_rec_re3")
+identical(ib_rec_re1, ib_rec_re4)
+
 
 all.equal(ib_rec, ib_rec_re)
 identical(ib_rec, ib_rec_re)
+
+######
+# Time zone
+attr(ibexraw[[1]]$date, "tzone")
+# [1] "Europe/Paris"
+ib_rec[[1]][1, "date"]
+# [1] "2003-06-01 00:00:56 CEST"
+format(ib_rec[[1]][1, "date"], tz="America/Florida", usetz=TRUE)
+# [1] "2003-05-31 22:00:56 America"
+# DANGER! the time zone 'America/Florida' is not valid, thus the standard 
+# time zone UTC is used instead and NO WARNING IS GIVEN!
+# Ref.: http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html
+# Valid time zones: OlsonNames()
+# See also: http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html
+format(ib_rec[[1]][1, "date"], tz="EST", usetz=TRUE)
+# change time zone
+attr(ib_rec[[1]]$date, "tzone") <- "EST"
+# test in DB
+ltraj2pgtraj(conn, schema = "traj_est", ltraj = ib_rec)
+#SELECT extract(timezone FROM date)/3600.0 AS offset_from_UTC
+#FROM traj_est.steps
+#LIMIT 1;
+#
+# returns: 2, which corresponds to the Postgres standard time zone, UTC. Thus
+# the time zone is not recognized on input.
+
+# Compare this with
+format(ib_rec[[1]][1, "date"], tz="Europe/Paris", usetz=TRUE)
+format(ib_rec[[1]][1, "date"], tz="CET", usetz=TRUE)
+format(ib_rec[[1]][1, "date"], tz="EST", usetz=TRUE)
+format(ib_rec[[1]][1, "date"], tz="UTC", usetz=TRUE)
+
+attr(ib_rec[[1]]$date, "tzone")
+ib_rec[[1]][1, "date"]
+attr(ib_rec[[1]]$date, "tzone") <- "EST"
+
+
+c <- "Subset of ibexraw as ibexraw[1])[1:10, ]. Time zone converted to EST prior DB insert."
+ltraj2pgtraj(conn, schema = "traj_test3", ltraj = ib_rec, 
+        pgtraj = "ib_rec_est", comment = c)
+ib_rec_re <- pgtraj2ltraj(conn, schema = "traj_test3", pgtraj = "ib_rec_est")
 
 
 #######
@@ -193,7 +243,7 @@ identical(ib_rec, ib_rec_re)
 #93  316.07752
 #94         NA
 
-# TODO Results are correct, but rounded to 5 decimals in an ltraj, compare:
+# DONE Results are correct, but rounded to 5 decimals in an ltraj, compare:
 # 5.0990195135927845 (pg) vs. 5.09902 (R)
 
 ############
