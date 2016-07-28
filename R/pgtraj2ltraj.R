@@ -54,9 +54,11 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # Cast into ltraj
     ltraj <- dl_opt(DF2)
     
-    attr(ltraj, "proj4string") <- CRS(proj4string)
-    # FIXME Error in CRS(proj4string) : 
-    #       PROJ4 argument-value pairs must begin with +: NA
+    if (proj4string %in% c("NA", "NULL", "NaN")) {
+        attr(ltraj, "proj4string") <- CRS()
+    } else {
+        attr(ltraj, "proj4string") <- CRS(proj4string)
+    }
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
