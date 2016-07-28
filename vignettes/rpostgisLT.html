@@ -12,7 +12,7 @@
 
 <meta name="author" content="Mathieu Basille, Balázs Dukai" />
 
-<meta name="date" content="2016-07-26" />
+<meta name="date" content="2016-07-28" />
 
 <title>rpostgisLT: Managing and visualizing movement data with PostGIS and R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">rpostgisLT: Managing and visualizing movement data with PostGIS and R</h1>
 <h4 class="author"><em>Mathieu Basille, Balázs Dukai</em></h4>
-<h4 class="date"><em>2016-07-26</em></h4>
+<h4 class="date"><em>2016-07-28</em></h4>
 
 
 <div id="TOC">
@@ -218,13 +218,13 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 <td align="left">Name or other identifier of trajectory group.</td>
 </tr>
 <tr class="odd">
-<td align="left">r_proj</td>
+<td align="left">proj4string</td>
 <td align="left">text</td>
 <td align="left"></td>
 <td align="left">Projection string of the ltraj, imported from R.</td>
 </tr>
 <tr class="even">
-<td align="left">r_tz</td>
+<td align="left">ltraj_tz</td>
 <td align="left">text</td>
 <td align="left"></td>
 <td align="left">Time zone of the corresponding ltraj.</td>
@@ -363,7 +363,8 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 </div>
 <div id="managing-time-zones-in-postgresql-and-r" class="section level3">
 <h3>Managing time zones in PostgreSQL and R</h3>
-<p>In PostgreSQL all timezone-aware dates and times are stored internally in UTC. They are converted to local time in the zone specified in the server. Therefore the time zone of the input <em>ltraj</em> is stored in the <em>pgtrajs</em> table <em>r_tz</em> field in order to restore the <em>ltraj</em> with the original time zone when using <em>pgtraj2ltraj()</em>.</p>
+<p>In PostgreSQL all timezone-aware dates and times are stored internally in UTC. For display they are converted to local time in the zone specified on the server. Therefore the time zone of the input <em>ltraj</em> is stored in the <em>pgtrajs</em> table’s <em>ltraj_tz</em> field in order to restore the <em>ltraj</em> with the original time zone when using <em>pgtraj2ltraj()</em>.</p>
+<p>This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. “2003-05-31 17:00:56 EST”), puts the ltraj into the database, then for the same date he will see “2003-06-01 00:00:56” in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.</p>
 <p><strong>A note on managing time zones in R</strong> Care must be taken when changing the time zone of a POSIXt object in R. Consider the following example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(adehabitatLT)
 <span class="kw">data</span>(ibexraw)
