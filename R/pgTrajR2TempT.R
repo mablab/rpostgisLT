@@ -17,24 +17,24 @@
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     # Prepare the data frame to match 'relocs_temp'
-    DF <- cbind(dframe, "r_id" = row.names(dframe))
-    DF$p_name <- pgtraj
-    i <- sapply(DF, is.factor)
-    DF[i] <- lapply(DF[i], as.character)
-    if ("pkey" %in% colnames(DF)) {
-        DF <- DF[,c("x", "y", "id", "burst", "p_name", "r_id", "pkey")]
-        names(DF) <- c("x", "y", "a_name", "b_name", "p_name", "r_id", "pkey")
+    colnames(dframe)[colnames(dframe) == 'r.row.names'] <- 'r_id'
+    dframe$p_name <- pgtraj
+    i <- sapply(dframe, is.factor)
+    dframe[i] <- lapply(dframe[i], as.character)
+    if ("pkey" %in% colnames(dframe)) {
+        dframe <- dframe[,c("x", "y", "id", "burst", "p_name", "r_id", "pkey")]
+        names(dframe) <- c("x", "y", "a_name", "b_name", "p_name", "r_id", "pkey")
     } else {
-        DF <- DF[,c("x", "y", "date", "id", "burst", "p_name", "r_id")]
-        names(DF) <- c("x", "y", "date", "a_name", "b_name", "p_name", "r_id")
-        DF$date <- sapply(DF$date, 
+        dframe <- dframe[,c("x", "y", "date", "id", "burst", "p_name", "r_id")]
+        names(dframe) <- c("x", "y", "date", "a_name", "b_name", "p_name", "r_id")
+        dframe$date <- sapply(dframe$date, 
                 function(x) 
                     strftime(x, format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE)
         )
     }
     
-    # Prepare column names for insert. X and Y columns must be DF[1:2].
-    x <- colnames(DF)[3:length(DF)]
+    # Prepare column names for insert. X and Y columns must be dframe[1:2].
+    x <- colnames(dframe)[3:length(dframe)]
     x <- c("relocation", x)
     cols <- paste0('("', paste(x, collapse = '","'), '")')
     
@@ -51,7 +51,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
                "')")
     }
     
-    d1 <- apply(DF, 1, parse_row)
+    d1 <- apply(dframe, 1, parse_row)
     values <- paste(d1, collapse = ",")
     query_insert <- paste("INSERT INTO relocs_temp ", cols, " VALUES ", values, ";")
     # FIXME refactor 'relocs_temp' to a random name

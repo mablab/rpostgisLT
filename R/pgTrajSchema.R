@@ -67,7 +67,7 @@ pgTrajSchema <- function(conn, name = "traj") {
             # All required tables are present in the schema
             invisible(dbCommit(conn))
             
-            message(paste0 ("The traj schema '", name, "' is already present in the database."))
+            message(paste0 ("The traj schema '", name, "' already exists in the database."))
             
             return(TRUE)
         } else {

@@ -45,17 +45,18 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
             abs.angle = DF[["abs_angle"]],
             rel.angle = DF[["rel_angle"]],
             id = DF[["id"]],
-            burst = DF[["burst"]])
-    
-    # Set row names
-    rownames(DF2) <- DF[["r_rowname"]]
+            burst = DF[["burst"]],
+            r.row.names = DF[["r_rowname"]])
     
     # Set time zone
     attr(DF2$date, "tzone") <- tz
     
     # Cast into ltraj
     ltraj <- dl_opt(DF2)
+    
     attr(ltraj, "proj4string") <- CRS(proj4string)
+    # FIXME Error in CRS(proj4string) : 
+    #       PROJ4 argument-value pairs must begin with +: NA
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")

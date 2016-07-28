@@ -39,6 +39,8 @@
 # dl
 #
 #' @rdname ld
+
+
 dl_opt <- function(x) {
     if (!inherits(x, "data.frame"))
         stop("x should be of class data.frame")
@@ -49,28 +51,30 @@ dl_opt <- function(x) {
     idd <- tapply(as.character(x$id), x$burst, unique)
     ## Split the data frame by burst
     traj <- split(x[, names(x) %in% trajnam], x$burst)
+    traj_rname <- split(x[, "r.row.names"], x$burst)
     ## 'ltraj' names, class and attributes
     names(traj) <- NULL
     class(traj) <- c("ltraj", "list")
     attr(traj, "typeII") <- TRUE
     attr(traj, "regular") <- is.regular(traj)
     ## In case of 'infolocs' data
-    if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
+    if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
         ## Split the infolocs by burst
-        # FIXME also split the row names on the burst level
-        inf <- split(x[, !(names(x) %in% c(trajnam, "id",
-                                            "burst")), drop = FALSE], x$burst)
+        inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst", "r.row.names")), 
+                        drop = FALSE], x$burst)
         ## Loop in the ltraj to add 'id', 'burst' and 'infolocs'
         for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
             attr(traj[[i]], "infolocs") <- inf[[i]]
+            rownames(traj[[i]]) <- as.numeric(traj_rname[[i]])
         }
     }
     ## If no infolocs, loop in the ltraj to add 'id' and 'burst'
     else for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
+            rownames(traj[[i]]) <- traj_rname[[i]]
         }
     return(traj)
 }
@@ -94,9 +98,9 @@ ld_opt <- function(ltraj) {
             abs.angle = unlist(lapply(ltraj, function(x) x$abs.angle)),
             rel.angle = unlist(lapply(ltraj, function(x) x$rel.angle)),
             id = rep(id(ltraj), sapply(ltraj, nrow)),
-            burst = rep(burst(ltraj), sapply(ltraj, nrow)))
-            #r.row.names = unlist(lapply(ltraj, function(x) x$dt))
-    rownames(df) <- unlist(lapply(ltraj, function(x) rownames(x)))
+            burst = rep(burst(ltraj), sapply(ltraj, nrow)),
+            r.row.names = unlist(lapply(ltraj, function(x) rownames(x))))
+    #rownames(df) <- unlist(lapply(ltraj, function(x) rownames(x)))
     class(df$date) <-  c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")
     if (!is.null(inf)) {
