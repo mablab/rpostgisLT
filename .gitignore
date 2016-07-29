@@ -1,3 +1,7 @@
+.gitignore.swp
+.swp
+Scripts
+.Rbuildignore
 .Rproj.user
 .Rhistory
 .RData
@@ -9,3 +13,4 @@ rpostgisLT.Rproj
 adehabitatLT
 /utility_functions.R
 inst/doc
+
