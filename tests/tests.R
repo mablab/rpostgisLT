@@ -1,5 +1,5 @@
 ## Establish connection with rpostgisLT database
-source("./rpostgisLT/tests/utility_functions.R")
+source("./rpostgisLT/utility/utility_functions.R")
 cs() # creates globals conn and drv
 
 
