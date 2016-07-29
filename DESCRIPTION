@@ -1,7 +1,7 @@
 Package: rpostgisLT
 Title: Managing and visualizing animal movement data with PostGIS and
     R
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
     person("Mathieu", "Basille", email = "basille@ufl.edu", role =
            c("aut")),
