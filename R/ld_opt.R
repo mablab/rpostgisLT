@@ -40,6 +40,26 @@
 #
 #' @rdname ld
 
+#debug(rpostgisLT:::dl_opt(DF2))
+#
+#x <- DF2
+#
+#for (i in (1:length(traj))) {
+##    attr(traj[[i]], "id") <- as.character(idd[i])
+##    attr(traj[[i]], "burst") <- names(idd[i])
+##    rownames(traj[[i]]) <- as.character(traj_rname[[i]])
+#    rownames(traj[[i]]) <- as.character(traj_rname[[i]])
+#}
+#
+#fi <- DF2[DF2$burst == 'A153', ][6:10, ]
+#se <- DF2[DF2$burst == 'A160', ][6:10, ]
+#th <- DF2[DF2$burst == 'A286', ][6:10, ]
+#fo <- DF2[DF2$burst == 'A289', ][6:10, ]
+#
+#
+#for (i in (1:length(a))) {
+#    rownames(a[[i]]) <- c(1,2,3,4,5)
+#}
 
 dl_opt <- function(x) {
     if (!inherits(x, "data.frame"))
@@ -52,6 +72,13 @@ dl_opt <- function(x) {
     ## Split the data frame by burst
     traj <- split(x[, names(x) %in% trajnam], x$burst)
     traj_rname <- split(x[, "r.row.names"], x$burst)
+    print(length(traj))
+    for (i in (1:length(traj))) {
+        print(length(traj[[i]]))
+        print(traj[[i]])
+        print(traj_rname[[i]])
+        rownames(traj[[i]]) <- traj_rname[[i]]
+    }
     ## 'ltraj' names, class and attributes
     names(traj) <- NULL
     class(traj) <- c("ltraj", "list")
@@ -67,14 +94,14 @@ dl_opt <- function(x) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
             attr(traj[[i]], "infolocs") <- inf[[i]]
-            rownames(traj[[i]]) <- as.numeric(traj_rname[[i]])
+            #rownames(traj[[i]]) <- traj_rname[[i]]
         }
     }
     ## If no infolocs, loop in the ltraj to add 'id' and 'burst'
     else for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
-            rownames(traj[[i]]) <- traj_rname[[i]]
+            #rownames(traj[[i]]) <- traj_rname[[i]]
         }
     return(traj)
 }

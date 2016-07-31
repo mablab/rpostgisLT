@@ -29,3 +29,10 @@ The project develops the integration of R and PostGIS for managing movement traj
 /utility – additional scripts that help the development process
 
 /vignettes – package vignettes
+
+## Installation of the development version
+
+You need to use the package devtools from Hadley Wickham:
+
+    library(devtools)
+    install_github("mablab/rpostgis")

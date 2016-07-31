@@ -17,20 +17,19 @@
 #' @export 
 #' 
 ################################################################################
+schema <- "traj"
+pgtraj <- "ibexraw"
+
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
-    current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbSendQuery(conn, query))
-    
     # Get parameters
-    query <- paste0("SELECT * FROM ", pgtraj, "_params;")
+    query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
     DF <- invisible(dbGetQuery(conn, query))
     
-    query <- paste0("SELECT ltraj_tz FROM pgtrajs WHERE p_name = '",pgtraj,"';")
+    query <- paste0("SELECT ltraj_tz FROM ",schema,".pgtrajs WHERE p_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
     
-    query <- paste0("SELECT proj4string FROM pgtrajs WHERE p_name = '",pgtraj,"';")
+    query <- paste0("SELECT proj4string FROM ",schema,".pgtrajs WHERE p_name = '",pgtraj,"';")
     proj4string <- dbGetQuery(conn, query)[1,1]
     
     DF2 <- data.frame(
@@ -59,10 +58,6 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     } else {
         attr(ltraj, "proj4string") <- CRS(proj4string)
     }
-    
-    # Commit transaction and reset search path in the database
-    query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbGetQuery(conn, query))
     
     message(paste0("Ltraj successfully created from ", pgtraj, "."))
     
