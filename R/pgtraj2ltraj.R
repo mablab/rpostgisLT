@@ -17,9 +17,6 @@
 #' @export 
 #' 
 ################################################################################
-schema <- "traj"
-pgtraj <- "ibexraw"
-
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # Get parameters

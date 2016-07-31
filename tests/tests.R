@@ -60,7 +60,7 @@ porpoise_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
 
 all.equal(ibexraw, ibexraw_re)
 all.equal(puechcirc, puechcirc_re)
-#all.equal(albatross, albatross_re)
+all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
 
 

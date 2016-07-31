@@ -72,13 +72,6 @@ dl_opt <- function(x) {
     ## Split the data frame by burst
     traj <- split(x[, names(x) %in% trajnam], x$burst)
     traj_rname <- split(x[, "r.row.names"], x$burst)
-    print(length(traj))
-    for (i in (1:length(traj))) {
-        print(length(traj[[i]]))
-        print(traj[[i]])
-        print(traj_rname[[i]])
-        rownames(traj[[i]]) <- traj_rname[[i]]
-    }
     ## 'ltraj' names, class and attributes
     names(traj) <- NULL
     class(traj) <- c("ltraj", "list")
@@ -94,14 +87,14 @@ dl_opt <- function(x) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
             attr(traj[[i]], "infolocs") <- inf[[i]]
-            #rownames(traj[[i]]) <- traj_rname[[i]]
+            rownames(traj[[i]]) <- traj_rname[[i]]
         }
     }
     ## If no infolocs, loop in the ltraj to add 'id' and 'burst'
     else for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
-            #rownames(traj[[i]]) <- traj_rname[[i]]
+            rownames(traj[[i]]) <- traj_rname[[i]]
         }
     return(traj)
 }

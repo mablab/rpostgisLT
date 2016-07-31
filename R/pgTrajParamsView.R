@@ -55,7 +55,6 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
             p.p_name AS pgtraj,
             s.s_id
         FROM steps AS s 
-        LEFT JOIN steps AS s2 ON s.s_id + 1 = s2.s_id
         JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
         JOIN bursts AS b ON s_rel.b_id = b.b_id
         JOIN animals AS a ON b.a_id = a.a_id
@@ -73,14 +72,14 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
                 JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
                 JOIN p_b_rel AS p_rel ON p_rel.b_id = s_rel.b_id
                 JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
-                WHERE p_name LIKE '",pgtraj,"'
+                WHERE p_name = '",pgtraj,"'
                 GROUP BY s_rel.b_id
                 ) AS m
             JOIN steps AS s ON s.s_id = m.s_id
         ) AS startp ON startp.b_id = s_rel.b_id
         LEFT JOIN (
             SELECT
-                s2.r_rowname AS rname,
+                s2.s_id AS s_id,
                 (
                 ST_Azimuth(ST_startpoint(s.step), ST_endpoint(s.step)) -
                 ST_Azimuth(ST_startpoint(s2.step), ST_endpoint(s2.step))
@@ -92,9 +91,9 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
             JOIN animals AS a ON b.a_id = a.a_id
             JOIN p_b_rel AS p_rel ON p_rel.b_id = b.b_id
             JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
-            WHERE p_name LIKE '",pgtraj,"'
-        ) AS r_angle ON s.r_rowname = r_angle.rname
-        WHERE p_name LIKE '",pgtraj,"'
+            WHERE p_name = '",pgtraj,"'
+        ) AS r_angle ON s.s_id = r_angle.s_id
+        WHERE p_name = '",pgtraj,"'
         ORDER BY s.s_id 
     ) AS t;")
     
