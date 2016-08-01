@@ -52,10 +52,6 @@ ltraj2pgtraj(conn, ltraj = porpoise, comment = "test CRS on porpoise")
 ibexraw_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
 puechcirc_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
 albatross_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross')
-#Error in `row.names<-.data.frame`(`*tmp*`, value = value) : 
-#        duplicate 'row.names' are not allowed
-#In addition: Warning message:
-#        non-unique value when setting 'row.names': ‘65’ 
 porpoise_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
 
 all.equal(ibexraw, ibexraw_re)
