@@ -1,3 +1,21 @@
+rpostgisLT 0.2.3 (Release date: )
+==============
+
+IMPLEMENTED:
+Changes:
+
+* Depends on adehabitatLT package.
+
+NOT IMPLEMENTED:
+Breaking changes:
+
+* The traj database model has changed, including field and table name changes.
+
+Changes:
+
+* Added pgTrajDelete function to delete one or more pgtrajs from a traj schema.
+
+
 rpostgisLT 0.2.2 (Release date: 2016-08-01)
 ==============
 

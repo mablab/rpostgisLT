@@ -49,7 +49,7 @@ pgTrajSchema <- function(conn, name = "traj") {
             
             ## SQL query to set up schema
             pgtraj_schema_file <- paste0(path.package("rpostgisLT"),
-                    "/sql/pgtraj_schema.sql")
+                    "/sql/traj_schema.sql")
             query <- paste(readLines(pgtraj_schema_file), collapse = "\n")
             invisible(dbGetQuery(conn, query))
             

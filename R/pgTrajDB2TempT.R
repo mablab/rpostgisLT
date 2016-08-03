@@ -1,4 +1,4 @@
-#' Insert relocations from a source table into the table 'relocs_temp'. 
+#' Insert relocations from a source table into the table 'qqbqahfsbrpq_temp'. 
 #' 
 #' If relocations are given as X,Y coordinates, they are converted into a POINT 
 #' geometry in PostGIS.
@@ -36,13 +36,13 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     # Table name is separated from schema declaration
     rd_split <- unlist(strsplit(relocations_table, "[.]"))
     
-    # Populate 'relocs_temp'----------------------------------------------------
+    # Populate 'qqbqahfsbrpq_temp'----------------------------------------------------
     # Insert relocations if trajectory Type I
     if (is.null(timestamps)) {
         # Relocations provided as point geometry
         if (length(relocations) == 1) {
             
-            query <- paste0("INSERT INTO relocs_temp (r_id, relocation)
+            query <- paste0("INSERT INTO qqbqahfsbrpq_temp (id, geom)
                             SELECT ",rids,",",relocations,"::geometry
                             FROM ",relocations_table,"
                             ORDER BY ",rids,";")
@@ -54,7 +54,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             # Relocations provided as a coordinate pair
             x <- relocations[1]
             y <- relocations[2]
-            query <- paste0("INSERT INTO relocs_temp (r_id, relocation)
+            query <- paste0("INSERT INTO qqbqahfsbrpq_temp (id, geom)
                             SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
                             FROM ",relocations_table,"
                             ORDER BY ",rids,";")
@@ -68,7 +68,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         if (length(relocations) == 1) {
             
             # Relocations provided as point geometry
-            query <- paste0("INSERT INTO relocs_temp (r_id, relocation, date)
+            query <- paste0("INSERT INTO qqbqahfsbrpq_temp (id, geom, relocation_time)
                             SELECT ",rids,",",relocations,"::geometry, ",timestamps,"
                             FROM ",relocations_table,"
                             ORDER BY ",timestamps,";")
@@ -80,7 +80,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             # relocations provided as a coordinate pair
             x <- relocations[1]
             y <- relocations[2]
-            query <- paste0("INSERT INTO relocs_temp (r_id, relocation, date)
+            query <- paste0("INSERT INTO qqbqahfsbrpq_temp (id, geom, relocation_time)
                             SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps,"
                             FROM ",relocations_table,"
                             ORDER BY ",timestamps,";")
@@ -95,20 +95,20 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     if (pgtrajs %in% fields) {
         
         # use the field values for pgtraj
-        query <- paste0("UPDATE relocs_temp
-                        SET p_name = a.",pgtrajs,"
+        query <- paste0("UPDATE qqbqahfsbrpq_temp
+                        SET pgtraj_name = a.",pgtrajs,"
                         FROM (
                         SELECT ",rids,", ",pgtrajs,"
                         FROM ",relocations_table,"
                         ) a
-                        WHERE r_id = a.",rids,";")
+                        WHERE qqbqahfsbrpq_temp.id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))
         
     } else {
         
         # Use the string
-        query <- paste0("UPDATE relocs_temp SET p_name = '", pgtrajs, "';")
+        query <- paste0("UPDATE qqbqahfsbrpq_temp SET pgtraj_name = '", pgtrajs, "';")
         invisible(dbSendQuery(conn, query))
         
     }
@@ -117,20 +117,20 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     if (animals %in% fields) {
         
         # Use the field values for animal
-        query <- paste0("UPDATE relocs_temp
-                        SET a_name = a.",animals,"
+        query <- paste0("UPDATE qqbqahfsbrpq_temp
+                        SET animal_name = a.",animals,"
                         FROM (
                         SELECT ",rids,", ",animals,"
                         FROM ",relocations_table,"
                         ) a
-                        WHERE r_id = a.",rids,";")
+                        WHERE qqbqahfsbrpq_temp.id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))
         
     } else {
         
         # Use the string
-        query <- paste("UPDATE relocs_temp SET a_name = '", animals, "';")
+        query <- paste("UPDATE qqbqahfsbrpq_temp SET animal_name = '", animals, "';")
         invisible(dbSendQuery(conn, query))
         
     }
@@ -139,38 +139,38 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
      if (is.null(bursts) & length(animals) > 1) {
         
         # Use animal name as default burst name
-        query <- paste0("UPDATE relocs_temp
-                        SET b_name = a.",animals,"
+        query <- paste0("UPDATE qqbqahfsbrpq_temp
+                        SET burst_name = a.",animals,"
                         FROM (
                         SELECT ",rids,", ",animals,"
                         FROM ",relocations_table,"
                         ) a
-                        WHERE r_id = a.",rids,";")
+                        WHERE qqbqahfsbrpq_temp.id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))
         
     } else if (is.null(bursts) & length(animals) == 1) {
         
-        query <- paste0("UPDATE relocs_temp SET b_name = '",animals,"';")
+        query <- paste0("UPDATE qqbqahfsbrpq_temp SET burst_name = '",animals,"';")
         invisible(dbSendQuery(conn, query))
         
     } else if (bursts %in% fields) {
         
         # Use the field values for bursts
-        query <- paste0("UPDATE relocs_temp
-                        SET b_name = a.",bursts,"
+        query <- paste0("UPDATE qqbqahfsbrpq_temp
+                        SET burst_name = a.",bursts,"
                         FROM (
                         SELECT ",rids,", ",bursts,"
                         FROM ",relocations_table,"
                         ) a
-                        WHERE r_id = a.",rids,";")
+                        WHERE qqbqahfsbrpq_temp.id = a.",rids,";")
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))
         
     } else {
         
         # Use the string
-        query <- paste("UPDATE relocs_temp SET b_name = '", bursts, "';")
+        query <- paste("UPDATE qqbqahfsbrpq_temp SET burst_name = '", bursts, "';")
         invisible(dbSendQuery(conn, query))
         
     }

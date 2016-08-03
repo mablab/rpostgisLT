@@ -1,4 +1,4 @@
-#' Insert an ltraj data frame into the 'relocs_temp' table.
+#' Insert an ltraj data frame into the 'qqbqahfsbrpq_temp' table.
 #' Input is an ltraj converted into a data frame with ld_opt().
 #' Ltraj row names are preserved. No transaction control.
 #' 
@@ -16,18 +16,19 @@
 #' 
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
-    # Prepare the data frame to match 'relocs_temp'
-    colnames(dframe)[colnames(dframe) == 'r.row.names'] <- 'r_id'
-    dframe$p_name <- pgtraj
+    # Prepare the data frame to match 'qqbqahfsbrpq_temp'
+    #colnames(dframe)[colnames(dframe) == 'r.row.names'] <- 'r_id'
+    dframe$pgtraj_name <- pgtraj
     i <- sapply(dframe, is.factor)
     dframe[i] <- lapply(dframe[i], as.character)
+    # FIXME always sort on date column, because pkey is not used by TypeI trajs
     if ("pkey" %in% colnames(dframe)) {
-        dframe <- dframe[,c("x", "y", "id", "burst", "p_name", "r_id", "pkey")]
-        names(dframe) <- c("x", "y", "a_name", "b_name", "p_name", "r_id", "pkey")
+        dframe <- dframe[,c("x", "y", "id", "burst", "pgtraj_name", "r.row.names", "pkey")]
+        names(dframe) <- c("x", "y", "animal_name", "burst_name", "pgtraj_name", "id", "pkey")
     } else {
-        dframe <- dframe[,c("x", "y", "date", "id", "burst", "p_name", "r_id")]
-        names(dframe) <- c("x", "y", "date", "a_name", "b_name", "p_name", "r_id")
-        dframe$date <- sapply(dframe$date, 
+        dframe <- dframe[,c("x", "y", "date", "id", "burst", "pgtraj_name", "r.row.names")]
+        names(dframe) <- c("x", "y", "relocation_time", "animal_name", "burst_name", "pgtraj_name", "id")
+        dframe$relocation_time <- sapply(dframe$relocation_time, 
                 function(x) 
                     strftime(x, format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE)
         )
@@ -35,7 +36,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     
     # Prepare column names for insert. X and Y columns must be dframe[1:2].
     x <- colnames(dframe)[3:length(dframe)]
-    x <- c("relocation", x)
+    x <- c("geom", x)
     cols <- paste0('("', paste(x, collapse = '","'), '")')
     
     # Prepare values of the dataframe for insert
@@ -53,8 +54,8 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     
     d1 <- apply(dframe, 1, parse_row)
     values <- paste(d1, collapse = ",")
-    query_insert <- paste("INSERT INTO relocs_temp ", cols, " VALUES ", values, ";")
-    # FIXME refactor 'relocs_temp' to a random name
+    query_insert <- paste("INSERT INTO qqbqahfsbrpq_temp ", cols, " VALUES ", values, ";")
+    # FIXME refactor 'qqbqahfsbrpq_temp' to a random name
     
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
@@ -84,7 +85,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(dbSendQuery(conn, query))
     
-    message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))
+    message(paste0("Data frame successfully inserted into ", schema,".qqbqahfsbrpq_temp"))
     
     return(res)
 }
