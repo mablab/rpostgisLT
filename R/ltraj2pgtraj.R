@@ -139,7 +139,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
                         SET proj4string = '", srs, "', 
                             \"comment\" = '", comment, "',
                             ltraj_tz = '",tz,"'
-                        WHERE p_name = '", pgtraj, "';")
+                        WHERE pgtraj_name = '", pgtraj, "';")
         
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))

@@ -45,3 +45,7 @@ rpostgisLT:::pgTrajR2TempT(conn, schema = "schema_t4", dframe = ib_df,
         pgtraj = "ibex", srid = 0)
 dbSendQuery(conn, "DROP SCHEMA schema_t4 CASCADE;")
 
+# Insert from database
+as_pgtraj
+
+

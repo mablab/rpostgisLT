@@ -31,9 +31,9 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
         t.r2n,
         atan2(t.dy, t.dx) AS abs_angle,
         CASE
-        WHEN t.rel_angle <= -pi() THEN 2 * pi() + t.rel_angle
-        WHEN t.rel_angle > pi() THEN t.rel_angle - 2 * pi()
-        ELSE t.rel_angle
+            WHEN t.rel_angle <= -pi() THEN 2 * pi() + t.rel_angle
+            WHEN t.rel_angle > pi() THEN t.rel_angle - 2 * pi()
+            ELSE t.rel_angle
         END AS rel_angle,
         t.id,
         t.burst,
@@ -50,9 +50,9 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
             extract(epoch FROM s.dt) AS dt,
             ST_Distance(startp.reloc1, s.reloc1)^2 AS r2n,
             r_angle.rel_angle,
-            a.a_name AS id,
-            b.b_name AS burst,
-            p.p_name AS pgtraj,
+            a.animal_name AS id,
+            b.burst_name AS burst,
+            p.pgtraj_name AS pgtraj,
             s.s_id
         FROM steps AS s 
         JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
@@ -72,7 +72,7 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
                 JOIN s_i_b_rel AS s_rel ON s.s_id = s_rel.s_id
                 JOIN p_b_rel AS p_rel ON p_rel.b_id = s_rel.b_id
                 JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
-                WHERE p_name = '",pgtraj,"'
+                WHERE pgtraj_name = '",pgtraj,"'
                 GROUP BY s_rel.b_id
                 ) AS m
             JOIN steps AS s ON s.s_id = m.s_id
@@ -91,11 +91,11 @@ pgTrajParamsView <- function(conn, schema, pgtraj, epsg) {
             JOIN animals AS a ON b.a_id = a.a_id
             JOIN p_b_rel AS p_rel ON p_rel.b_id = b.b_id
             JOIN pgtrajs AS p ON p_rel.p_id = p.p_id
-            WHERE p_name = '",pgtraj,"'
+            WHERE pgtraj_name = '",pgtraj,"'
         ) AS r_angle ON s.s_id = r_angle.s_id
-        WHERE p_name = '",pgtraj,"'
-        ORDER BY s.s_id 
-    ) AS t;")
+        WHERE pgtraj_name = '",pgtraj,"'
+    ) AS t
+    ORDER BY t.burst, t.date;")
     
     create_query <- gsub(pattern = '\\s', replacement = " ", x = query)
     
