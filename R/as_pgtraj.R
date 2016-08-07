@@ -164,9 +164,6 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Set search path in the database
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    
-    print(current_search_path)
-    
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbSendQuery(conn, query))
     

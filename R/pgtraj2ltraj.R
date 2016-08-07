@@ -23,7 +23,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
     DF <- invisible(dbGetQuery(conn, query))
     
-    query <- paste0("SELECT ltraj_tz FROM ",schema,".pgtrajs WHERE pgtraj_name = '",pgtraj,"';")
+    query <- paste0("SELECT time_zone FROM ",schema,".pgtrajs WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
     
     query <- paste0("SELECT proj4string FROM ",schema,".pgtrajs WHERE pgtraj_name = '",pgtraj,"';")

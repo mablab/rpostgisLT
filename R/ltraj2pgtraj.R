@@ -138,7 +138,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         query <- paste0("UPDATE ",schema,".pgtrajs
                         SET proj4string = '", srs, "', 
                             \"comment\" = '", comment, "',
-                            ltraj_tz = '",tz,"'
+                            time_zone = '",tz,"'
                         WHERE pgtraj_name = '", pgtraj, "';")
         
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
