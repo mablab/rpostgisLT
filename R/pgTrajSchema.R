@@ -37,8 +37,8 @@ pgTrajSchema <- function(conn, name = "traj") {
         query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname='",name,"';")
         dbtables <- dbGetQuery(conn, query, stringsAsFactors = FALSE)
         dbtables <- dbtables$tablename
-        traj_tables <- c("animals", "pgtrajs", "p_b_rel", "steps", "infolocs",
-                "bursts", "s_i_b_rel")
+        traj_tables <- c("animal_burst", "pgtraj", "step", "infoloc", 
+                "s_i_b_rel", "relocation")
         
         if (length(dbtables) == 0) {
             ## In case of empty schema

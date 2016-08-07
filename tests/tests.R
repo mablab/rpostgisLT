@@ -237,7 +237,35 @@ all.equal(ibex, ibexTest)
 
 ##############################################################################
 ## Test input from database
+## NOTE: connection to the host: basille-flrec.ad.ufl.edu, database: rpostgis required
+as_pgtraj(conn, 
+        schema = "traj_t2",
+        relocations_table = "example_data.relocations_plus",
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = "geom",
+        timestamps = "time",
+        rid = "gid")
 
+# variables provided manually
+as_pgtraj(conn, 
+        schema = "traj_t2",
+        relocations_table = "example_data.reloc_medium", 
+        pgtrajs = "medium2",
+        animals = "sea turtle",
+        relocations = "geom",
+        timestamps = "time",
+        rid = "gid")
+
+# trajectory Type I
+as_pgtraj(conn, 
+        schema = "traj_t4",
+        relocations_table = "example_data.reloc_t1", 
+        pgtrajs = "small",
+        animals = "small animal",
+        relocations = "geom",
+        rid = "gid")
 
 
 

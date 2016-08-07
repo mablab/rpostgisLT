@@ -102,7 +102,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         x <- pgTrajSchema(conn, schema)
         # If schema creation unsuccessful
         if (!isTRUE(x)) {
-            stop("Traj schema couln't be created, returning from function...")
+            stop("Traj schema couldn't be created, returning from function...")
         }
         
         ##### Data input
@@ -164,6 +164,9 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Set search path in the database
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
+    
+    print(current_search_path)
+    
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbSendQuery(conn, query))
     
@@ -244,7 +247,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                             ON TRUE;
                             ")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbSendQuery(conn, query))
+            invisible(dbGetQuery(conn, query))
             
             query <- paste0("
                             INSERT INTO s_i_b_rel (step_id, animal_burst_id)
@@ -259,7 +262,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                             	AND (step.pgtraj_name = pg.pgtraj_name);
                             ")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbSendQuery(conn, query))
+            invisible(dbGetQuery(conn, query))
             
         }, warning = function(war) {
             
@@ -280,11 +283,14 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         })
         
     res <- c(res, res3)
-        
+    
     # Drop temporary column
     if (suppressWarnings(all(res))) {
         invisible(dbGetQuery(conn, "ALTER TABLE relocation DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
         invisible(dbGetQuery(conn, "ALTER TABLE step DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
+    } else {
+        message("ERROR. Rolling back transaction.")
+        dbRollback(conn)
     }
     
 #    # Create view for step parameters    
@@ -315,6 +321,9 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
 #        
 #    }
     
+    # Drop temporary table
+    invisible(dbGetQuery(conn, "DROP TABLE qqbqahfsbrpq_temp;"))
+    
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(dbGetQuery(conn, query))
@@ -324,14 +333,12 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     if (db) {
         if (suppressWarnings(all(res))) {
             dbCommit(conn)
+            return(all(res))
         } else {
             message("Insert faliure, rolling back transaction")
             dbRollback(conn)
         }
     }
-    
-    # Drop temporary table
-    pgTrajDropTempT(conn, schema)
     
     return(all(res))
 }

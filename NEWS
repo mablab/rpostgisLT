@@ -10,6 +10,7 @@ NOT IMPLEMENTED:
 Breaking changes:
 
 * The traj database model has changed, including field and table name changes.
+* Remove pgDropTempT().
 
 Changes:
 

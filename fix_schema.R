@@ -49,3 +49,8 @@ dbSendQuery(conn, "DROP SCHEMA schema_t4 CASCADE;")
 as_pgtraj
 
 
+
+load("/home/bdukai/Development/rpostgisLT_ressources/tr2.RData")
+head(tr2)
+
+
