@@ -36,13 +36,14 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         pgtraj <- deparse(substitute(ltraj))
     }
     # FIXME pgtraj can only contain DB table-name-proof characters, include in test_input()
-    
+
     # Set projection
     srs <- attr(ltraj, "proj4string")
+
     if (is.null(srs)) {
         srid <- 0
     } else {
-        srid <- pgSRID(srs, conn, create = create, new.srid = new.srid)
+        srid <- pgSRID(conn = conn, crs = srs,create = create, new.srid = new.srid)
         srs <- srs@projargs
     }
     
@@ -59,7 +60,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (!isTRUE(x)) {
         stop("Traj schema couln't be created, returning from function.")
     }
-    
+
     # Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     
@@ -83,11 +84,11 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
                 stop("Returning from function")
                 
             })
-    
+
     res2 <- tryCatch({
                 
-                suppressMessages(pgTrajR2TempT(conn, schema = schema, 
-                                dframe = dframe, pgtraj = pgtraj, srid = srid))
+                pgTrajR2TempT(conn, schema = schema, 
+                                dframe = dframe, pgtraj = pgtraj, srid = srid)
                 
             }, warning = function(x) {
                 
@@ -106,7 +107,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             })
     
     res <- c(res, res2)
-    
+
     # Insert from temporary table into the schema
     res3 <- tryCatch({
                 
@@ -131,11 +132,11 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             })
     
     res <- c(res, res3)
-    
+
     # Insert CRS, comment and time zone on the pgtraj
     if (all(res)) {
         
-        query <- paste0("UPDATE ",schema,".pgtrajs
+        query <- paste0("UPDATE ",schema,".pgtraj
                         SET proj4string = '", srs, "', 
                             \"comment\" = '", comment, "',
                             time_zone = '",tz,"'
