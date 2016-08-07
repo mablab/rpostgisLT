@@ -19,6 +19,7 @@ system("R CMD Rd2pdf --force /home/bdukai/Development/rpostgisLT/ -o /home/bduka
 render("/home/bdukai/Development/rpostgisLT/vignettes/rpostgisLT.Rmd")
 
 #install_github("mablab/rpostgis")
+#install("rpostgis")
 #detach("rpostgis", unload=TRUE)
 #uninstall("rpostgis")
 

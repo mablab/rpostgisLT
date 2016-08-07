@@ -30,7 +30,7 @@ pgTrajSchema <- function(conn, name = "traj") {
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     
     ## Check and/or create schema
-    x <- pgSchema(conn, name, display = FALSE, exec = TRUE)
+    x <- dbSchema(conn, name, display = FALSE, exec = TRUE)
     
     if (x) {
         # Is the traj schema in the DB or just created and empty
