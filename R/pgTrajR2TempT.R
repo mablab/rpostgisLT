@@ -16,6 +16,10 @@
 #' 
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
+    # Quickfix digits
+    curr_digits <- options()$digits
+    options(digits=22)
+    
     # Prepare the data frame to match 'relocs_temp'
     colnames(dframe)[colnames(dframe) == 'r.row.names'] <- 'r_id'
     dframe$p_name <- pgtraj
@@ -86,5 +90,9 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     
     message(paste0("Data frame successfully inserted into ", schema,".relocs_temp"))
     
+    # Quickfix digits
+    options(digits=curr_digits)
+
+
     return(res)
 }
