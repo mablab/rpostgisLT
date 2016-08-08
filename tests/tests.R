@@ -2,12 +2,19 @@
 source("./rpostgisLT/utility/utility_functions.R")
 cs() # creates globals conn and drv
 
-
+## Get test datasets
 data(ibexraw)
 data(ibex)
 data(puechcirc)
 data(albatross)
 data(porpoise)
+
+## Update ltraj with 'proj4string' attribute
+ibexraw <- dl(ld(ibexraw))
+ibex <- dl(ld(ibex))
+puechcirc <- dl(ld(puechcirc))
+albatross <- dl(ld(albatross))
+porpoise <- dl(ld(porpoise))
 
 
 ## Minimal test
