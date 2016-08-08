@@ -154,4 +154,5 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         dbRollback(conn)
         stop("Ltraj insert failed")
     }
+    
 }

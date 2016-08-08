@@ -76,7 +76,7 @@ dl_opt <- function(x) {
     names(traj) <- NULL
     class(traj) <- c("ltraj", "list")
     attr(traj, "typeII") <- TRUE
-    attr(traj, "regular") <- adehabitatLT:::is.regular(traj)
+    attr(traj, "regular") <- is.regular(traj)
     ## In case of 'infolocs' data
     if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
         ## Split the infolocs by burst

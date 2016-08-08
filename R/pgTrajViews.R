@@ -85,6 +85,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg) {
                     min(s.step_id) AS first_step_id
                 FROM step_geom s
                 WHERE s.pgtraj_name = '",pgtraj,"'
+                GROUP BY s.ab_id
                 ) AS m
             JOIN step_geom s ON s.step_id = m.first_step_id
             ) AS startp
