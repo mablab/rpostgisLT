@@ -16,70 +16,77 @@
 #' 
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
-    # Prepare the data frame to match 'qqbqahfsbrpq_temp'
-    #colnames(dframe)[colnames(dframe) == 'r.row.names'] <- 'r_id'
-    dframe$pgtraj_name <- pgtraj
-    i <- sapply(dframe, is.factor)
-    dframe[i] <- lapply(dframe[i], as.character)
-    # FIXME always sort on date column, because pkey is not used by TypeI trajs
-    if ("pkey" %in% colnames(dframe)) {
-        dframe <- dframe[,c("x", "y", "id", "burst", "pgtraj_name", "r.row.names", "pkey")]
-        names(dframe) <- c("x", "y", "animal_name", "burst_name", "pgtraj_name", "id", "pkey")
-    } else {
-        dframe <- dframe[,c("x", "y", "date", "id", "burst", "pgtraj_name", "r.row.names")]
-        names(dframe) <- c("x", "y", "relocation_time", "animal_name", "burst_name", "pgtraj_name", "id")
-        dframe$relocation_time <- sapply(dframe$relocation_time, 
-                function(x) 
-                    strftime(x, format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE)
-        )
-    }
-    
-    # Prepare column names for insert. X and Y columns must be dframe[1:2].
-    x <- colnames(dframe)[3:length(dframe)]
-    x <- c("geom", x)
-    cols <- paste0('("', paste(x, collapse = '","'), '")')
-    
-    # Prepare values of the dataframe for insert
-    parse_row <- function(x) {
-        if (all(!is.na(x[1:2]))) {
-            reloc <- paste0("ST_SetSRID(ST_MakePoint(", x["x"], ",", x["y"], "),", srid, ")")
-        } else {
-            reloc <- "NULL"
-        }
-        paste0("(",
-               reloc, ", '",
-               toString(paste(x[3:length(x)], collapse = "','")),
-               "')")
-    }
-    
-    d1 <- apply(dframe, 1, parse_row)
-    values <- paste(d1, collapse = ",")
-    query_insert <- paste("INSERT INTO qqbqahfsbrpq_temp ", cols, " VALUES ", values, ";")
-    # FIXME refactor 'qqbqahfsbrpq_temp' to a random name
+    query_insert <- paste0("
+                    INSERT INTO qqbqahfsbrpq_temp (
+                        id,
+                        geom,
+                        relocation_time,
+                        animal_name,
+                        burst_name,
+                        pgtraj_name)
+                    SELECT
+                        \"r.row.names\"::integer AS id,
+                        ST_SetSRID(ST_MakePoint(x, y), ",srid,") AS geom,
+                        date AS relocation_time,
+                        id AS animal_name,
+                        burst AS burst_name,
+                        '",pgtraj,"' AS pgtraj_name
+                    FROM zgaqtsn_temp;
+                    ")
+    query_insert <- gsub(pattern = '\\s', replacement = " ", x = query_insert)
     
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbGetQuery(conn, query))
     
-    res <- tryCatch({
+    # Insert into temporary table1
+    res0 <- tryCatch({
                 
-        invisible(dbSendQuery(conn, query_insert))
-        return(TRUE)
-        
+        params <- c("dx", "dy", "dist", "dt", "R2n", "abs.angle", "rel.angle")
+        invisible(dbWriteTable(conn, name="zgaqtsn_temp", 
+                        value=dframe[, -which(names(dframe) %in% params)],
+                        row.names=FALSE))
+        TRUE
+            
     }, warning = function(war) {
         
-        message("WARNING in insert into the temporary table:")
+        message("WARNING in insert into the temporary table1:")
         message(war)
         return(war)
         
     }, error = function(err) {
         
-        message("ERROR in insert into the temporary table:")
+        message("ERROR in insert into the temporary table1:")
         message(err)
         return(err)
         
     })
+
+    
+    # Insert into temporary table2
+    res1 <- tryCatch({
+                
+        invisible(dbSendQuery(conn, query_insert))
+        TRUE
+        
+    }, warning = function(war) {
+        
+        message("WARNING in insert into the temporary table2:")
+        message(war)
+        return(war)
+        
+    }, error = function(err) {
+        
+        message("ERROR in insert into the temporary table2:")
+        message(err)
+        return(err)
+        
+    })
+    
+    invisible(dbGetQuery(conn, "DROP TABLE zgaqtsn_temp;"))
+    
+    res <- c(res0, res1)
     
     # Restore database search path
     query <- paste0("SET search_path TO ", current_search_path, ";")
@@ -87,5 +94,5 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     
     message(paste0("Data frame successfully inserted into ", schema,".qqbqahfsbrpq_temp"))
     
-    return(res)
+    return(all(res))
 }
