@@ -30,15 +30,15 @@ pgTrajSchema <- function(conn, name = "traj") {
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     
     ## Check and/or create schema
-    x <- pgSchema(conn, name, display = FALSE, exec = TRUE)
+    x <- dbSchema(conn, name, display = FALSE, exec = TRUE)
     
     if (x) {
         # Is the traj schema in the DB or just created and empty
         query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname='",name,"';")
         dbtables <- dbGetQuery(conn, query, stringsAsFactors = FALSE)
         dbtables <- dbtables$tablename
-        traj_tables <- c("animals", "pgtrajs", "p_b_rel", "steps", "infolocs",
-                "bursts", "s_i_b_rel")
+        traj_tables <- c("animal_burst", "pgtraj", "step", "infoloc", 
+                "s_i_b_rel", "relocation")
         
         if (length(dbtables) == 0) {
             ## In case of empty schema
@@ -49,7 +49,7 @@ pgTrajSchema <- function(conn, name = "traj") {
             
             ## SQL query to set up schema
             pgtraj_schema_file <- paste0(path.package("rpostgisLT"),
-                    "/sql/pgtraj_schema.sql")
+                    "/sql/traj_schema.sql")
             query <- paste(readLines(pgtraj_schema_file), collapse = "\n")
             invisible(dbGetQuery(conn, query))
             

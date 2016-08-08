@@ -102,14 +102,14 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         x <- pgTrajSchema(conn, schema)
         # If schema creation unsuccessful
         if (!isTRUE(x)) {
-            stop("Traj schema couln't be created, returning from function...")
+            stop("Traj schema couldn't be created, returning from function...")
         }
         
         ##### Data input
         # Begin transaction block
         invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
         
-        # Create temporary table 'relocs_temp'
+        # Create temporary table 'qqbqahfsbrpq_temp'
         res0 <- tryCatch({
                     
                     pgTrajTempT(conn, schema)
@@ -130,7 +130,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                     
                 })
         
-        # Insert values into 'relocs_temp'
+        # Insert values into 'qqbqahfsbrpq_temp'
         res1 <- tryCatch({
                     
                     pgTrajDB2TempT(conn, schema, 
@@ -167,27 +167,25 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbSendQuery(conn, query))
     
+    # Add temporary fields
+    invisible(dbSendQuery(conn,"ALTER TABLE relocation ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
+    invisible(dbSendQuery(conn,"ALTER TABLE step ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
+    
     # Insert relocations
-    query <- paste0("INSERT INTO pgtrajs (p_name)
-                    SELECT DISTINCT p_name
-                    FROM relocs_temp;
+    query <- paste0("
+                    INSERT INTO pgtraj (pgtraj_name)
+                    SELECT DISTINCT pgtraj_name
+                    FROM qqbqahfsbrpq_temp;
                     
-                    INSERT INTO animals (a_name)
-                    SELECT DISTINCT a_name
-                    FROM relocs_temp;
+                    INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
+                    SELECT DISTINCT a.burst_name, a.animal_name, b.id
+                    FROM qqbqahfsbrpq_temp a JOIN pgtraj b
+                    ON a.pgtraj_name = b.pgtraj_name;
                     
-                    INSERT INTO bursts (b_name, a_id)
-                    SELECT DISTINCT a.b_name, b.a_id
-                    FROM relocs_temp a JOIN animals b
-                    ON a.a_name = b.a_name;
-                    
-                    INSERT INTO p_b_rel (p_id, b_id)
-                    SELECT DISTINCT b.p_id, b_id
-                    FROM relocs_temp a 
-                    JOIN pgtrajs b
-                    ON a.p_name = b.p_name
-                    JOIN bursts c
-                    ON a.b_name = c.b_name;")
+                    INSERT INTO relocation (geom, relocation_time, r_rowname, burst_name, pgtraj_name)
+                    SELECT geom, relocation_time, id, burst_name, pgtraj_name
+                    FROM qqbqahfsbrpq_temp;
+                    ")
     query <- gsub(pattern = '\\s', replacement = " ", x = query)
     
     # 'res2' is passed on to ltraj2pgtraj 
@@ -198,7 +196,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                 
             }, warning = function(war) {
                 
-                message("WARNING in insert into 'pgtajs', 'animals', 'bursts', 'p_b_rel':")
+                message("WARNING in insert into 'pgtaj', 'animal_burst', 'relocation':")
                 message(war)
                 message(" . Rolling back transaction")
                 dbRollback(conn)
@@ -206,7 +204,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                 
             }, error = function(err) {
                 
-                message("ERROR in insert into 'pgtajs', 'animals', 'bursts', 'p_b_rel':")
+                message("ERROR in insert into 'pgtaj', 'animal_burst', 'relocation':")
                 message(err)
                 message(" . Rolling back transaction")
                 dbRollback(conn)
@@ -223,62 +221,46 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Insert steps into the schema
     res3 <- tryCatch({
-                
-        bst <- dbGetQuery(conn,"SELECT DISTINCT b_name FROM relocs_temp;")[,1]
-        invisible(dbSendQuery(conn,"ALTER TABLE steps ADD b_name text;"))
-        for (i in bst) {
-            query <- paste0("INSERT INTO steps (
-                                r_rowname,
-                                reloc1,
-                                step,
-                                date,
-                                dt,
-                                b_name
-                            ) (
-                                SELECT
-                                CASE 
-                                    WHEN a.pkey IS NOT NULL THEN a.pkey
-                                    WHEN a.pkey IS NULL THEN a.r_id::text
-                                END AS r_rowname,
-                                CASE
-                                    WHEN a.relocation IS NOT NULL AND b.relocation IS NOT NULL THEN a.relocation
-                                    WHEN (a.relocation IS  NOT NULL AND b.relocation IS NULL) THEN a.relocation
-                                    WHEN (a.relocation IS NULL AND b.relocation IS NOT NULL) OR 
-                                         (a.relocation IS NULL AND b.relocation IS NULL) THEN NULL
-                                END as reloc1,
-                                CASE
-                                    WHEN a.relocation IS NOT NULL AND b.relocation IS NOT NULL THEN st_makeline(a.relocation, b.relocation)
-                                    WHEN (a.relocation IS  NOT NULL AND b.relocation IS NULL) THEN NULL
-                                    WHEN (a.relocation IS NULL AND b.relocation IS NOT NULL) OR 
-                                         (a.relocation IS NULL AND b.relocation IS NULL) THEN NULL
-                                END as step,
-                                    a.date,
-                                    b.date - a.date AS dt,
-                                    '", i, "' as b_name
-                                FROM 
-                                    relocs_temp AS a
-                                    LEFT JOIN relocs_temp AS b 
-                                        ON a.r_id + 1 = b.r_id AND
-                                        a.b_name = b.b_name
-                                WHERE a.b_name = '", i, "'
-                                ORDER BY a.r_id
-                            );")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbSendQuery(conn, query))
             
-            # Insert step-burst relations
-            query <- paste0("INSERT INTO s_i_b_rel (s_id, b_id)
-                            SELECT a.s_id, b.b_id
-                            FROM steps a, bursts b
-                            WHERE a.b_name = '",i , "' 
-                            AND b.b_name = '", i, "'; ")
+            query <- paste0("
+                            INSERT INTO step (
+                                relocation_id_1, 
+                                relocation_id_2, dt, 
+                                burst_name, 
+                                pgtraj_name)
+                            SELECT 
+                                a.id AS relocation_id_1,
+                                b.id AS relocation_id_2,
+                                b.relocation_time - a.relocation_time AS dt,
+                                a.burst_name,
+                                a.pgtraj_name
+                            FROM relocation a
+                            LEFT JOIN LATERAL (SELECT *
+                                               FROM relocation c
+                                               WHERE a.relocation_time < c.relocation_time
+                                               AND a.burst_name = c.burst_name
+                                               LIMIT 1
+                                              ) AS b 
+                            ON TRUE;
+                            ")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbSendQuery(conn, query))
-           
-            # Delete b_names from temporary column
-            invisible(dbSendQuery(conn, "UPDATE steps SET b_name = NULL;"))
-        }
-        
+            invisible(dbGetQuery(conn, query))
+            
+            query <- paste0("
+                            INSERT INTO s_i_b_rel (step_id, animal_burst_id)
+                            WITH pg AS (
+                                SELECT a.id, a.burst_name, a.animal_name, b.pgtraj_name
+                                FROM animal_burst a
+                                JOIN pgtraj b ON a.pgtraj_id = b.id
+                            )
+                            SELECT step.id, pg.id
+                            FROM step, pg
+                            WHERE (step.burst_name = pg.burst_name) 
+                            	AND (step.pgtraj_name = pg.pgtraj_name);
+                            ")
+            query <- gsub(pattern = '\\s', replacement = " ", x = query)
+            invisible(dbGetQuery(conn, query))
+            
         }, warning = function(war) {
             
             message("WARNING in insert into 'steps':")
@@ -298,19 +280,23 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         })
         
     res <- c(res, res3)
-        
+    
     # Drop temporary column
     if (suppressWarnings(all(res))) {
-        invisible(dbGetQuery(conn, "ALTER TABLE steps DROP COLUMN b_name;"))
+        invisible(dbGetQuery(conn, "ALTER TABLE relocation DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
+        invisible(dbGetQuery(conn, "ALTER TABLE step DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
+    } else {
+        message("ERROR. Rolling back transaction.")
+        dbRollback(conn)
     }
     
-    # Create view for step parameters    
+    # Create views
     if (suppressWarnings(all(res))) {
-        pgt <- dbGetQuery(conn,"SELECT DISTINCT p_name FROM relocs_temp;")[,1]
+        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
         for (i in pgt) {
             res4 <- tryCatch(
                     
-                    pgTrajParamsView(conn, schema, i, srid),
+                    pgTrajViewParams(conn, schema, i, srid),
                     
                     warning = function(x) {
                         
@@ -330,7 +316,11 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
             res <- c(res, res4)
         }
         
+        pgTrajViewStepGeom(conn, schema)
     }
+    
+    # Drop temporary table
+    invisible(dbGetQuery(conn, "DROP TABLE qqbqahfsbrpq_temp;"))
     
     # Commit transaction and reset search path in the database
     query <- paste0("SET search_path TO ", current_search_path, ";")
@@ -341,14 +331,12 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     if (db) {
         if (suppressWarnings(all(res))) {
             dbCommit(conn)
+            return(all(res))
         } else {
             message("Insert faliure, rolling back transaction")
             dbRollback(conn)
         }
     }
-    
-    # Drop temporary table
-    pgTrajDropTempT(conn, schema)
     
     return(all(res))
 }

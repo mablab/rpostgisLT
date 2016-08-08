@@ -2,7 +2,8 @@
 #' 
 #' @description
 #' Used by \code{pgTrajDB2TempT} and \code{pgTrajR2TempT} to create a temporary
-#' table which will be populated by these functions.
+#' table which will be populated by these functions. The temporary table's
+#' name is a random string to avoid collation with user generated tables.
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
@@ -15,38 +16,34 @@
 #' \dontrun{pgTrajTempT(conn, "traj_1")}
 #' 
 ###############################################################################
-pgTrajDropTempT <- function(conn, schema) {
-    query <- paste0("DROP TABLE IF EXISTS ", schema, ".relocs_temp;")
-    invisible(dbGetQuery(conn, query))
-}
-
 pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
     query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
     tables <- invisible(dbGetQuery(conn, query))
-    if ('relocs_temp' %in% tables$tablename) {
+    if ('qqbqahfsbrpq_temp' %in% tables$tablename) {
         acr <- NA
         while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
-            acr <- readline(paste("The table 'relocs_temp' already exists in the schema", schema,
-                            ". Do you want to delete the table? [y/n]"))
+            acr <- readline(paste("A table named 'qqbqahfsbrpq_temp' already exists in the schema", schema,
+                            ". Do you want to delete it? [y/n]"))
             acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
         }
         if (acr %in% "n") {
             return(FALSE)
         } else {
-            pgTrajDropTempT(conn, schema)
+            query <- paste0("DROP TABLE IF EXISTS ", schema, ".qqbqahfsbrpq_temp;")
+            invisible(dbSendQuery(conn, query))
         }
     }
     
-    # Create 'relocs_temp' table
-    query <- paste0("CREATE TABLE ", schema, ".relocs_temp (
-                    r_id    serial,
-                    pkey    text,
-                    relocation     geometry,
-                    date    timestamptz,
-                    b_name      text,
-                    a_name      text,
-                    p_name      text
+    # Create 'qqbqahfsbrpq_temp' table
+    query <- paste0("CREATE TABLE ", schema, ".qqbqahfsbrpq_temp (
+                    id               serial,
+                    pkey             text,
+                    geom             geometry,
+                    relocation_time  timestamptz,
+                    burst_name       text,
+                    animal_name      text,
+                    pgtraj_name      text
                     );")
     create_query <- gsub(pattern = '\\s', replacement = " ", x = query)
     

@@ -25,7 +25,8 @@ SystemRequirements:
     PostgreSQL with PostGIS extension
 Depends:
     R (>= 3.3.0),
-    rpostgis
+    rpostgis,
+    adehabitatLT
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

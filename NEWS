@@ -1,3 +1,16 @@
+rpostgisLT 0.2.3 (Release date: )
+==============
+
+Changes:
+
+* Depends on adehabitatLT package.
+
+Breaking changes:
+
+* The traj database model has changed, including field and table name changes.
+* Remove pgDropTempT().
+
+
 rpostgisLT 0.2.2 (Release date: 2016-08-01)
 ==============
 

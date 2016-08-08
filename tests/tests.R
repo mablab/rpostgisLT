@@ -2,12 +2,19 @@
 source("./rpostgisLT/utility/utility_functions.R")
 cs() # creates globals conn and drv
 
-
+## Get test datasets
 data(ibexraw)
 data(ibex)
 data(puechcirc)
 data(albatross)
 data(porpoise)
+
+## Update ltraj with 'proj4string' attribute
+ibexraw <- dl(ld(ibexraw))
+ibex <- dl(ld(ibex))
+puechcirc <- dl(ld(puechcirc))
+albatross <- dl(ld(albatross))
+porpoise <- dl(ld(porpoise))
 
 
 ## Minimal test
@@ -59,7 +66,8 @@ all.equal(puechcirc, puechcirc_re)
 all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
 
-
+dbSendQuery(conn, "DROP SCHEMA traj CASCADE;")
+rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re)
 
 ## Missing relocations
 refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
@@ -154,3 +162,37 @@ burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
+
+
+#############################################################################
+## Test database import
+
+# all variables stored with the raw data
+as_pgtraj(conn, 
+        schema = "traj_t2",
+        relocations_table = "example_data.relocations_plus",
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = "geom",
+        timestamps = "time",
+        rid = "gid")
+
+# variables provided manually
+as_pgtraj(conn, 
+        schema = "traj_t4",
+        relocations_table = "example_data.reloc_medium", 
+        pgtrajs = "medium",
+        animals = "sea turtle",
+        relocations = "geom",
+        timestamps = "time",
+        rid = "gid")
+
+# trajectory Type I
+as_pgtraj(conn, 
+        schema = "traj_t4",
+        relocations_table = "example_data.reloc_t1", 
+        pgtrajs = "small",
+        animals = "small animal",
+        relocations = "geom",
+        rid = "gid")

@@ -82,7 +82,7 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 | p_id    | serial | PK               | Auto-generated numeric ID of pgtraj.             |
 | p_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
 | proj4string  | text   |                  | Projection string of the ltraj, imported from R. |
-| ltraj_tz    | text   |                  | Time zone of the corresponding ltraj.            |
+| time_zone    | text   |                  | Time zone of the corresponding ltraj.            |
 | comment | text   |                  |                                                  |
 
 **p_b_rel table**\
@@ -128,7 +128,7 @@ Complete this section after the *ltraj* is updated by Clément.
 ### Managing time zones in PostgreSQL and R
 In PostgreSQL all timezone-aware dates and times are stored internally in UTC.
 For display they are converted to local time in the zone specified on the server. Therefore
-the time zone of the input *ltraj* is stored in the *pgtrajs* table's *ltraj_tz*
+the time zone of the input *ltraj* is stored in the *pgtrajs* table's *time_zone*
 field in order to restore the *ltraj* with the original time zone when using
 *pgtraj2ltraj()*.
 
