@@ -23,10 +23,10 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
     DF <- invisible(dbGetQuery(conn, query))
     
-    query <- paste0("SELECT time_zone FROM ",schema,".pgtrajs WHERE pgtraj_name = '",pgtraj,"';")
+    query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
     
-    query <- paste0("SELECT proj4string FROM ",schema,".pgtrajs WHERE pgtraj_name = '",pgtraj,"';")
+    query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     proj4string <- dbGetQuery(conn, query)[1,1]
     
     DF2 <- data.frame(
@@ -40,7 +40,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
             R2n = DF[["r2n"]],
             abs.angle = DF[["abs_angle"]],
             rel.angle = DF[["rel_angle"]],
-            id = DF[["id"]],
+            id = DF[["animal_name"]],
             burst = DF[["burst"]],
             r.row.names = DF[["r_rowname"]])
     

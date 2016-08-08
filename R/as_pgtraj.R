@@ -290,33 +290,34 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         dbRollback(conn)
     }
     
-#    # Create view for step parameters    
-#    if (suppressWarnings(all(res))) {
-#        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
-#        for (i in pgt) {
-#            res4 <- tryCatch(
-#                    
-#                    pgTrajParamsView(conn, schema, i, srid),
-#                    
-#                    warning = function(x) {
-#                        
-#                        message(x)
-#                        message(" . Rolling back transaction")
-#                        dbRollback(conn)
-#                        stop("Returning from function")
-#                        
-#                    }, error = function(x) {
-#                        
-#                        message(x)
-#                        message(" . Rolling back transaction")
-#                        dbRollback(conn)
-#                        stop("Returning from function")
-#                        
-#                    })
-#            res <- c(res, res4)
-#        }
-#        
-#    }
+    # Create views
+    if (suppressWarnings(all(res))) {
+        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
+        for (i in pgt) {
+            res4 <- tryCatch(
+                    
+                    pgTrajViewParams(conn, schema, i, srid),
+                    
+                    warning = function(x) {
+                        
+                        message(x)
+                        message(" . Rolling back transaction")
+                        dbRollback(conn)
+                        stop("Returning from function")
+                        
+                    }, error = function(x) {
+                        
+                        message(x)
+                        message(" . Rolling back transaction")
+                        dbRollback(conn)
+                        stop("Returning from function")
+                        
+                    })
+            res <- c(res, res4)
+        }
+        
+        pgTrajViewStepGeom(conn, schema)
+    }
     
     # Drop temporary table
     invisible(dbGetQuery(conn, "DROP TABLE qqbqahfsbrpq_temp;"))

@@ -1,4 +1,4 @@
-drv <<- dbDriver("PostgreSQL")
+drv <- dbDriver("PostgreSQL")
 conn <- dbConnect(drv, user="bdukai", password="ERBAgoNd1#", dbname="rpostgisLT",
         host="localhost")
 dbDisconnect(conn)

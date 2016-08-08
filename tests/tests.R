@@ -59,7 +59,8 @@ all.equal(puechcirc, puechcirc_re)
 all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
 
-
+dbSendQuery(conn, "DROP SCHEMA traj CASCADE;")
+rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re)
 
 ## Missing relocations
 refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
