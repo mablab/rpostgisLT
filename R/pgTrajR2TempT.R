@@ -27,7 +27,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
                     SELECT
                         \"r.row.names\"::integer AS id,
                         ST_SetSRID(ST_MakePoint(x, y), ",srid,") AS geom,
-                        date AS relocation_time,
+                        date::timestamptz AS relocation_time,
                         id AS animal_name,
                         burst AS burst_name,
                         '",pgtraj,"' AS pgtraj_name
@@ -43,7 +43,14 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     # Insert into temporary table1
     res0 <- tryCatch({
                 
+        # Format date to include time zone that Postgres recognizes
+        dframe$date <- sapply(dframe$date, 
+                              function(x) 
+                                    strftime(x, format = "%Y-%m-%d %H:%M:%S",
+                                            tz = "", usetz = TRUE))
+        # Parameters to exclude on input
         params <- c("dx", "dy", "dist", "dt", "R2n", "abs.angle", "rel.angle")
+ 
         invisible(dbWriteTable(conn, name="zgaqtsn_temp", 
                         value=dframe[, -which(names(dframe) %in% params)],
                         row.names=FALSE))

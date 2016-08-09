@@ -20,8 +20,11 @@
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # Get parameters
-    query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
-    DF <- invisible(dbGetQuery(conn, query))
+#    query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
+#    DF <- invisible(dbGetQuery(conn, query))
+    
+    view <- paste0(pgtraj, "_params")
+    DF <- invisible(dbReadTable(conn, c(schema, view)))
     
     query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
