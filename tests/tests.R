@@ -12,8 +12,8 @@ data(porpoise)
 ## Update ltraj with 'proj4string' attribute
 ibexraw <- dl(ld(ibexraw))
 ibex <- dl(ld(ibex))
-puechcirc <- dl(ld(puechcirc))
-albatross <- dl(ld(albatross))
+puechcirc <- dl(ld(rec(puechcirc)))
+albatross <- dl(ld(rec(albatross)))
 porpoise <- dl(ld(porpoise))
 
 
@@ -58,7 +58,7 @@ ltraj2pgtraj(conn, ltraj = porpoise, comment = "test CRS on porpoise")
 
 ibexraw_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
 puechcirc_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
-albatross_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross')
+albatross_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross') # there is an error with this
 porpoise_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
 
 all.equal(ibexraw, ibexraw_re)

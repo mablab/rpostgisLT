@@ -87,8 +87,8 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
 
     res2 <- tryCatch({
                 
-                pgTrajR2TempT(conn, schema = schema, 
-                                dframe = dframe, pgtraj = pgtraj, srid = srid)
+                suppressMessages(pgTrajR2TempT(conn, schema = schema, 
+                                dframe = dframe, pgtraj = pgtraj, srid = srid))
                 
             }, warning = function(x) {
                 

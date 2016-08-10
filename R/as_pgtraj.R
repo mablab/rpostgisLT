@@ -316,6 +316,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
             res <- c(res, res4)
         }
         
+        # TODO create view if doesn't exist
         pgTrajViewStepGeom(conn, schema)
     }
     

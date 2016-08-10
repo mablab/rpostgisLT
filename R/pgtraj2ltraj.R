@@ -23,8 +23,22 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
 #    query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
 #    DF <- invisible(dbGetQuery(conn, query))
     
+    # TODO Find the cause of the duplicate r_rownames error in the <pgtraj>_params
+    # view. The error disappears after refreshing the view and only appears when
+    # inserting specific ltrajes in a specific order. For example:
+    # 1) insert albatross
+    # 2) insert puechcirc
+    # 3) retrieve puechcirc -> gives duplicate row names error
+    # The same happens when 1) ins. puechcirc 2) ins. albatross 3) retr. puechcirc
+    # However, if the <pgtraj>_params view is queried at least once before
+    # using pgtraj2ltraj(), the error does not happen.
+    query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_params", " LIMIT 1;")
+    invisible(dbGetQuery(conn, query))
+    
     view <- paste0(pgtraj, "_params")
-    DF <- invisible(dbReadTable(conn, c(schema, view)))
+    #DF <- invisible(dbReadTable(conn, c(schema, view)))
+    query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_params;")
+    DF <- invisible(dbGetQuery(conn, query))
     
     query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, query)[1,1]
