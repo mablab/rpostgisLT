@@ -1,9 +1,10 @@
-rpostgisLT 0.2.3 (Release date: )
+rpostgisLT 0.2.3 (Release date: 2016-08-10)
 ==============
 
 Changes:
 
 * Depends on adehabitatLT package.
+* Add <pgtraj>_step_geom view for visualizing pgtrajes in QGIS.
 
 Breaking changes:
 

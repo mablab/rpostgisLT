@@ -294,11 +294,14 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     if (suppressWarnings(all(res))) {
         pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
         for (i in pgt) {
-            res4 <- tryCatch(
+            res4 <- tryCatch({
                     
-                    pgTrajViewParams(conn, schema, i, srid),
+                    pgTrajViewParams(conn, schema, i, srid)
                     
-                    warning = function(x) {
+                    # TODO create view if doesn't exist
+                    pgTrajViewStepGeom(conn, schema, i)
+                    
+                    }, warning = function(x) {
                         
                         message(x)
                         message(" . Rolling back transaction")
@@ -316,8 +319,6 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
             res <- c(res, res4)
         }
         
-        # TODO create view if doesn't exist
-        pgTrajViewStepGeom(conn, schema)
     }
     
     # Drop temporary table

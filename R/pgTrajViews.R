@@ -152,14 +152,14 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg) {
 #' @return TRUE on success, otherwise warning/error
 #' 
 ###############################################################################
-pgTrajViewStepGeom <- function(conn, schema) {
+pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbGetQuery(conn, query))
     
     query <- paste0(
-    "CREATE OR REPLACE VIEW step_geom AS
+    "CREATE OR REPLACE VIEW ",pgtraj,"_step_geom AS
     SELECT
         s.id AS step_id,
         ST_Makeline(r1.geom, r2.geom) AS step_geom,
@@ -177,25 +177,26 @@ pgTrajViewStepGeom <- function(conn, schema) {
     JOIN relocation r2 ON s.relocation_id_2 = r2.id
     JOIN s_i_b_rel rel ON rel.step_id = s.id
     JOIN animal_burst ab ON ab.id = rel.animal_burst_id
-    JOIN pgtraj p ON p.id = ab.pgtraj_id;"
+    JOIN pgtraj p ON p.id = ab.pgtraj_id
+    WHERE p.pgtraj_name = '",pgtraj,"';"
     )
     create_query <- gsub(pattern = '\\s', replacement = " ", x = query)
     
     res <- tryCatch({
                 
                 invisible(dbSendQuery(conn, create_query))
-                message(paste0("View 'step_geom' created in schema '", schema, "'."))
+                message(paste0("View '",pgtraj,"_step_geom' created in schema '", schema, "'."))
                 return(TRUE)
                 
             }, warning = function(war) {
                 
-                message(paste0("WARNING in creating view 'step_geom' :"))
+                message(paste0("WARNING in creating view '",pgtraj,"_step_geom' :"))
                 message(war)
                 return(war)
                 
             }, error = function(err) {
                 
-                message(paste0("ERROR in creating view 'step_geom' :"))
+                message(paste0("ERROR in creating view '",pgtraj,"_step_geom' :"))
                 message(err)
                 return(err)
                 
