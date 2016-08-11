@@ -3,17 +3,17 @@ source("./rpostgisLT/utility/utility_functions.R")
 cs() # creates globals conn and drv
 
 ## Get test datasets
-data(ibexraw)
 data(ibex)
+data(ibexraw)
 data(puechcirc)
 data(albatross)
 data(porpoise)
 
 ## Update ltraj with 'proj4string' attribute
-ibexraw <- dl(ld(ibexraw))
 ibex <- dl(ld(ibex))
-puechcirc <- dl(ld(rec(puechcirc)))
-albatross <- dl(ld(rec(albatross)))
+ibexraw <- dl(ld(ibexraw))
+puechcirc <- dl(ld(puechcirc))
+albatross <- dl(ld(albatross))
 porpoise <- dl(ld(porpoise))
 
 
@@ -23,12 +23,18 @@ ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min, pgtraj = "ib_min")
 ib_min_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
 all.equal(ib_min, ib_min_re)
 
+dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
+rm(ib_min_re, ib_min)
+
 srs <- CRS("+init=epsg:3395")
 ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs) # note that step 
 # parameters are recomputed on purpose
 ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min_srs, pgtraj = "ib_min_3395")
 ib_min_srs_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min_3395")
 all.equal(ib_min_srs, ib_min_srs_re)
+
+dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
+rm(ib_min_srs, ib_min_srs_re)
 
 
 ## Basic ltraj
@@ -42,7 +48,10 @@ ltraj2pgtraj(conn, ibex)                   # Default should be in schema
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
                                         # 'traj' schema.
 all.equal(ibex, ibexTest)
-## TRUE
+# TRUE
+
+dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+rm(ibex, ibexTest)
 
 ## More basic ltraj
 srs2 <- CRS("+init=epsg:4326")
@@ -66,7 +75,7 @@ all.equal(puechcirc, puechcirc_re)
 all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
 
-dbSendQuery(conn, "DROP SCHEMA traj CASCADE;")
+dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re)
 
 ## Missing relocations
@@ -76,7 +85,9 @@ refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-## TRUE
+# TRUE
+dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+rm(ibex, ibexTest)
 
 
 ## Rounding timestamps
