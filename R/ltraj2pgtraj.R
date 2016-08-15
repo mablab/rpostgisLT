@@ -62,7 +62,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     }
 
     # Begin transaction block
-    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    #invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     
     # Import data frame into a temporary table
     res <- tryCatch({
@@ -146,13 +146,13 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         query <- gsub(pattern = '\\s', replacement = " ", x = query)
         invisible(dbSendQuery(conn, query))
         
-        dbCommit(conn)
+        #dbCommit(conn)
         
         message(paste0("The ltraj '", pgtraj, "' successfully inserted into the database schema '", schema,"'."))
         return(TRUE)
         
     } else {
-        dbRollback(conn)
+        #dbRollback(conn)
         stop("Ltraj insert failed")
     }
     

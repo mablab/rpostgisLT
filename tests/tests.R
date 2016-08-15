@@ -131,7 +131,7 @@ ibex <- ibex.ref
 ## We work on the data frame from the trajectory, which we subset, and
 ## then rebuild the ltraj without recomputing trajectory parameters;
 ## this is essentially what 'hab::subset' does.
-## Note that the steps are not discontinuous any more.
+## Note that the steps are not continuous any more.
 ibex <- ld_opt(ibex)
 ibex <- droplevels(ibex[ibex$dist < 400 & !is.na(ibex$dist), ])
 ibex <- dl_opt(ibex)
