@@ -235,13 +235,15 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                                 a.burst_name,
                                 a.pgtraj_name
                             FROM relocation a
-                            LEFT JOIN LATERAL (SELECT *
+                            LEFT OUTER JOIN LATERAL (SELECT c.id, c.relocation_time
                                                FROM relocation c
                                                WHERE a.relocation_time < c.relocation_time
                                                AND a.burst_name = c.burst_name
+                                               ORDER BY c.relocation_time ASC
                                                LIMIT 1
                                               ) AS b 
-                            ON TRUE;
+                            ON TRUE
+                            WHERE a.pgtraj_name = '",pgtrajs,"';
                             ")
             query <- gsub(pattern = '\\s', replacement = " ", x = query)
             invisible(dbGetQuery(conn, query))

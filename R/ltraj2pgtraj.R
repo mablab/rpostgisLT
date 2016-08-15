@@ -111,7 +111,8 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     # Insert from temporary table into the schema
     res3 <- tryCatch({
                 
-                as_pgtraj(conn, schema = schema, srid = srid, db = FALSE)
+                as_pgtraj(conn, schema = schema, srid = srid,
+                        pgtrajs = pgtraj, db = FALSE)
                 
             }, warning = function(x) {
                 

@@ -38,80 +38,117 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg) {
         JOIN s_i_b_rel rel ON rel.step_id = s.id
         JOIN animal_burst ab ON ab.id = rel.animal_burst_id
         JOIN pgtraj p ON p.id = ab.pgtraj_id
-        )
+        WHERE p.pgtraj_name = '",pgtraj,"'
+        ),
+    step_shape AS (
+        SELECT
+            t.step_id,
+            t.step_geom,
+            t.relocation_time,
+            t.dt,
+            t.r_rowname,
+            t.dx,
+            t.dy,
+            t.relocation1_geom,
+            t.relocation2_geom,
+            t.burst_name,
+            t.animal_name,
+            t.pgtraj_name,
+            t.ab_id,
+            t.dist,
+            CASE
+                WHEN t.dist < 1e-07 THEN NULL
+                WHEN t.dist >= 1e-07 THEN atan2(t.dy, t.dx)
+            END AS abs_angle
+        FROM (SELECT
+                  step_id,
+                  step_geom,
+                  relocation_time,
+                  dt,
+                  r_rowname,
+                  relocation1_geom,
+                  relocation2_geom,
+                  burst_name,
+                  animal_name,
+                  pgtraj_name,
+                  ab_id,
+                  ST_length(step_geom) AS dist,
+                  ST_X(relocation2_geom) - ST_X(relocation1_geom) AS dx,
+                  ST_Y(relocation2_geom) - ST_Y(relocation1_geom) AS dy
+              FROM step_geom
+             ) AS t
+        ),
+    step_params AS (
+        SELECT
+            a.step_id,
+            a.r_rowname,
+            ST_x(a.relocation1_geom) AS x, 
+            ST_y(a.relocation1_geom) AS y,
+            a.relocation_time AS date,
+            a.dx,
+            a.dy,
+            a.dist,
+            extract(epoch FROM a.dt) AS dt,
+            ST_Distance(startp.relocation1_geom, a.relocation1_geom)^2 AS r2n,
+            a.abs_angle,
+            a.animal_name,
+            a.burst_name AS burst,
+            a.pgtraj_name AS pgtraj
+        FROM step_shape AS a
+        JOIN (SELECT
+                ab_id,
+                relocation1_geom
+              FROM step_shape
+              WHERE step_id IN (SELECT MIN(step_id) 
+                                FROM step_shape 
+                                GROUP BY ab_id)
+              ) AS startp 
+              ON startp.ab_id = a.ab_id
+        ),
+    r_angle AS (
+        SELECT
+            s2.step_id,
+            CASE
+                WHEN s.dist < 1e-07 THEN s2.abs_angle - (SELECT sub.abs_angle
+                                                        FROM step_shape AS sub
+                                                        WHERE sub.step_id <= s.step_id
+                                                          AND sub.dist >= 1e-07
+                                                        ORDER BY sub.step_id DESC
+                                                        LIMIT 1)
+                ELSE s2.abs_angle - s.abs_angle
+            END AS rel_angle
+        FROM step_shape AS s
+        LEFT OUTER JOIN LATERAL (SELECT *
+                           FROM step_shape c
+                           WHERE s.step_id < c.step_id
+                           AND s.burst_name = c.burst_name
+                           LIMIT 1
+                          ) AS s2
+        ON TRUE
+    )
     SELECT
-        t.r_rowname,
-        t.x,
-        t.y,
-        t.relocation_time AS date,
-        t.dx,
-        t.dy,
-        t.dist,
-        t.dt,
-        t.r2n,
-        atan2(t.dy, t.dx) AS abs_angle,
+        p.r_rowname,
+        p.x, 
+        p.y,
+        p.date,
+        p.dx,
+        p.dy,
+        p.dist,
+        p.dt,
+        p.r2n,
+        p.abs_angle,
         CASE
-            WHEN t.rel_angle <= -pi() THEN 2 * pi() + t.rel_angle
-            WHEN t.rel_angle > pi() THEN t.rel_angle - 2 * pi()
-            ELSE t.rel_angle
+            WHEN r_angle.rel_angle <= -pi() THEN 2 * pi() + r_angle.rel_angle
+            WHEN r_angle.rel_angle > pi() THEN r_angle.rel_angle - 2 * pi()
+            ELSE r_angle.rel_angle
         END AS rel_angle,
-        t.animal_name,
-        t.burst_name AS burst,
-        t.pgtraj_name AS pgtraj
-    FROM (
-        SELECT 
-            s.r_rowname,
-            ST_x(s.relocation1_geom) AS x, 
-            ST_y(s.relocation1_geom) AS y,
-            s.relocation_time,
-            ST_X(s.relocation2_geom) - ST_X(s.relocation1_geom) AS dx,
-            ST_Y(s.relocation2_geom) - ST_Y(s.relocation1_geom) AS dy,
-            ST_length(s.step_geom) AS dist,
-            extract(epoch FROM s.dt) AS dt,
-            ST_Distance(startp.relocation1_geom, s.relocation1_geom)^2 AS r2n,
-            r_angle.rel_angle,
-            s.animal_name,
-            s.burst_name,
-            s.pgtraj_name,
-            s.step_id
-        FROM step_geom s
-        JOIN (
-            SELECT
-                m.*,
-                s.relocation1_geom,
-                s.ab_id
-            FROM (
-                SELECT
-                    min(s.step_id) AS first_step_id
-                FROM step_geom s
-                WHERE s.pgtraj_name = '",pgtraj,"'
-                GROUP BY s.ab_id
-                ) AS m
-            JOIN step_geom s ON s.step_id = m.first_step_id
-            ) AS startp
-        ON startp.ab_id = s.ab_id
-        LEFT JOIN (
-            SELECT
-                s2.step_id,
-                s.r_rowname,
-                (
-                ST_Azimuth(s.relocation1_geom, s.relocation2_geom) -
-                ST_Azimuth(s2.relocation1_geom, s2.relocation2_geom)
-                ) AS rel_angle,
-                s.relocation_time,
-                s.ab_id
-            FROM step_geom s
-            LEFT JOIN LATERAL (SELECT *
-                               FROM step_geom c
-                               WHERE s.step_id < c.step_id
-                               AND s.burst_name = c.burst_name
-                               LIMIT 1) s2
-            ON TRUE
-            WHERE s.pgtraj_name = '",pgtraj,"'
-            ) AS r_angle
-        ON r_angle.step_id = s.step_id
-    ) AS t
-    ORDER BY t.burst_name, t.relocation_time;"
+        p.animal_name,
+        p.burst,
+        p.pgtraj
+    FROM step_params AS p
+    LEFT OUTER JOIN r_angle
+    ON r_angle.step_id = p.step_id
+    ORDER BY p.burst, p.date;"
     )
     create_query <- gsub(pattern = '\\s', replacement = " ", x = query)
     
