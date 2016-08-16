@@ -10,7 +10,7 @@
 
 CREATE TABLE pgtraj (
     id                 serial      PRIMARY KEY,
-    pgtraj_name        text        NOT NULL,
+    pgtraj_name        text        UNIQUE NOT NULL,
     proj4string        text        DEFAULT NULL,
     time_zone          text        DEFAULT NULL,
     note               text        DEFAULT NULL
@@ -69,7 +69,7 @@ COMMENT ON COLUMN pgtraj.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN pgtraj.pgtraj_name IS 'Name or identifier of trajectory group, not null.';
 COMMENT ON COLUMN pgtraj.proj4string IS 'A PROJ.4 projection string of the ltraj, imported from R.';
 COMMENT ON COLUMN pgtraj.time_zone IS 'Time zone of the imported trajectory.';
-COMMENT ON COLUMN pgtraj.comment IS 'User comment.';
+COMMENT ON COLUMN pgtraj.note IS 'User comment.';
 
 COMMENT ON TABLE animal_burst IS 'Contains animal and burst information and their relation to pgtrajs.';
 COMMENT ON COLUMN animal_burst.id IS 'Auto-generated numeric ID.';
