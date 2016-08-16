@@ -30,8 +30,7 @@ CREATE TABLE animal_burst (
 CREATE TABLE relocation (
     id               serial      PRIMARY KEY,
     geom             geometry    DEFAULT NULL,
-    relocation_time  timestamptz DEFAULT NULL,
-    r_rowname        text        DEFAULT NULL
+    relocation_time  timestamptz DEFAULT NULL
 );
 
 CREATE TABLE step (
@@ -40,7 +39,8 @@ CREATE TABLE step (
                                   ON DELETE CASCADE,
     relocation_id_2   integer     DEFAULT NULL REFERENCES relocation (id)
                                   ON DELETE SET NULL,
-    dt                interval    DEFAULT NULL
+    dt                interval    DEFAULT NULL,
+    r_rowname         text        DEFAULT NULL
 );
 
 CREATE TABLE infoloc (
