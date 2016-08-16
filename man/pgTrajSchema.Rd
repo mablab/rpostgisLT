@@ -21,12 +21,19 @@ if it doesn't.
 }
 \details{
 Creates a 'traj' schema in the database by calling a SQL script 
-from (./inst/sql/). The schema name defaults to 'traj'.
+from (./inst/sql/). The schema name defaults to 'traj'. If a schema with 
+the provided name already exists in the database, it checks if it contains
+all the required tables. The function does not attempt to repair the schema
+if not all traj tables are present (e.g. because some were manually deleted).
+In this case, a new traj schema needs to be created.
+
+
+The function has it's standalone transaction control.
 }
 \examples{
 \dontrun{pgTrajSchema(conn, "traj_1")}
 }
 \author{
-Balázs Dukai \email{balazs.dukai@gmail.com}
+Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
 }
 
