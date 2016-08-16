@@ -30,12 +30,12 @@
 #' 
 ################################################################################
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
-        comment = NULL, create = FALSE, new.srid = NULL) {
+        comment = NULL) {
     # 'pgtraj' defaults to the name of ltraj
     if (is.null(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     }
-    # FIXME pgtraj can only contain DB table-name-proof characters, include in test_input()
+    # TODO pgtraj can only contain DB table-name-proof characters, include in test_input()
 
     # Set projection
     srs <- attr(ltraj, "proj4string")
@@ -43,7 +43,8 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (is.null(srs)) {
         srid <- 0
     } else {
-        srid <- pgSRID(conn = conn, crs = srs,create = create, new.srid = new.srid)
+        srid <- pgSRID(conn = conn, crs = srs, create.srid = TRUE, 
+                        new.srid = NULL)
         srs <- srs@projargs
     }
     

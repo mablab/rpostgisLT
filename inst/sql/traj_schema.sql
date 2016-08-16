@@ -13,7 +13,7 @@ CREATE TABLE pgtraj (
     pgtraj_name        text        NOT NULL,
     proj4string        text        DEFAULT NULL,
     time_zone          text        DEFAULT NULL,
-    comment            text        DEFAULT NULL
+    note               text        DEFAULT NULL
 );
 
 
