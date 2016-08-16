@@ -40,7 +40,9 @@ CREATE TABLE step (
     relocation_id_2   integer     DEFAULT NULL REFERENCES relocation (id)
                                   ON DELETE SET NULL,
     dt                interval    DEFAULT NULL,
-    r_rowname         text        DEFAULT NULL
+    r_rowname         text        DEFAULT NULL,
+    r2n               float8      DEFAULT NULL,
+    rel_angle         float8      DEFAULT NULL
 );
 
 CREATE TABLE infoloc (
