@@ -12,6 +12,11 @@ dl_opt(x)
 \arguments{
 \item{ltraj}{An object of class \code{ltraj}.}
 }
+\value{
+\code{ld_opt} returns a data frame with all trajectory
+    parameters (and infolocs fields) as columns; \code{dl_opt}
+    returns an object of class \code{ltraj}.
+}
 \description{
 Faster versions of \code{\link[adehabitatLT]{ld}} and
 \code{\link[adehabitatLT]{dl}}.
