@@ -2,36 +2,41 @@
 % Please edit documentation in R/pgTrajSchema.R
 \name{pgTrajSchema}
 \alias{pgTrajSchema}
-\title{Check 'traj' schema.}
+\title{Check pgtraj schema.}
 \usage{
 pgTrajSchema(conn, name = "traj")
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL.}
 
-\item{schema}{Chaaracter string. Name of the schema that stores or
+\item{name}{Character string. Name of the schema that stores or
 will store the pgtraj data model.}
 }
 \value{
-TRUE on success
+\code{TRUE} if the schema exists (whether it was already
+    available or was successfully created).
 }
 \description{
-Checks if the provided schema exists in the database, and creates
-if it doesn't.
+Checks if the provided schema is a valid pgtraj schema, and
+creates one if it does not exist.
 }
 \details{
-Creates a 'traj' schema in the database by calling a SQL script 
-from (./inst/sql/). The schema name defaults to 'traj'. If a schema with 
-the provided name already exists in the database, it checks if it contains
-all the required tables. The function does not attempt to repair the schema
-if not all traj tables are present (e.g. because some were manually deleted).
-In this case, a new traj schema needs to be created.
-
+Creates a schema to store \code{pgtraj}s in the database by
+calling a SQL script from \code{./sql/traj_schema.sql}. The schema
+name defaults to \code{traj}. If a schema with the provided name
+already exists in the database, it checks if it contains all the
+required tables. The function does not attempt to repair the
+schema if all pgtraj tables are not present (e.g. because some
+were manually deleted).  In this case, a new pgtraj schema needs
+to be created, or the existing schema needs to be deleted and
+recreated.
 
 The function has it's standalone transaction control.
 }
 \examples{
-\dontrun{pgTrajSchema(conn, "traj_1")}
+\dontrun{
+pgTrajSchema(conn, name = "traj_1")
+}
 }
 \author{
 Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
