@@ -33,8 +33,6 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
-#    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters;")
-#    DF <- invisible(dbGetQuery(conn, sql_query))
     
     sql_query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, sql_query)[1,1]
@@ -46,24 +44,10 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     names(DF)[names(DF)=="r2n"] <- "R2n"
     names(DF)[names(DF)=="abs_angle"] <- "abs.angle"
     names(DF)[names(DF)=="rel_angle"] <- "rel.angle"
-#    names(DF)[names(DF)=="animal_name"] <- "id"
+    names(DF)[names(DF)=="animal_name"] <- "id"
     names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
     DF <- DF[,-which(names(DF)=="pgtraj")]
     
-#    DF2 <- data.frame(
-#            x = DF[["x"]],
-#            y = DF[["y"]],
-#            date = DF[["date"]],
-#            dx = DF[["dx"]],
-#            dy = DF[["dy"]],
-#            dist = DF[["dist"]],
-#            dt = DF[["dt"]],
-#            R2n = DF[["r2n"]],
-#            abs.angle = DF[["abs_angle"]],
-#            rel.angle = DF[["rel_angle"]],
-#            id = DF[["animal_name"]],
-#            burst = DF[["burst"]],
-#            r.row.names = DF[["r_rowname"]])
     
     # Set time zone
     attr(DF$date, "tzone") <- tz

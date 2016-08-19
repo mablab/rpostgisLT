@@ -226,7 +226,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                 WHEN t.dist >= 1e-07 THEN atan2(t.dy, t.dx)
             END AS abs_angle,
             t.rel_angle,
-            t.animal_name AS id,
+            t.animal_name,
             t.burst_name AS burst,
             t.pgtraj_name AS pgtraj
         FROM (SELECT
