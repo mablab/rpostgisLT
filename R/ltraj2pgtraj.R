@@ -28,9 +28,17 @@
 #' 
 #' @export 
 #' 
-################################################################################
+##############################################################################
+#dframe <- rpostgisLT:::ld_opt(ibexraw)
+#pgtraj <- "ibexraw"
+#schema <- "traj"
+#srid <- 0
+#srs <- "NA"
+#ltraj <- ibexraw
+#note <- NA
+#
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
-        note = NULL) {
+        note = NA) {
     
     ###### Format ltraj for database input
     # 'pgtraj' defaults to the name of ltraj
@@ -132,8 +140,33 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     # Drop temporary table
     invisible(dbSendQuery(conn, "DROP TABLE zgaqtsn_temp;"))
 
-###### TODO Create parameter and geometry views
-
+    ###### Create parameter and geometry views
+    res3 <- tryCatch({
+            
+            pgTrajViewParams(conn, schema, pgtraj, srid, db = FALSE)
+            
+            # TODO create view if doesn't exist
+            pgTrajViewStepGeom(conn, schema, pgtraj)
+            
+            }, warning = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
+    
+    res <- c(res, res3)
+    
+    ###### Commit transaction and restore search path
     tryCatch({
         if(all(res)) {
             # Restore database search path
@@ -167,20 +200,4 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         
     })
 
-#    # Insert CRS, note and time zone on the pgtraj
-#    if (all(res)) {
-#        # Restore database search path
-#        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-#        invisible(dbSendQuery(conn, sql_query))
-#        
-#        dbCommit(conn)
-#        
-#        message(paste0("The ltraj '", pgtraj, "' successfully inserted into the database schema '", schema,"'."))
-#        
-#        return(TRUE)
-#    } else {
-#        dbRollback(conn)
-#        stop("Ltraj insert failed")
-#    }
-#    
 }

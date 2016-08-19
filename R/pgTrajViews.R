@@ -32,7 +32,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                 ST_Makeline(r1.geom, r2.geom) AS step_geom,
                 r1.relocation_time,
                 s.dt,
-                r1.r_rowname,
+                s.r_rowname,
                 r1.geom AS relocation1_geom,
                 r2.geom AS relocation2_geom,
                 ab.burst_name,
@@ -186,7 +186,6 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     } else {
         sql_query <- paste0(
         "CREATE OR REPLACE VIEW ",pgtraj,"_parameters AS
-        -- create LINESTRING geometries from successive relocations
         WITH step_geom AS (
             SELECT
                 s.id AS step_id,
@@ -210,7 +209,6 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = '",pgtraj,"'
             )
-        -- compute abs_angle, dist, dx, dy, dt, x, y
         SELECT
             t.r_rowname,
             ST_x(t.relocation1_geom) AS x, 
