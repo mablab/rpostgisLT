@@ -9,7 +9,7 @@ install(pkg)
 #build(pkg, binary = FALSE)
 
 library(rpostgisLT)
-detach(pkg, unload=TRUE)
+detach("package:rpostgisLT", unload=TRUE)
 uninstall(pkg)
 
 # Documentation
@@ -19,8 +19,8 @@ system("R CMD Rd2pdf --force /home/bdukai/Development/rpostgisLT/ -o /home/bduka
 render("/home/bdukai/Development/rpostgisLT/vignettes/rpostgisLT.Rmd")
 
 #install_github("mablab/rpostgis")
-#install("rpostgis")
-#detach("rpostgis", unload=TRUE)
-#uninstall("rpostgis")
+install("rpostgis")
+detach("package:rpostgis", unload=TRUE)
+uninstall("rpostgis")
 
 

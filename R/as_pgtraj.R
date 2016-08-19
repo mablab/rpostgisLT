@@ -6,7 +6,7 @@
 #' data model. \code{as_pgtraj} copies the trajectory data which is stored in 
 #' a database to a traj schema. If the provided schema doesn't exist, it is 
 #' created on demand. On successful data input, \code{as_pgtraj} creates a view for
-#' each pgtraj, with the views named as <pgtraj>_params. The view contains the same step parameters 
+#' each pgtraj, with the views named as <pgtraj_name>_parameters. The view contains the same step parameters 
 #' as an ltraj object (e.g. R2n, rel.angle, dt...). If the input geometries
 #' are projected, their projection is used to create the steps in the schema, 
 #' otherwise either no projection is used or the fuction exits.
@@ -74,9 +74,9 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         
         ##### Test input before doing anything else 
         # Test connection, table, field and values
-        query <- paste0("SELECT ", relocations, " FROM ",
+        sql_query <- paste0("SELECT ", relocations, " FROM ",
                 relocations_table," LIMIT 1;")
-        a <- suppressWarnings(dbGetQuery(conn, query)[1,1])
+        a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
         if (is.null(a)) {
             print(paste("Field", relocations ,"does not contain values."))
         }
@@ -84,9 +84,9 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
         # Check if steps has SRID
         # Optionally, reprojection in database could be included here but it would
         # make the code more complex, particulary with testing for valid SRID input
-        query <- paste0("SELECT ST_SRID(", relocations,
+        sql_query <- paste0("SELECT ST_SRID(", relocations,
                 ") FROM ", relocations_table," LIMIT 1;")
-        srid <- dbGetQuery(conn, query)[1,1]
+        srid <- dbGetQuery(conn, sql_query)[1,1]
         if (srid == 0) {
             acr <- NA
             while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
@@ -164,15 +164,15 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Set search path in the database
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbSendQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    invisible(dbSendQuery(conn, sql_query))
     
     # Add temporary fields
     invisible(dbSendQuery(conn,"ALTER TABLE relocation ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
     invisible(dbSendQuery(conn,"ALTER TABLE step ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
     
     # Insert relocations
-    query <- paste0("
+    sql_query <- paste0("
                     INSERT INTO pgtraj (pgtraj_name)
                     SELECT DISTINCT pgtraj_name
                     FROM qqbqahfsbrpq_temp;
@@ -186,12 +186,12 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                     SELECT geom, relocation_time, id, burst_name, pgtraj_name
                     FROM qqbqahfsbrpq_temp;
                     ")
-    query <- gsub(pattern = '\\s', replacement = " ", x = query)
+    sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     # 'res2' is passed on to ltraj2pgtraj 
     res2 <- tryCatch({
                 
-                invisible(dbSendQuery(conn, query))
+                invisible(dbSendQuery(conn, sql_query))
                 TRUE
                 
             }, warning = function(war) {
@@ -222,7 +222,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     # Insert steps into the schema
     res3 <- tryCatch({
             
-            query <- paste0("
+            sql_query <- paste0("
                             INSERT INTO step (
                                 relocation_id_1, 
                                 relocation_id_2, dt, 
@@ -245,10 +245,10 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                             ON TRUE
                             WHERE a.pgtraj_name = '",pgtrajs,"';
                             ")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbGetQuery(conn, query))
+            sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
+            invisible(dbGetQuery(conn, sql_query))
             
-            query <- paste0("
+            sql_query <- paste0("
                             INSERT INTO s_i_b_rel (step_id, animal_burst_id)
                             WITH pg AS (
                                 SELECT a.id, a.burst_name, a.animal_name, b.pgtraj_name
@@ -260,8 +260,8 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                             WHERE (step.burst_name = pg.burst_name) 
                             	AND (step.pgtraj_name = pg.pgtraj_name);
                             ")
-            query <- gsub(pattern = '\\s', replacement = " ", x = query)
-            invisible(dbGetQuery(conn, query))
+            sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
+            invisible(dbGetQuery(conn, sql_query))
             
         }, warning = function(war) {
             
@@ -293,6 +293,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     }
     
     # Create views
+    # FIXME remove suppressWarnings
     if (suppressWarnings(all(res))) {
         pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
         for (i in pgt) {
@@ -327,8 +328,8 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     invisible(dbGetQuery(conn, "DROP TABLE qqbqahfsbrpq_temp;"))
     
     # Commit transaction and reset search path in the database
-    query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbGetQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+    invisible(dbGetQuery(conn, sql_query))
     
     # ltraj2pgtraj() handles transactions already, thus no need to commit here
     # if an ltraj is insterted

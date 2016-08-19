@@ -18,8 +18,8 @@
 ###############################################################################
 pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
-    query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
-    tables <- invisible(dbGetQuery(conn, query))
+    sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
+    tables <- invisible(dbGetQuery(conn, sql_query))
     if ('qqbqahfsbrpq_temp' %in% tables$tablename) {
         acr <- NA
         while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
@@ -30,13 +30,13 @@ pgTrajTempT <- function(conn, schema) {
         if (acr %in% "n") {
             return(FALSE)
         } else {
-            query <- paste0("DROP TABLE IF EXISTS ", schema, ".qqbqahfsbrpq_temp;")
-            invisible(dbSendQuery(conn, query))
+            sql_query <- paste0("DROP TABLE IF EXISTS ", schema, ".qqbqahfsbrpq_temp;")
+            invisible(dbSendQuery(conn, sql_query))
         }
     }
     
     # Create 'qqbqahfsbrpq_temp' table
-    query <- paste0("CREATE TABLE ", schema, ".qqbqahfsbrpq_temp (
+    sql_query <- paste0("CREATE TABLE ", schema, ".qqbqahfsbrpq_temp (
                     id               serial,
                     pkey             text,
                     geom             geometry,
@@ -45,11 +45,11 @@ pgTrajTempT <- function(conn, schema) {
                     animal_name      text,
                     pgtraj_name      text
                     );")
-    create_query <- gsub(pattern = '\\s', replacement = " ", x = query)
+    create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     res <- tryCatch({
         
-        invisible(dbSendQuery(conn, create_query))
+        invisible(dbSendQuery(conn, create_sql_query))
         return(TRUE)
         
     }, warning = function(war) {

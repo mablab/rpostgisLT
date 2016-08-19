@@ -16,7 +16,7 @@
 #' 
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
-    query_insert <- paste0("
+    sql_query_insert <- paste0("
                     INSERT INTO qqbqahfsbrpq_temp (
                         id,
                         geom,
@@ -33,12 +33,12 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
                         '",pgtraj,"' AS pgtraj_name
                     FROM zgaqtsn_temp;
                     ")
-    query_insert <- gsub(pattern = '\\s', replacement = " ", x = query_insert)
+    sql_query_insert <- gsub(pattern = '\\s', replacement = " ", x = sql_query_insert)
     
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    invisible(dbGetQuery(conn, sql_query))
     
     # Insert into temporary table1
     res0 <- tryCatch({
@@ -49,7 +49,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
                                     strftime(x, format = "%Y-%m-%d %H:%M:%S",
                                             tz = "", usetz = TRUE))
         # Parameters to exclude on input
-        params <- c("dx", "dy", "dist", "dt", "R2n", "abs.angle", "rel.angle")
+        params <- c("dist", "abs.angle")
  
         invisible(dbWriteTable(conn, name="zgaqtsn_temp", 
                         value=dframe[, -which(names(dframe) %in% params)],
@@ -74,7 +74,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     # Insert into temporary table2
     res1 <- tryCatch({
                 
-        invisible(dbSendQuery(conn, query_insert))
+        invisible(dbSendQuery(conn, sql_query_insert))
         TRUE
         
     }, warning = function(war) {
@@ -96,8 +96,8 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     res <- c(res0, res1)
     
     # Restore database search path
-    query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbSendQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+    invisible(dbSendQuery(conn, sql_query))
     
     message(paste0("Data frame successfully inserted into ", schema,".qqbqahfsbrpq_temp"))
     

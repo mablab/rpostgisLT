@@ -42,7 +42,7 @@ used by \code{\link{ltraj2pgtraj}} to import trajectory data into a pgtraj
 data model. \code{as_pgtraj} copies the trajectory data which is stored in 
 a database to a traj schema. If the provided schema doesn't exist, it is 
 created on demand. On successful data input, \code{as_pgtraj} creates a view for
-each pgtraj, with the views named as <pgtraj>_params. The view contains the same step parameters 
+each pgtraj, with the views named as <pgtraj_name>_parameters. The view contains the same step parameters 
 as an ltraj object (e.g. R2n, rel.angle, dt...). If the input geometries
 are projected, their projection is used to create the steps in the schema, 
 otherwise either no projection is used or the fuction exits.

@@ -60,10 +60,10 @@ attr(puechcirc, 'proj4string') <- srs2
 attr(albatross, 'proj4string') <- srs
 attr(porpoise, 'proj4string') <- srs2
 
-ltraj2pgtraj(conn, ltraj = ibexraw, comment = "test CRS on ibexraw")
-ltraj2pgtraj(conn, ltraj = puechcirc, comment = "test CRS on puechcirc")
-ltraj2pgtraj(conn, ltraj = albatross, comment = "test CRS on albatross")
-ltraj2pgtraj(conn, ltraj = porpoise, comment = "test CRS on porpoise")
+ltraj2pgtraj(conn, ltraj = ibexraw, note = "test CRS on ibexraw")
+ltraj2pgtraj(conn, ltraj = puechcirc, note = "test CRS on puechcirc")
+ltraj2pgtraj(conn, ltraj = albatross, note = "test CRS on albatross")
+ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise")
 
 ibexraw_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
 puechcirc_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')

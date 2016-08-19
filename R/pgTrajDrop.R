@@ -23,10 +23,10 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
     
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    invisible(dbGetQuery(conn, sql_query))
     
-    query <- paste0("
+    sql_query <- paste0("
                     DELETE FROM infoloc WHERE id IN (
                         SELECT
                             i.id AS infoloc_id
@@ -51,14 +51,14 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
                         
                     DELETE FROM pgtraj WHERE pgtraj_name = '",pgtraj,"';
                     ")
-    query <- gsub(pattern = '\\s', replacement = " ", x = query)
+    sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     # Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     
     tryCatch({
             
-            invisible(dbSendQuery(conn, query))
+            invisible(dbSendQuery(conn, sql_query))
             dbCommit(conn)
         
         }, warning = function(x) {
@@ -78,8 +78,8 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
         })
 
     # Restore database search path
-    query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbSendQuery(conn, query))
+    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+    invisible(dbSendQuery(conn, sql_query))
     
     message(paste0("The pgtraj '", pgtraj, "' deleted from the database schema '", schema,"'."))
     return(TRUE)

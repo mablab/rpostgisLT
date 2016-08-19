@@ -19,34 +19,34 @@
 ################################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
-    # TODO Find the cause of the duplicate r_rownames error in the <pgtraj>_params
+    # TODO Find the cause of the duplicate r_rownames error in the <pgtraj_name>_parameters
     # view. The error disappears after refreshing the view and only appears when
     # inserting specific ltrajes in a specific order. For example:
     # 1) insert albatross
     # 2) insert puechcirc
     # 3) retrieve puechcirc -> gives duplicate row names error
     # The same happens when 1) ins. puechcirc 2) ins. albatross 3) retr. puechcirc
-    # However, if the <pgtraj>_params view is queried at least once before
+    # However, if the <pgtraj_name>_parameters view is queried at least once before
     # using pgtraj2ltraj(), the error does not happen.
-    query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_params", " LIMIT 1;")
-    invisible(dbGetQuery(conn, query))
+    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters", " LIMIT 1;")
+    invisible(dbGetQuery(conn, sql_query))
     
-    view <- paste0(pgtraj, "_params")
+    view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
-#    query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_params;")
-#    DF <- invisible(dbGetQuery(conn, query))
+#    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters;")
+#    DF <- invisible(dbGetQuery(conn, sql_query))
     
-    query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
-    tz <- dbGetQuery(conn, query)[1,1]
+    sql_query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    tz <- dbGetQuery(conn, sql_query)[1,1]
     
-    query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
-    proj4string <- dbGetQuery(conn, query)[1,1]
+    sql_query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    proj4string <- dbGetQuery(conn, sql_query)[1,1]
     
     # Rename and prepare data frame for conversion to ltraj
     names(DF)[names(DF)=="r2n"] <- "R2n"
     names(DF)[names(DF)=="abs_angle"] <- "abs.angle"
     names(DF)[names(DF)=="rel_angle"] <- "rel.angle"
-    names(DF)[names(DF)=="animal_name"] <- "id"
+#    names(DF)[names(DF)=="animal_name"] <- "id"
     names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
     DF <- DF[,-which(names(DF)=="pgtraj")]
     
