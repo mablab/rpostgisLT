@@ -34,9 +34,11 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
     
+    # Get time zone
     sql_query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     tz <- dbGetQuery(conn, sql_query)[1,1]
     
+    # Get proj
     sql_query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
     proj4string <- dbGetQuery(conn, sql_query)[1,1]
     

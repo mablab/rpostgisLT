@@ -62,103 +62,105 @@
 ### standalone
 ###############################################################################
 as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL, 
-        pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations = NULL,
-        timestamps = NULL, rids = "rid", srid = NULL, db = TRUE) {
+        pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
+        relocations = NULL, timestamps = NULL, rids = "rid", srid = NULL,
+        note = NULL) {
     
-    ##### Insert relocations into temporary table if they are stored in the 
-    # database. Otherwise proceed with an existing temporary table.
+    ## Check if PostGIS is installed
+    suppressMessages(pgPostGIS(conn))
     
-    if (db) {
-        
-        #TODO include comment
-        
-        ##### Test input before doing anything else 
-        # Test connection, table, field and values
-        sql_query <- paste0("SELECT ", relocations, " FROM ",
-                relocations_table," LIMIT 1;")
-        a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
-        if (is.null(a)) {
-            print(paste("Field", relocations ,"does not contain values."))
-        }
-        
-        # Check if steps has SRID
-        # Optionally, reprojection in database could be included here but it would
-        # make the code more complex, particulary with testing for valid SRID input
-        sql_query <- paste0("SELECT ST_SRID(", relocations,
-                ") FROM ", relocations_table," LIMIT 1;")
-        srid <- dbGetQuery(conn, sql_query)[1,1]
-        if (srid == 0) {
-            acr <- NA
-            while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
-                acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
-                acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
-            }
-            if (acr %in% "n") {
-                stop("Projection is not set, returning from function.")
-            }
-        }
-        
-        # Create traj database schema if it doesn't exist
-        x <- pgTrajSchema(conn, schema)
-        # If schema creation unsuccessful
-        if (!isTRUE(x)) {
-            stop("Traj schema couldn't be created, returning from function...")
-        }
-        
-        ##### Data input
-        # Begin transaction block
-        invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
-        
-        # Create temporary table 'qqbqahfsbrpq_temp'
-        res0 <- tryCatch({
-                    
-                    pgTrajTempT(conn, schema)
-                    
-                }, warning = function(x) {
-                    
-                    message(x)
-                    message(" . Rolling back transaction")
-                    dbRollback(conn)
-                    stop("Returning from function")
-                    
-                }, error = function(x) {
-                    
-                    message(x)
-                    message(" . Rolling back transaction")
-                    dbRollback(conn)
-                    stop("Returning from function")
-                    
-                })
-        
-        # Insert values into 'qqbqahfsbrpq_temp'
-        res1 <- tryCatch({
-                    
-                    pgTrajDB2TempT(conn, schema, 
-                                    relocations_table, pgtrajs, animals,
-                                    bursts, relocations, timestamps, rids, 
-                                    srid)
-                    
-                }, warning = function(x) {
-                    
-                    message("WARNING in insert into the temporary table:")
-                    message(x)
-                    message(" . Rolling back transaction")
-                    dbRollback(conn)
-                    stop("Returning from function")
-                    
-                }, error = function(x) {
-                    
-                    message("ERROR in insert into the temporary table:")
-                    message(x)
-                    message(" . Rolling back transaction")
-                    dbRollback(conn)
-                    stop("Returning from function")
-                    
-                })
-        
-        res <- c(res0, res1)
-        
+    ##### Test input before doing anything else 
+    # Test connection, table, field and values
+    sql_query <- paste0("SELECT ", relocations, " FROM ",
+            relocations_table," LIMIT 1;")
+    a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
+    if (is.null(a)) {
+        print(paste("Field", relocations ,"does not contain values."))
     }
+    
+    # Check if steps has SRID
+    # Optionally, reprojection in database could be included here but it would
+    # make the code more complex, particulary with testing for valid SRID input
+    sql_query <- paste0("SELECT ST_SRID(", relocations,
+            ") FROM ", relocations_table," LIMIT 1;")
+    srid <- dbGetQuery(conn, sql_query)[1,1]
+    if (srid == 0) {
+        acr <- NA
+        while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
+            acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
+            acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
+        }
+        if (acr %in% "n") {
+            stop("Projection is not set, returning from function.")
+        }
+    }
+    # Select proj4text from 'spatial_ref_sys'
+    sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1,1]
+    sch <- "public"
+    srid <- 0
+    sql_query <- paste0("SELECT proj4text FROM ",sch,
+            ".spatial_ref_sys WHERE srid = ",srid,";")
+    proj4string <- dbGetQuery(conn, sql_query)[1,1]
+    
+    # Create traj database schema if it doesn't exist
+    x <- pgTrajSchema(conn, schema)
+    # If schema creation unsuccessful
+    if (!isTRUE(x)) {
+        stop("Traj schema couldn't be created, returning from function...")
+    }
+    
+    ##### Insert data into temporary table
+    # Begin transaction block
+    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    
+    # Create temporary table 'zgaqtsn_temp'
+    res0 <- tryCatch({
+                
+                pgTrajTempT(conn, schema)
+                
+            }, warning = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
+    
+    # Insert values into 'zgaqtsn_temp'
+    res1 <- tryCatch({
+                
+                pgTrajDB2TempT(conn, schema, 
+                                relocations_table, pgtrajs, animals,
+                                bursts, relocations, timestamps, rids, 
+                                srid)
+                
+            }, warning = function(x) {
+                
+                message("WARNING in insert into the temporary table:")
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            }, error = function(x) {
+                
+                message("ERROR in insert into the temporary table:")
+                message(x)
+                message(" . Rolling back transaction")
+                dbRollback(conn)
+                stop("Returning from function")
+                
+            })
+    
+    res <- c(res0, res1)
     
     ##### Insert relocations from the temporary table into the schema
     
@@ -175,16 +177,16 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     sql_query <- paste0("
                     INSERT INTO pgtraj (pgtraj_name)
                     SELECT DISTINCT pgtraj_name
-                    FROM qqbqahfsbrpq_temp;
+                    FROM zgaqtsn_temp;
                     
                     INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
                     SELECT DISTINCT a.burst_name, a.animal_name, b.id
-                    FROM qqbqahfsbrpq_temp a JOIN pgtraj b
+                    FROM zgaqtsn_temp a JOIN pgtraj b
                     ON a.pgtraj_name = b.pgtraj_name;
                     
                     INSERT INTO relocation (geom, relocation_time, r_rowname, burst_name, pgtraj_name)
                     SELECT geom, relocation_time, id, burst_name, pgtraj_name
-                    FROM qqbqahfsbrpq_temp;
+                    FROM zgaqtsn_temp;
                     ")
     sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
@@ -212,12 +214,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                 
             })
     
-    # Get res right when coming from ltraj2pgtraj
-    if (db) {
-        res <- c(res, res2)
-    } else {
-        res <- res2
-    }
+    res <- c(res, res2)
     
     # Insert steps into the schema
     res3 <- tryCatch({
@@ -295,14 +292,14 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     # Create views
     # FIXME remove suppressWarnings
     if (suppressWarnings(all(res))) {
-        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM qqbqahfsbrpq_temp;")[,1]
+        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[,1]
         for (i in pgt) {
             res4 <- tryCatch({
                     
-                    pgTrajViewParams(conn, schema, i, srid)
+                    pgTrajViewParams(conn, schema, pgtraj = i, srid, db = TRUE)
                     
                     # TODO create view if doesn't exist
-                    pgTrajViewStepGeom(conn, schema, i)
+                    pgTrajViewStepGeom(conn, schema, pgtraj = i)
                     
                     }, warning = function(x) {
                         
@@ -325,22 +322,18 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     }
     
     # Drop temporary table
-    invisible(dbGetQuery(conn, "DROP TABLE qqbqahfsbrpq_temp;"))
+    invisible(dbGetQuery(conn, "DROP TABLE zgaqtsn_temp;"))
     
     # Commit transaction and reset search path in the database
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(dbGetQuery(conn, sql_query))
     
-    # ltraj2pgtraj() handles transactions already, thus no need to commit here
-    # if an ltraj is insterted
-    if (db) {
-        if (suppressWarnings(all(res))) {
-            dbCommit(conn)
-            return(all(res))
-        } else {
-            message("Insert faliure, rolling back transaction")
-            dbRollback(conn)
-        }
+    if (suppressWarnings(all(res))) {
+        dbCommit(conn)
+        return(all(res))
+    } else {
+        message("Insert faliure, rolling back transaction")
+        dbRollback(conn)
     }
     
     return(all(res))

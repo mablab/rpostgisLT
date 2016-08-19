@@ -1,4 +1,4 @@
-#' Insert an ltraj data frame into the 'qqbqahfsbrpq_temp' table.
+#' Insert an ltraj data frame into the 'zgaqtsn_temp' table.
 #' Input is an ltraj converted into a data frame with ld_opt().
 #' Ltraj row names are preserved. No transaction control.
 #' 
@@ -17,7 +17,7 @@
 ###############################################################################
 pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     sql_query_insert <- paste0("
-                    INSERT INTO qqbqahfsbrpq_temp (
+                    INSERT INTO zgaqtsn_temp (
                         id,
                         geom,
                         relocation_time,
@@ -99,7 +99,7 @@ pgTrajR2TempT <- function(conn, schema, dframe, pgtraj, srid = 0) {
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(dbSendQuery(conn, sql_query))
     
-    message(paste0("Data frame successfully inserted into ", schema,".qqbqahfsbrpq_temp"))
+    message(paste0("Data frame successfully inserted into ", schema,".zgaqtsn_temp"))
     
     return(all(res))
 }

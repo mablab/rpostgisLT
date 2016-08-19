@@ -20,23 +20,23 @@ pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
     sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
     tables <- invisible(dbGetQuery(conn, sql_query))
-    if ('qqbqahfsbrpq_temp' %in% tables$tablename) {
+    if ('zgaqtsn_temp' %in% tables$tablename) {
         acr <- NA
         while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
-            acr <- readline(paste("A table named 'qqbqahfsbrpq_temp' already exists in the schema", schema,
+            acr <- readline(paste("A table named 'zgaqtsn_temp' already exists in the schema", schema,
                             ". Do you want to delete it? [y/n]"))
             acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
         }
         if (acr %in% "n") {
             return(FALSE)
         } else {
-            sql_query <- paste0("DROP TABLE IF EXISTS ", schema, ".qqbqahfsbrpq_temp;")
+            sql_query <- paste0("DROP TABLE IF EXISTS ", schema, ".zgaqtsn_temp;")
             invisible(dbSendQuery(conn, sql_query))
         }
     }
     
-    # Create 'qqbqahfsbrpq_temp' table
-    sql_query <- paste0("CREATE TABLE ", schema, ".qqbqahfsbrpq_temp (
+    # Create 'zgaqtsn_temp' table
+    sql_query <- paste0("CREATE TABLE ", schema, ".zgaqtsn_temp (
                     id               serial,
                     pkey             text,
                     geom             geometry,
