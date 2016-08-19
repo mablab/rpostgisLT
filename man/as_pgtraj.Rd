@@ -6,7 +6,7 @@
 \usage{
 as_pgtraj(conn, schema = "traj", relocations_table = NULL,
   pgtrajs = "pgtraj", animals = "animal", bursts = NULL,
-  relocations = NULL, timestamps = NULL, rids = "rid", epsg = NULL,
+  relocations = NULL, timestamps = NULL, rids = "rid", srid = NULL,
   db = TRUE)
 }
 \arguments{
@@ -68,7 +68,7 @@ as_pgtraj(conn,
 
 }
 \author{
-Balázs Dukai \email{balazs.dukai@gmail.com}
+Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
 }
 \references{
 \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
