@@ -1,12 +1,6 @@
--- create schema to store pgtraj
 /*
- * pgtraj_v7
+ * pgtraj_v8
  */
-
--- create the schema and set the default search path
---CREATE SCHEMA IF NOT EXISTS traj_schema;
---SHOW search_path;
---SET search_path TO traj_schema,public;
 
 CREATE TABLE pgtraj (
     id                 serial      PRIMARY KEY,
@@ -54,7 +48,7 @@ CREATE TABLE s_i_b_rel (
     step_id          integer     NOT NULL REFERENCES step (id)
                                  ON DELETE CASCADE,
     infoloc_id       integer     REFERENCES infoloc (id)
-                                 ON DELETE CASCADE,
+                                 ON DELETE SET NULL,
     animal_burst_id  integer     NOT NULL REFERENCES animal_burst (id)
                                  ON DELETE CASCADE,
     PRIMARY KEY (step_id, animal_burst_id)
@@ -84,12 +78,14 @@ COMMENT ON COLUMN step.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN step.relocation_id_1 IS 'The first of the two successive relocations that form a step.';
 COMMENT ON COLUMN step.relocation_id_2 IS 'The second of the two successive relocations that form a step.';
 COMMENT ON COLUMN step.dt IS 'Duration of the step.';
+COMMENT ON COLUMN step.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
+COMMENT ON COLUMN step.r2n IS 'R2n parameter copied from the ltraj on import from R.';
+COMMENT ON COLUMN step.rel_angle IS 'Rel.angle parameter copied from the ltraj on import from R.';
 
 COMMENT ON TABLE relocation IS 'Relocation geometry and time stamp.';
 COMMENT ON COLUMN relocation.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';
 COMMENT ON COLUMN relocation.relocation_time IS 'Time stamp of the relocation.';
-COMMENT ON COLUMN relocation.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
 
 COMMENT ON TABLE infoloc IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
 COMMENT ON COLUMN infoloc.id IS 'Auto-generated numeric ID of infoloc.';
@@ -97,6 +93,4 @@ COMMENT ON COLUMN infoloc.infoloc IS 'Contains the additional information encode
 
 COMMENT ON TABLE s_i_b_rel IS 'Relates step, infoloc and burst.';
 
--- restore search path to public first
--- SET search_path TO "$user",public;
 
