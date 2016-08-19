@@ -34,8 +34,7 @@ RoxygenNote: 5.0.1
 Author: David Bucklin [aut, cre],
     Mathieu Basille [aut],
     Balázs Dukai [aut],
-    Clément Calenge [ctb],
-    
+    Clément Calenge [ctb]
 Imports:
     testthat
 Suggests:
