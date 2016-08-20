@@ -19,18 +19,6 @@
 ##############################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
-    # TODO Find the cause of the duplicate r_rownames error in the <pgtraj_name>_parameters
-    # view. The error disappears after refreshing the view and only appears when
-    # inserting specific ltrajes in a specific order. For example:
-    # 1) insert albatross
-    # 2) insert puechcirc
-    # 3) retrieve puechcirc -> gives duplicate row names error
-    # The same happens when 1) ins. puechcirc 2) ins. albatross 3) retr. puechcirc
-    # However, if the <pgtraj_name>_parameters view is queried at least once before
-    # using pgtraj2ltraj(), the error does not happen.
-#    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters", " LIMIT 1;")
-#    invisible(dbGetQuery(conn, sql_query))
-    
     view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
     

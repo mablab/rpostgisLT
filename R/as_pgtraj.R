@@ -1,23 +1,21 @@
-#' Converts relocation data into the pgtraj data model.
+#' Imports location data from a database table into a 'traj' schema.
 #' 
 #' @description
-#' This is the core function of the \code{rpostgisLT} package and it is also 
-#' used by \code{\link{ltraj2pgtraj}} to import trajectory data into a pgtraj 
-#' data model. \code{as_pgtraj} copies the trajectory data which is stored in 
-#' a database to a traj schema. If the provided schema doesn't exist, it is 
-#' created on demand. On successful data input, \code{as_pgtraj} creates a view for
-#' each pgtraj, with the views named as <pgtraj_name>_parameters. The view contains the same step parameters 
-#' as an ltraj object (e.g. R2n, rel.angle, dt...). If the input geometries
-#' are projected, their projection is used to create the steps in the schema, 
-#' otherwise either no projection is used or the fuction exits.
+#' \code{as_pgtraj} populates a \code{traj} schema from the data provided
+#' in \code{relocations_table}. If the provided schema doesn't exist, it will be 
+#' created. On successful data input, \code{as_pgtraj} creates three database views for
+#' each pgtraj. These views are named <pgtraj_name>_parameters, 
+#' <pgtraj_name>_step_geometry and <pgtraj_name>_summary and described more in
+#' detail in the package vignette.
+#' 
+#' The time zone of the pgtraj is set to the local time zone.
 #' 
 #' @details
 #' Opening and closing connections have to be done manually by the user. 
 #' However, the function checks if the provided connection is still valid. 
-#' Not tested with capital letters for PostgreSQL field names, but it probably won't 
-#' work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercase.
+#' Not tested with capital letters for PostgreSQL field names.
 #' 
-#' @seealso Section on pgtraj data model in the package vignette. 
+#' @seealso Section on traj data model in the package vignette. 
 #' 
 #' @references \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
 #' 
@@ -29,13 +27,15 @@
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
-#' @param relocations String. Name of the field that contains the relocations in relocations_table.
+#' @param relocations String. Name of the field that contains the relocations 
+#' in relocations_table. Relocations can be provided either as X,Y coordinates
+#' or PostGIS geometry. In both cases all relocations in the 'relocations_table'
+#' have to have the same projection.
 #' @param timestamps String. Name of the field in relocations_table that contains the timestamps.
 #' If NULL, Type I trajectory is assumed.
 #' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
-#' @param db Boolean. If TRUE, the relocations are stored in a database table, 
-#' if FALSE relocations are stored in an R object. It is meant to be used by other functions internally. 
-#' If you want to import an ltraj from R, use ltraj2pgtraj().
+#' @param note String. Comment on the pgtraj. The comment is only used in
+#' the database and not transferred into an ltraj.
 #' 
 #' @return TRUE on success
 #' 
@@ -48,6 +48,18 @@
 #'         animals = "animal",
 #'         bursts = "burst",
 #'         relocations = "geom",
+#'         timestamp = "time",
+#'         rid = "gid")
+#' }
+#' 
+#' #' \dontrun{
+#' as_pgtraj(conn, 
+#'         schema = "traj_t4",
+#'         relocations_table = "example_data.relocations_plus",
+#'         pgtrajs = "id",
+#'         animals = "animal",
+#'         bursts = "burst",
+#'         relocations = c("x","y"),
 #'         timestamp = "time",
 #'         rid = "gid")
 #' }
@@ -71,36 +83,41 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     ##### Test input before doing anything else 
     # Test connection, table, field and values
-    sql_query <- paste0("SELECT ", relocations, " FROM ",
+    sql_query <- paste0("SELECT ", relocations[1], " FROM ",
             relocations_table," LIMIT 1;")
     a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
     if (is.null(a)) {
         print(paste("Field", relocations ,"does not contain values."))
     }
     
-    # Check if steps has SRID
-    # Optionally, reprojection in database could be included here but it would
-    # make the code more complex, particulary with testing for valid SRID input
-    sql_query <- paste0("SELECT ST_SRID(", relocations,
-            ") FROM ", relocations_table," LIMIT 1;")
-    srid <- dbGetQuery(conn, sql_query)[1,1]
-    if (srid == 0) {
-        acr <- NA
-        while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
-            acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
-            acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
+    # Check if the relocation geometry is projected
+    if (length(relocations) == 1) {
+        sql_query <- paste0("SELECT ST_SRID(", relocations,
+        ") FROM ", relocations_table," LIMIT 1;")
+        srid <- dbGetQuery(conn, sql_query)[1,1]
+        if (srid == 0) {
+            acr <- NA
+            while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
+                acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
+                acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
+            }
+            if (acr %in% "n") {
+                stop("Projection is not set, returning from function.")
+            }
         }
-        if (acr %in% "n") {
-            stop("Projection is not set, returning from function.")
-        }
+    } else {
+        # if relocations are provided as X,Y coordinates
+        srid <- 0
     }
+
     # Select proj4text from 'spatial_ref_sys'
     sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1,1]
-    sch <- "public"
-    srid <- 0
     sql_query <- paste0("SELECT proj4text FROM ",sch,
             ".spatial_ref_sys WHERE srid = ",srid,";")
     proj4string <- dbGetQuery(conn, sql_query)[1,1]
+    
+    # Get user local time zone for temporary table
+    time_zone <- Sys.timezone(location = TRUE)
     
     # Create traj database schema if it doesn't exist
     x <- pgTrajSchema(conn, schema)
@@ -140,7 +157,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                 pgTrajDB2TempT(conn, schema, 
                                 relocations_table, pgtrajs, animals,
                                 bursts, relocations, timestamps, rids, 
-                                srid)
+                                srid, proj4string, note, time_zone)
                 
             }, warning = function(x) {
                 
@@ -169,132 +186,38 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     sql_query <- paste0("SET search_path TO ", schema, ",public;")
     invisible(dbSendQuery(conn, sql_query))
     
-    # Add temporary fields
-    invisible(dbSendQuery(conn,"ALTER TABLE relocation ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
-    invisible(dbSendQuery(conn,"ALTER TABLE step ADD COLUMN burst_name text, ADD COLUMN pgtraj_name text;"))
-    
-    # Insert relocations
-    sql_query <- paste0("
-                    INSERT INTO pgtraj (pgtraj_name)
-                    SELECT DISTINCT pgtraj_name
-                    FROM zgaqtsn_temp;
-                    
-                    INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
-                    SELECT DISTINCT a.burst_name, a.animal_name, b.id
-                    FROM zgaqtsn_temp a JOIN pgtraj b
-                    ON a.pgtraj_name = b.pgtraj_name;
-                    
-                    INSERT INTO relocation (geom, relocation_time, r_rowname, burst_name, pgtraj_name)
-                    SELECT geom, relocation_time, id, burst_name, pgtraj_name
-                    FROM zgaqtsn_temp;
-                    ")
-    sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
-    
-    # 'res2' is passed on to ltraj2pgtraj 
+    # Run the SQL import script to insert the data from the temporary
+    # table into the traj schema
     res2 <- tryCatch({
                 
+                pgtraj_insert_file <- paste0(path.package("rpostgisLT"),
+                    "/sql/insert_db.sql")
+                sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
                 invisible(dbSendQuery(conn, sql_query))
                 TRUE
                 
-            }, warning = function(war) {
+            }, warning = function(x) {
                 
-                message("WARNING in insert into 'pgtaj', 'animal_burst', 'relocation':")
-                message(war)
+                message(x)
                 message(" . Rolling back transaction")
                 dbRollback(conn)
                 stop("Returning from function")
                 
-            }, error = function(err) {
+            }, error = function(x) {
                 
-                message("ERROR in insert into 'pgtaj', 'animal_burst', 'relocation':")
-                message(err)
-                message(" . Rolling back transaction")
+                message(x)
+                message(". Rolling back transaction")
                 dbRollback(conn)
                 stop("Returning from function")
                 
             })
-    
-    res <- c(res, res2)
-    
-    # Insert steps into the schema
-    res3 <- tryCatch({
-            
-            sql_query <- paste0("
-                            INSERT INTO step (
-                                relocation_id_1, 
-                                relocation_id_2, dt, 
-                                burst_name, 
-                                pgtraj_name)
-                            SELECT 
-                                a.id AS relocation_id_1,
-                                b.id AS relocation_id_2,
-                                b.relocation_time - a.relocation_time AS dt,
-                                a.burst_name,
-                                a.pgtraj_name
-                            FROM relocation a
-                            LEFT OUTER JOIN LATERAL (SELECT c.id, c.relocation_time
-                                               FROM relocation c
-                                               WHERE a.relocation_time < c.relocation_time
-                                               AND a.burst_name = c.burst_name
-                                               ORDER BY c.relocation_time ASC
-                                               LIMIT 1
-                                              ) AS b 
-                            ON TRUE
-                            WHERE a.pgtraj_name = '",pgtrajs,"';
-                            ")
-            sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
-            invisible(dbGetQuery(conn, sql_query))
-            
-            sql_query <- paste0("
-                            INSERT INTO s_i_b_rel (step_id, animal_burst_id)
-                            WITH pg AS (
-                                SELECT a.id, a.burst_name, a.animal_name, b.pgtraj_name
-                                FROM animal_burst a
-                                JOIN pgtraj b ON a.pgtraj_id = b.id
-                            )
-                            SELECT step.id, pg.id
-                            FROM step, pg
-                            WHERE (step.burst_name = pg.burst_name) 
-                            	AND (step.pgtraj_name = pg.pgtraj_name);
-                            ")
-            sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
-            invisible(dbGetQuery(conn, sql_query))
-            
-        }, warning = function(war) {
-            
-            message("WARNING in insert into 'steps':")
-            message(war)
-            message(" . Rolling back transaction")
-            dbRollback(conn)
-            stop("Returning from function")
-            
-        }, error = function(err) {
-            
-            message("ERROR in insert into 'steps':")
-            message(err)
-            message(" . Rolling back transaction")
-            dbRollback(conn)
-            stop("Returning from function")
-            
-        })
-        
-    res <- c(res, res3)
-    
-    # Drop temporary column
-    if (suppressWarnings(all(res))) {
-        invisible(dbGetQuery(conn, "ALTER TABLE relocation DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
-        invisible(dbGetQuery(conn, "ALTER TABLE step DROP COLUMN burst_name, DROP COLUMN pgtraj_name;"))
-    } else {
-        message("ERROR. Rolling back transaction.")
-        dbRollback(conn)
-    }
     
     # Create views
     # FIXME remove suppressWarnings
     if (suppressWarnings(all(res))) {
         pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[,1]
         for (i in pgt) {
-            res4 <- tryCatch({
+            res3 <- tryCatch({
                     
                     pgTrajViewParams(conn, schema, pgtraj = i, srid, db = TRUE)
                     
@@ -316,13 +239,10 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
                         stop("Returning from function")
                         
                     })
-            res <- c(res, res4)
+            res <- c(res, res3)
         }
         
     }
-    
-    # Drop temporary table
-    invisible(dbGetQuery(conn, "DROP TABLE zgaqtsn_temp;"))
     
     # Commit transaction and reset search path in the database
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
@@ -330,11 +250,12 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     if (suppressWarnings(all(res))) {
         dbCommit(conn)
+        # Vacuum the tables
+        pgTrajVacuum(conn, schema)
+        # Return TRUE
         return(all(res))
     } else {
         message("Insert faliure, rolling back transaction")
         dbRollback(conn)
     }
-    
-    return(all(res))
 }

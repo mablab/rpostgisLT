@@ -29,23 +29,18 @@
 #' @export 
 #' 
 ##############################################################################
-#dframe <- rpostgisLT:::ld_opt(ibexraw)
-#pgtraj <- "ibexraw"
-#schema <- "traj"
-#srid <- 0
-#srs <- "NA"
-#ltraj <- ibexraw
-#note <- NA
-#
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
-        note = NA) {
+        note = NULL) {
     
     ###### Format ltraj for database input
     # 'pgtraj' defaults to the name of ltraj
-    if (is.null(pgtraj)) {
+    if (is_blank(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     }
-    # TODO pgtraj can only contain DB table-name-proof characters, include in test_input()
+    
+    if (is_blank(note)) {
+        note <- NA
+    }
 
     # Set projection
     srs <- attr(ltraj, "proj4string")
@@ -178,7 +173,9 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             message(paste0("The ltraj '", pgtraj,
                             "' successfully inserted into the database schema '",
                             schema,"'."))
-
+            # Vacuum the tables
+            pgTrajVacuum(conn, schema)
+            
             return(TRUE)
         } else {
             dbRollback(conn)
