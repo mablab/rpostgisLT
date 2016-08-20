@@ -16,7 +16,7 @@
 #' 
 #' @export 
 #' 
-################################################################################
+##############################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
     # TODO Find the cause of the duplicate r_rownames error in the <pgtraj_name>_parameters
@@ -28,8 +28,8 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     # The same happens when 1) ins. puechcirc 2) ins. albatross 3) retr. puechcirc
     # However, if the <pgtraj_name>_parameters view is queried at least once before
     # using pgtraj2ltraj(), the error does not happen.
-    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters", " LIMIT 1;")
-    invisible(dbGetQuery(conn, sql_query))
+#    sql_query <- paste0("SELECT * FROM ", schema, ".", pgtraj, "_parameters", " LIMIT 1;")
+#    invisible(dbGetQuery(conn, sql_query))
     
     view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
@@ -47,15 +47,22 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     names(DF)[names(DF)=="abs_angle"] <- "abs.angle"
     names(DF)[names(DF)=="rel_angle"] <- "rel.angle"
     names(DF)[names(DF)=="animal_name"] <- "id"
-    names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
+    
     DF <- DF[,-which(names(DF)=="pgtraj")]
     
+    # Check if the row names are stored in the pgtraj
+    rnames <- all(complete.cases(DF$r_rowname))
+    if (rnames) {
+        names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
+    } else {
+        DF <- DF[,-which(names(DF)=="r_rowname")]
+    }
     
     # Set time zone
     attr(DF$date, "tzone") <- tz
     
     # Cast into ltraj
-    ltraj <- dl_opt(DF)
+    ltraj <- dl_opt(DF, rnames)
     
     if (proj4string %in% c("NA", "NULL", "NaN")) {
         attr(ltraj, "proj4string") <- CRS()

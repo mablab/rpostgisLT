@@ -53,7 +53,7 @@ ld_opt <- function(ltraj) {
 
 ##' @rdname ld_opt
 
-dl_opt <- function(x) {
+dl_opt <- function(x, rnames) {
     if (!inherits(x, "data.frame"))
         stop("x should be of class data.frame")
     ## Equivalent of hab::dl(strict = FALSE)
@@ -62,27 +62,48 @@ dl_opt <- function(x) {
     idd <- tapply(as.character(x$id), x$burst, unique)
     traj <- split(x[, names(x) %in% trajnam], x$burst)
     ## + Split row names by burst
-    traj_rname <- split(x[, "r.row.names"], x$burst)
-    names(traj) <- NULL
-    class(traj) <- c("ltraj", "list")
-    attr(traj, "typeII") <- TRUE
-    attr(traj, "regular") <- is.regular(traj)
-    ## + Add r.row.names
-    if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
-        inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst",
-            "r.row.names")), drop = FALSE], x$burst)
-        for (i in (1:length(traj))) {
+    if (rnames) {
+        traj_rname <- split(x[, "r.row.names"], x$burst)
+            names(traj) <- NULL
+        class(traj) <- c("ltraj", "list")
+        attr(traj, "typeII") <- TRUE
+        attr(traj, "regular") <- is.regular(traj)
+        ## + Add r.row.names
+        if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
+            inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst",
+                "r.row.names")), drop = FALSE], x$burst)
+            for (i in (1:length(traj))) {
+                attr(traj[[i]], "id") <- as.character(idd[i])
+                attr(traj[[i]], "burst") <- names(idd[i])
+                attr(traj[[i]], "infolocs") <- inf[[i]]
+                ## + Add r.row.names
+                rownames(traj[[i]]) <- traj_rname[[i]]
+            }
+        } else for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
-            attr(traj[[i]], "infolocs") <- inf[[i]]
             ## + Add r.row.names
             rownames(traj[[i]]) <- traj_rname[[i]]
         }
-    } else for (i in (1:length(traj))) {
-        attr(traj[[i]], "id") <- as.character(idd[i])
-        attr(traj[[i]], "burst") <- names(idd[i])
-        ## + Add r.row.names
-        rownames(traj[[i]]) <- traj_rname[[i]]
+        return(traj)
+    } else {
+        names(traj) <- NULL
+        class(traj) <- c("ltraj", "list")
+        attr(traj, "typeII") <- TRUE
+        attr(traj, "regular") <- is.regular(traj)
+        if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
+            inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst")),
+                            drop = FALSE], x$burst)
+            for (i in (1:length(traj))) {
+                attr(traj[[i]], "id") <- as.character(idd[i])
+                attr(traj[[i]], "burst") <- names(idd[i])
+                attr(traj[[i]], "infolocs") <- inf[[i]]
+            }
+        } else for (i in (1:length(traj))) {
+            attr(traj[[i]], "id") <- as.character(idd[i])
+            attr(traj[[i]], "burst") <- names(idd[i])
+        }
+        return(traj)
     }
-    return(traj)
+
 }
