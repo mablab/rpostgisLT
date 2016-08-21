@@ -24,8 +24,15 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", schema, ",public;")
-    invisible(dbGetQuery(conn, sql_query))
+    invisible(dbSendQuery(conn, sql_query))
     
+    sql_query <- paste0("SELECT id FROM pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    i <- dbGetQuery(conn, sql_query)[1,1]
+    if (is.null(i)) {
+        stop(paste("The pgtraj", pgtraj, "doesn't exist in schema", schema))
+    }
+    
+    # Drop query
     sql_query <- paste0("
                     DELETE FROM infoloc WHERE id IN (
                         SELECT
@@ -40,6 +47,16 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
                     DELETE FROM relocation WHERE id IN (
                         SELECT
                             r1.id AS relocation_id
+                        FROM step s
+                        JOIN relocation r1 ON s.relocation_id_1 = r1.id
+                        LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
+                        JOIN s_i_b_rel rel ON rel.step_id = s.id
+                        JOIN animal_burst ab ON ab.id = rel.animal_burst_id
+                        JOIN pgtraj p ON p.id = ab.pgtraj_id
+                        WHERE p.pgtraj_name = '",pgtraj,"'
+                        UNION
+                        SELECT
+                            r2.id AS relocation_id
                         FROM step s
                         JOIN relocation r1 ON s.relocation_id_1 = r1.id
                         LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
