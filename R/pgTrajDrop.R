@@ -98,6 +98,9 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
     invisible(dbSendQuery(conn, sql_query))
     
+    # Vacuum the schema
+    pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE)
+    
     message(paste0("The pgtraj '", pgtraj, "' deleted from the database schema '", schema,"'."))
     return(TRUE)
 

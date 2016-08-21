@@ -18,6 +18,11 @@
 #' User must have write access on spatial_ref_sys table.
 #' @param new.srid Integer. Optional SRID to give to a newly created SRID. If left NULL (default),
 #' the next open value of `srid` in `spatial_ref_sys` between 880000 and 890000 will be used.
+#' @param overwrite Boolean. If \code{TRUE}, and a \code{pgtraj} with the same
+#' name as the provided \code{ltraj} exists in the database, the \code{pgtraj}
+#' is deleted and the provided \code{ltraj} is inserted. If \code{FALSE}, the
+#' function exits. Note that \code{overwrite}
+#' requires an exact match among the \code{pgtraj} names otherwise it is ignored.
 #' 
 #' @return TRUE on success
 #' 
@@ -29,19 +34,43 @@
 #' @export 
 #' 
 ##############################################################################
+schema <- "traj"
+pgtraj <- "ibexraw"
+overwrite <- FALSE
+
+
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
-        note = NULL) {
+        note = NULL, overwrite = FALSE) {
     
     ###### Format ltraj for database input
     # 'pgtraj' defaults to the name of ltraj
     if (is_blank(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     }
+    ###### Check and create a pgtraj schema
+    # pgTrajSchema() has its own transaction control
+    x <- pgTrajSchema(conn, schema)
+    # If schema creation unsuccessful
+    if (!isTRUE(x)) {
+        stop("Traj schema couldn't be created, returning from function.")
+    }
+    # overwrite
+    sql_query <- paste0("SELECT pgtraj_name FROM ",schema, ".pgtraj;")
+    pgt <- dbGetQuery(conn, sql_query)
+    if (pgtraj %in% pgt$pgtraj_name) {
+        if (overwrite) {
+            #drop pgtraj
+            pgTrajDrop(conn, schema, pgtraj)
+        } else {
+            stop(paste0("The pgtraj '",pgtraj,"' already exists in the schema '",
+                            schema,"'. Please use another name."))
+        }
+    }
     
     if (is_blank(note)) {
-        note <- NA
+        note <- NA # Otherwise the column .note won't be appended to dframe below
     }
-
+    
     # Set projection
     srs <- attr(ltraj, "proj4string")
     if (is.null(srs)) {
@@ -65,13 +94,6 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     # Parameters to exclude on input
     params <- c("dist", "abs.angle")
     
-    ###### Check and create a pgtraj schema
-    # pgTrajSchema() has its own transaction control
-    x <- pgTrajSchema(conn, schema)
-    # If schema creation unsuccessful
-    if (!isTRUE(x)) {
-        stop("Traj schema couldn't be created, returning from function.")
-    }
     
     ###### Begin transaction block and input to postgres
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
