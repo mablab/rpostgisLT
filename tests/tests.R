@@ -281,4 +281,7 @@ all.equal(albatross, albatross_re)
 # is in local time zone, thus the 'Mean absoloute difference' is the time
 # differece between the two time zones
 
+# Clean up
+dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+rm(ibex, ibex_re, albatross, albatross_re)
 

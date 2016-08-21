@@ -34,11 +34,6 @@
 #' @export 
 #' 
 ##############################################################################
-schema <- "traj"
-pgtraj <- "ibexraw"
-overwrite <- FALSE
-
-
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
         note = NULL, overwrite = FALSE) {
     

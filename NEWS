@@ -3,8 +3,9 @@ rpostgisLT 0.3 (Release date: )
 
 Changes:
 
-* Added pgTrajVacuum(), pgTrajDrop()
-* Added ltraj2pgtraj(overwrite = TRUE/FALSE)
+* Add pgTrajVacuum(), pgTrajDrop()
+* Add ltraj2pgtraj(overwrite = TRUE/FALSE)
+* Add dl_opt(rnames=TRUE/FALSE)
 
 Breaking changes:
 

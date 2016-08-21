@@ -23,6 +23,9 @@ activity report for each table.}
 planner to determine the most efficient way to execute a query
 (default to \code{TRUE}).}
 }
+\value{
+\code{TRUE}
+}
 \description{
 pgTrajVacuum
 Performs a VACUUM (garbage-collect and optionally analyze) on all the
