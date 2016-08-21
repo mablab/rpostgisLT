@@ -4,8 +4,7 @@
 \alias{ltraj2pgtraj}
 \title{Export an ltraj object from R into a traj database schema.}
 \usage{
-ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL,
-  create = FALSE, new.srid = NULL)
+ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -15,9 +14,9 @@ ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL,
 \item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 
 \item{pgtraj}{String. Name of the new pgtraj. Defaults to the name of the 
-variable that stores the ltraj.}
+object that stores the ltraj.}
 
-\item{comment}{String. A comment that will be stored with the pgtraj in the database.}
+\item{note}{String. A comment that will be stored with the pgtraj in the database.}
 
 \item{create}{Logical. If no matching SRID is found, should a new SRID be created? 
 User must have write access on spatial_ref_sys table.}
@@ -39,7 +38,7 @@ to insert the values into the traj schema.
 
 }
 \author{
-Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
+Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \seealso{
 \code{\link{as_pgtraj}}

@@ -180,7 +180,7 @@ all.equal(ibex, ibexTest)
 
 # all variables stored with the raw data
 as_pgtraj(conn, 
-        schema = "traj_t2",
+        schema = "traj_t1",
         relocations_table = "example_data.relocations_plus",
         pgtrajs = "id",
         animals = "animal",
@@ -189,9 +189,28 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
+continental <- pgtraj2ltraj(conn, "traj_t1", "continental")
+large <- pgtraj2ltraj(conn, "traj_t1", "large")
+large2 <- pgtraj2ltraj(conn, "traj_t1", "large2")
+medium <- pgtraj2ltraj(conn, "traj_t1", "medium")
+small <- pgtraj2ltraj(conn, "traj_t1", "small")
+
+# relocations are provided as X,Y coordinates
+as_pgtraj(conn, 
+        schema = "traj_t2",
+        relocations_table = "example_data.relocations_plus",
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = c("x", "y"),
+        timestamps = "time",
+        rid = "gid")
+
+medium <- pgtraj2ltraj(conn, "traj_t2", "medium")
+
 # variables provided manually
 as_pgtraj(conn, 
-        schema = "traj_t4",
+        schema = "traj_t3",
         relocations_table = "example_data.reloc_medium", 
         pgtrajs = "medium",
         animals = "sea turtle",
@@ -199,6 +218,7 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
+# THIS WON'T WORK
 # trajectory Type I
 as_pgtraj(conn, 
         schema = "traj_t4",

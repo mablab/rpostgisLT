@@ -39,6 +39,6 @@ pgTrajSchema(conn, name = "traj_1")
 }
 }
 \author{
-Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
+Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 

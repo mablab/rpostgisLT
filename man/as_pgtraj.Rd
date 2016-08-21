@@ -2,12 +2,12 @@
 % Please edit documentation in R/as_pgtraj.R
 \name{as_pgtraj}
 \alias{as_pgtraj}
-\title{Converts relocation data into the pgtraj data model.}
+\title{Imports location data from a database table into a 'traj' schema.}
 \usage{
 as_pgtraj(conn, schema = "traj", relocations_table = NULL,
   pgtrajs = "pgtraj", animals = "animal", bursts = NULL,
   relocations = NULL, timestamps = NULL, rids = "rid", srid = NULL,
-  db = TRUE)
+  note = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -22,36 +22,36 @@ as_pgtraj(conn, schema = "traj", relocations_table = NULL,
 
 \item{bursts}{String. Name of the burst or name of the field that stores the burst names.}
 
-\item{relocations}{String. Name of the field that contains the relocations in relocations_table.}
+\item{relocations}{String. Name of the field that contains the relocations 
+in relocations_table. Relocations can be provided either as X,Y coordinates
+or PostGIS geometry. In both cases all relocations in the 'relocations_table'
+have to have the same projection.}
 
 \item{timestamps}{String. Name of the field in relocations_table that contains the timestamps.
 If NULL, Type I trajectory is assumed.}
 
 \item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.}
 
-\item{db}{Boolean. If TRUE, the relocations are stored in a database table, 
-if FALSE relocations are stored in an R object. It is meant to be used by other functions internally. 
-If you want to import an ltraj from R, use ltraj2pgtraj().}
+\item{note}{String. Comment on the pgtraj. The comment is only used in
+the database and not transferred into an ltraj.}
 }
 \value{
 TRUE on success
 }
 \description{
-This is the core function of the \code{rpostgisLT} package and it is also 
-used by \code{\link{ltraj2pgtraj}} to import trajectory data into a pgtraj 
-data model. \code{as_pgtraj} copies the trajectory data which is stored in 
-a database to a traj schema. If the provided schema doesn't exist, it is 
-created on demand. On successful data input, \code{as_pgtraj} creates a view for
-each pgtraj, with the views named as <pgtraj_name>_parameters. The view contains the same step parameters 
-as an ltraj object (e.g. R2n, rel.angle, dt...). If the input geometries
-are projected, their projection is used to create the steps in the schema, 
-otherwise either no projection is used or the fuction exits.
+\code{as_pgtraj} populates a \code{traj} schema from the data provided
+in \code{relocations_table}. If the provided schema doesn't exist, it will be 
+created. On successful data input, \code{as_pgtraj} creates three database views for
+each pgtraj. These views are named <pgtraj_name>_parameters, 
+<pgtraj_name>_step_geometry and <pgtraj_name>_summary and described more in
+detail in the package vignette.
+
+The time zone of the pgtraj is set to the local time zone.
 }
 \details{
 Opening and closing connections have to be done manually by the user. 
 However, the function checks if the provided connection is still valid. 
-Not tested with capital letters for PostgreSQL field names, but it probably won't 
-work. Its a bad practice anyway to force uppercase in PostgreSQL so use lowercase.
+Not tested with capital letters for PostgreSQL field names.
 }
 \examples{
 \dontrun{
@@ -66,14 +66,26 @@ as_pgtraj(conn,
         rid = "gid")
 }
 
+#' \dontrun{
+as_pgtraj(conn, 
+        schema = "traj_t4",
+        relocations_table = "example_data.relocations_plus",
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = c("x","y"),
+        timestamp = "time",
+        rid = "gid")
+}
+
 }
 \author{
-Bal<U+FFFD><U+FFFD>zs Dukai \email{balazs.dukai@gmail.com}
+Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \references{
 \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
 }
 \seealso{
-Section on pgtraj data model in the package vignette.
+Section on traj data model in the package vignette.
 }
 
