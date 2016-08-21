@@ -53,7 +53,7 @@ ld_opt <- function(ltraj) {
 
 ##' @rdname ld_opt
 
-dl_opt <- function(x, rnames) {
+dl_opt <- function(x, rnames = TRUE) {
     if (!inherits(x, "data.frame"))
         stop("x should be of class data.frame")
     ## Equivalent of hab::dl(strict = FALSE)
@@ -98,10 +98,12 @@ dl_opt <- function(x, rnames) {
                 attr(traj[[i]], "id") <- as.character(idd[i])
                 attr(traj[[i]], "burst") <- names(idd[i])
                 attr(traj[[i]], "infolocs") <- inf[[i]]
+                attr(traj[[i]], "row.names") <- rownames(traj[[i]])
             }
         } else for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
+            attr(traj[[i]], "row.names") <- rownames(traj[[i]])
         }
         return(traj)
     }

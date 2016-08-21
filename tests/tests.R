@@ -1,6 +1,6 @@
 ## Establish connection with rpostgisLT database
-source("./rpostgisLT/utility/utility_functions.R")
-cs() # creates globals conn and drv
+#source("./rpostgisLT/utility/utility_functions.R")
+#cs() # creates globals conn and drv
 
 ## Get test datasets
 data(ibex)
@@ -42,7 +42,7 @@ ibexraw                                 # No infolocs in ibexraw.
 is.regular(ibexraw)
 ## FALSE
 
-ltraj2pgtraj(conn, ibex)                   # Default should be in schema
+ltraj2pgtraj(conn, ibex, overwrite = TRUE)                   # Default should be in schema
                                         # 'traj' and use ltraj name
                                         # ('ibex') as pgtraj name.
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
@@ -51,7 +51,7 @@ all.equal(ibex, ibexTest)
 # TRUE
 
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-rm(ibex, ibexTest)
+rm(ibexTest)
 
 ## More basic ltraj
 srs2 <- CRS("+init=epsg:4326")
@@ -60,10 +60,10 @@ attr(puechcirc, 'proj4string') <- srs2
 attr(albatross, 'proj4string') <- srs
 attr(porpoise, 'proj4string') <- srs2
 
-ltraj2pgtraj(conn, ltraj = ibexraw, note = "test CRS on ibexraw")
-ltraj2pgtraj(conn, ltraj = puechcirc, note = "test CRS on puechcirc")
-ltraj2pgtraj(conn, ltraj = albatross, note = "test CRS on albatross")
-ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise")
+ltraj2pgtraj(conn, ltraj = ibexraw, note = "test CRS on ibexraw", overwrite=TRUE)
+ltraj2pgtraj(conn, ltraj = puechcirc, note = "test CRS on puechcirc",overwrite=TRUE)
+ltraj2pgtraj(conn, ltraj = albatross, note = "test CRS on albatross",overwrite=TRUE)
+ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise",overwrite=TRUE)
 
 ibexraw_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
 puechcirc_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
@@ -87,7 +87,7 @@ ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
 # TRUE
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-rm(ibex, ibexTest)
+rm(ibexTest)
 
 
 ## Rounding timestamps
@@ -103,7 +103,7 @@ all.equal(ibex, ibexTest)
 ## Interpolation
 
 ## 1. In space
-summary(ld_opt(ibex)$dist)
+summary(ld(ibex)$dist)
 (ibex <- redisltraj(ibex, 400))         # Note that 'redisltraj'
                                         # creates an 'infolocs'
                                         # attribute, which we remove
@@ -113,6 +113,10 @@ ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
 ## TRUE
+head(ibex[[1]])
+head(ibexTest[[1]])
+attributes(ibex[[1]]["date"])
+attributes(ibexTest[[1]]["date"])
 
 ## 2. In time
 ibex <- ibex.ref
@@ -132,9 +136,9 @@ ibex <- ibex.ref
 ## then rebuild the ltraj without recomputing trajectory parameters;
 ## this is essentially what 'hab::subset' does.
 ## Note that the steps are not continuous any more.
-ibex <- ld_opt(ibex)
+ibex <- ld(ibex)
 ibex <- droplevels(ibex[ibex$dist < 400 & !is.na(ibex$dist), ])
-ibex <- dl_opt(ibex)
+ibex <- dl(ibex)
 head(ibex[[1]])
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
@@ -170,6 +174,7 @@ ibex <- ibex.ref
 ibex2 <- ibex
 burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
 (ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))])
+attr(ibex,"proj4string") <- CRS() # proj4string attributes needs to be added
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
@@ -218,12 +223,62 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
-# THIS WON'T WORK
-# trajectory Type I
+# Clean up
+dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+dbDrop(conn, "traj_t1", type = "schema", cascade = TRUE)
+dbDrop(conn, "traj_t2", type = "schema", cascade = TRUE)
+dbDrop(conn, "traj_t3", type = "schema", cascade = TRUE)
+rm(albatross, continental, ibex, ibex2, ibexraw, ibex.ref, ibexTest, large,
+        large2, medium, porpoise, puechcirc, small, srs, srs2)
+
+#############################################################################
+## Test parameter computation
+
+data(ibex)
+data(albatross)
+data(porpoise)
+#recompute parameters
+ibex <- dl(ld(ibex))
+albatross <- dl(ld(albatross))
+porpoise <- dl(ld(porpoise))
+
+
+ibex_dl <- ld(ibex)
+pgInsert(conn, name = c("example_data", "ibex"), data.obj = ibex_dl, new.id = "gid")
+
 as_pgtraj(conn, 
-        schema = "traj_t4",
-        relocations_table = "example_data.reloc_t1", 
-        pgtrajs = "small",
-        animals = "small animal",
-        relocations = "geom",
+        schema = "traj",
+        relocations_table = "example_data.ibex",
+        pgtraj = "ibex",
+        animals = "id",
+        bursts = "burst",
+        relocations = c("x", "y"),
+        timestamps = "date",
         rid = "gid")
+ibex_re <- pgtraj2ltraj(conn, "traj", "ibex")
+all.equal(ibex, ibex_re)
+# gives warning of inconsistent time zone attribute but that is expected
+
+
+albatross_dl <- ld(albatross)
+pgInsert(conn, name = c("example_data", "albatross"), data.obj = albatross_dl, new.id = "gid")
+
+as_pgtraj(conn, 
+        schema = "traj",
+        relocations_table = "example_data.albatross",
+        pgtraj = "albatross",
+        animals = "id",
+        bursts = "burst",
+        relocations = c("x", "y"),
+        timestamps = "date",
+        rid = "gid")
+albatross_re <- pgtraj2ltraj(conn, "traj", "albatross")
+all.equal(albatross, albatross_re)
+# gives warning of inconsistent time zone attribute but that is expected
+# furthermore gives a high number of 'Mean absoloute difference'
+# on the 'date' column 'Component 3', which is
+# also expected, because the original albatross is in UTC and albatross_re 
+# is in local time zone, thus the 'Mean absoloute difference' is the time
+# differece between the two time zones
+
+
