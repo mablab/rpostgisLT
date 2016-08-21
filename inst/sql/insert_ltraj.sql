@@ -109,13 +109,13 @@ insert_step AS (
 insert_pgtraj AS (
     INSERT INTO pgtraj (pgtraj_name, proj4string, time_zone, note)
     SELECT DISTINCT pgtraj_name, proj4string, time_zone, note
-    FROM zgaqtsn_temp
+    FROM r_output
     RETURNING id, pgtraj_name
     ),
 insert_animal_burst AS (
     INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
     SELECT DISTINCT a.burst_name, a.animal_name, b.id
-    FROM zgaqtsn_temp AS a
+    FROM r_output AS a
     JOIN insert_pgtraj AS b ON b.pgtraj_name = a.pgtraj_name
     RETURNING id, burst_name
 )

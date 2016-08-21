@@ -36,15 +36,18 @@ pgTrajTempT <- function(conn, schema) {
     }
     
     # Create 'zgaqtsn_temp' table
-    sql_query <- paste0("CREATE TABLE ", schema, ".zgaqtsn_temp (
+    sql_query <- paste0("CREATE TEMPORARY TABLE zgaqtsn_temp (
                     id               serial,
                     pkey             text,
                     geom             geometry,
                     relocation_time  timestamptz,
                     burst_name       text,
                     animal_name      text,
-                    pgtraj_name      text
-                    );")
+                    pgtraj_name      text,
+                    proj4string      text,
+                    time_zone        text,
+                    note             text
+                    ) ON COMMIT DROP;")
     create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     res <- tryCatch({

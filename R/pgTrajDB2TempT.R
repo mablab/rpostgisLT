@@ -18,12 +18,10 @@
 #' (long, lat) coorindates, the coordinates should be separeted in two fields 
 #' and referenced accordingly.
 #' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
-#' 
-#' 
-#' 
 ###############################################################################
 pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
-        bursts = NULL, relocations, timestamps, rids, srid) {
+        bursts = NULL, relocations, timestamps, rids, srid, proj4string,
+        note, time_zone) {
     
     # Test for correct inputs
     test_input(pgtrajs, animals, relocations, bursts)
@@ -36,7 +34,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     # Table name is separated from schema declaration
     rd_split <- unlist(strsplit(relocations_table, "[.]"))
     
-    # Populate 'zgaqtsn_temp'--------------------------------------------
+    # Populate 'zgaqtsn_temp'-------------------------------------------------
     # Insert relocations if trajectory Type I
     if (is.null(timestamps)) {
         # Relocations provided as point geometry
@@ -136,7 +134,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     }
     
     # Insert burst
-     if (is.null(bursts) & length(animals) > 1) {
+     if (is_blank(bursts) & (animals %in% fields)) {
         
         # Use animal name as default burst name
         sql_query <- paste0("UPDATE zgaqtsn_temp
@@ -149,7 +147,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
-    } else if (is.null(bursts) & length(animals) == 1) {
+    } else if (is_blank(bursts) & length(animals) == 1) {
         
         sql_query <- paste0("UPDATE zgaqtsn_temp SET burst_name = '",animals,"';")
         invisible(dbSendQuery(conn, sql_query))
@@ -174,6 +172,40 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         invisible(dbSendQuery(conn, sql_query))
         
     }
+    
+    # Insert note
+    if (is_blank(note)) {
+        
+        # Set to NULL
+        sql_query <- paste0("UPDATE zgaqtsn_temp SET note = NULL;")
+        invisible(dbSendQuery(conn, sql_query))
+        
+    } else if (note %in% fields) {
+        
+        # use the values for note
+        sql_query <- paste0("UPDATE zgaqtsn_temp
+                        SET note = a.",note,"
+                        FROM (
+                        SELECT ",rids,", ",note,"
+                        FROM ",relocations_table,"
+                        ) a
+                        WHERE zgaqtsn_temp.id = a.",rids,";")
+        sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
+        invisible(dbSendQuery(conn, sql_query))
+        
+    } else {
+        
+        # Use the string
+        sql_query <- paste0("UPDATE zgaqtsn_temp SET note = '", note, "';")
+        invisible(dbSendQuery(conn, sql_query))
+        
+    }
+    
+    # Insert proj4string and time zone
+    sql_query <- paste0("UPDATE zgaqtsn_temp
+                         SET proj4string = '",proj4string,"',
+                             time_zone = '",time_zone,"';")
+    invisible(dbSendQuery(conn, sql_query))
     
     # Reset DB search path to the public schema
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")

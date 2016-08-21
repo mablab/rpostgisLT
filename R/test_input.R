@@ -15,7 +15,7 @@
 ##' @param epsg Numeric. The EPSG code of the Coordinate Reference
 ##'     System of the relocation coordinates in the ltraj. Defaults to
 ##'     0.
-##' @return ?
+##' @return nothing
 ##' @keywords internal
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 
@@ -64,4 +64,25 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
                 testthat::expect_that(epsg%%1 == 0, testthat::is_true())
             })
     }
+}
+
+
+## is_blank
+
+##' Test if an argument is either NA, NULL, NaN or empty string.
+##'
+##' @param x Any object.
+##' @return boolean
+##' @keywords internal
+##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+
+is_blank <- function(x, false_triggers=FALSE){
+    if(is.function(x)) return(FALSE) 
+    return(
+        is.null(x) ||
+        length(x) == 0 ||
+        all(is.na(x)) ||
+        all(x=="") ||
+        (false_triggers && all(!x))
+    )
 }
