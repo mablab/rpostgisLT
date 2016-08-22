@@ -1,31 +1,18 @@
 ---
-title: "rpostgisLT: Managing and visualizing movement data with PostGIS and R"
+title: "rpostgisLT: Database model"
 author: "Mathieu Basille, Balázs Dukai"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
 number_sections: true
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-## Motivation for the package and its relation to adehabitatLT
-
-Recent technological progress allowed ecologists to obtain a huge amount and diversity of animal movement data sets of increasing spatial and temporal resolution and size, together with complex associated information related to the environmental context, such as habitat types based on remote sensing, population density, weather. Most advanced movement data management now relies on the use of an integrated database system based on PostGIS, an extension of the open-source database management system PostgreSQL that adds support for spatial data.
-
-Storing spatial objects in a PostGIS-enabled database is particularly useful for movement data (usually from wildlife collars/sensors), which are often very large, regularly updated, and require cleaning and manipulation prior to being used in research. On the other end of the process, the advancement of a movement ecology theoretical framework led to an unprecedented development of new analytical tools and methods, mostly available in the R statistical environment.
-
-The package *rpostgisLT* focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data.
-
-The package [adehabitatLT](https://cran.r-project.org/web/packages/adehabitatLT/index.html) is a collection of tools for the analysis of animal movements. In particular, it builds on a dedicated class for animal movement data (*ltraj*), which abstracts movement to a set of trajectories and its geometrical descriptors. Then *rpostgisLT* streamlines location dataset processing into trajectories, including full integration with the R package *adehabitatLT* data type *ltraj*.
-
-Although the [vignette of *adehabitatLT*](https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf) defines a trajectory and its elements clearly, it is worth to repeat a few key concepts that are regularly used in this vignette. Thus a **trajectory** is a continuous curve described by an animal, person or object when it moves. If a trajectory is sampled with e.g. a GPS tracker, each measurement represent a **relocation**, while each two successive relocations form the start- and endpoint of a **step** respectively.
-
-## The pgtraj database model
+## The traj database model
 
 ### General remarks
 It is possible, but not recommended, to add extra columns to the tables to store
@@ -48,71 +35,67 @@ create a new step or burst and delete the old one.
 
 ![ER diagram of the pgtraj database model](./figure/database_model.png)
 
-**animals table**\
-Contains animal names.
+**animal_burst table**\
+Contains animal and burst names and their relation to pgtrajes.
 
 | Name   | Type   | Constraint       | Description                          |
 |--------|--------|------------------|--------------------------------------|
-|a_id   | serial | PK               | Auto-generated numeric ID of animal. |
-|a_name | text   | Not Null, unique | Name of the animal.                  |
+|id   | serial | PK               | Auto-generated numeric ID. |
+|burst_name | text   | Not Null | Name of the burst.                  |
+|animal_name | text   | Not Null | Name of the animal.                  |
+|pgtraj_id | integer   | Not Null, FK | ID of pgtraj.                  |
 
-**bursts table**\
-Contains burst information and their relation to animals. One burst can belong
-only to one animal, but one animal can have many bursts.
+Table constraint: the combination of burst_name and pgtraj_id must be unique.
 
-| Name   | Type    | Constraint| Description|
-|--------|---------|-----------------------------------------------------------------|-------------------------------------------------------------------------------|
-| b_id   | serial  | PK | Auto-generated numeric ID of burst.| 
-| b_name | text | default: animal name corresponding to the provided unique | Name or other identifier of burst.             |  
-| a_id  | integer | FK| ID ofthe animal that made the burst. Pointing to the entry in animals table. |
-
-**infolocs table**\
+**infoloc table**\
 Contains additional information on steps. Mirrors the infolocs attribute of an ltraj object.
 
 | Name    | Type   | Constraint | Description                                          |
 |---------|--------|------------|------------------------------------------------------|
-| i_id    | serial | PK         | Auto-generated numeric ID of infoloc.                |
+| id    | serial | PK         | Auto-generated numeric ID of infoloc.                |
 | infoloc | json   |            | Contains the additional information encoded in JSON. |
 
-**pgtrajs table**\
+**pgtraj table**\
 Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
 
 | Name    | Type   | Constraint       | Description                                      |
 |---------|--------|------------------|--------------------------------------------------|
-| p_id    | serial | PK               | Auto-generated numeric ID of pgtraj.             |
-| p_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
+| id    | serial | PK               | Auto-generated numeric ID of pgtraj.             |
+| pgtraj_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
 | proj4string  | text   |                  | Projection string of the ltraj, imported from R. |
 | time_zone    | text   |                  | Time zone of the corresponding ltraj.            |
-| comment | text   |                  |                                                  |
+| note | text   |                  |                                                  |
 
-**p_b_rel table**\
-Relates pgtraj and burst. The exact same burst (ID and name) can belong to many pgtrajs, as well as a pgtraj can contain many bursts.
+**relocation table**\
+Contains the geometry and time stamp of relocations.
 
-| Name | Type    | Constraint       | Description                             |
-|------|---------|------------------|-----------------------------------------|
-| p_id | integer | PK, FK, Not Null | Pointing to the entry in pgtrajs table. |
-| b_id | integer | PK, FK, Not Null | Pointing to the entry in bursts table.  |
+| Name    | Type   | Constraint | Description                                          |
+|---------|--------|------------|------------------------------------------------------|
+| id    | serial | PK         | Auto-generated numeric ID.                |
+| geom | geometry   |            | Geometry of the relocation. |
+| relocation_time | timestamptz   |            | Time stamp of the relocation. |
 
-**steps table**\
-Steps and their first relocations.
+**step table**\
+Steps and their relocations.
 
 | Name      | Type        | Constraint    | Description                                                                                                           |
 |-----------|-------------|---------------|-----------------------------------------------------------------------------------------------------------------------|
-| s_id      | serial      | PK            | Auto-generated numeric ID of step. Equal to the ID of the first of the two successive relocations that form the step. |
-| r_rowname | text        | default: Null | Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.                          |
-| reloc1    | geometry    | default: Null | Geometry of the first relocation in a step. POINT                                                                     |
-| step      | geometry    | default: Null | Geometry of the step. LINESTRING                                                                                      |
-| date      | timestamptz | default: Null | Timestamp of the first of the two successive locations that form the step.                                            |
-| dt        | interval    | default: Null | Duration of the step.                                                                                                 |
+| id      | serial      | PK            | Auto-generated numeric ID of step. |
+| relocation_id_1      | integer      | FK            | ID of the first relocation that form a step |
+| relocation_id_2      | integer      | FK            | ID of the second relocation that form a step |
+| dt        | interval    |  | Duration of the step.                                                                                                 |
+| r_rowname | text        |  | Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.                          |
+| r2n      | float8      |             | R2n parameter copied from the ltraj on import from R. |
+| rel_angle      | float8      |             | Rel.angle parameter copied from the ltraj on import from R. |
 
 **s_i_b_rel table**\
 Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step–burst pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.
 
 | Name | Type    | Constraint       | Description                              |
 |------|---------|------------------|------------------------------------------|
-| s_id | integer | PK, FK, Not Null | Pointing to the entry in steps table.    |
-| i_id | integer | FK, Not Null     | Pointing to the entry in infolocs table. |
-| b_id | integer | PK, FK, Not Null | Pointing to the entry in bursts table.   |
+| step_id | integer | PK, FK, Not Null | Pointing to the entry in step table.    |
+| infoloc_id | integer | FK, Not Null     | Pointing to the entry in infoloc table. |
+| animal_burst_id | integer | PK, FK, Not Null | Pointing to the entry in animal_burst table.   |
 
 ### Storing geometries in PostGIS
 PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS) [^1]. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered flat anymore and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type [^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
@@ -123,12 +106,17 @@ The R object class *ltraj* assumes that the coordinates stored in the object are
 [^2]: http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix
 
 ### Managing projections in PostGIS and R
-Complete this section after the *ltraj* is updated by Clément.
+From version 0.3.21 an *ltraj* object stores the projection of the relocations in
+its *proj4string* attribute. The function *ltraj2pgtraj* tries to find the 
+matching SRID (Spatial Reference Identifier) in the PostGIS database by using
+rpostgis::pgSRID, and use the SRID for creating geometries. 
+The *pgtraj* table stores the original *proj4string* so it can be
+restored by *pgtraj2ltraj*.
 
 ### Managing time zones in PostgreSQL and R
 In PostgreSQL all timezone-aware dates and times are stored internally in UTC.
 For display they are converted to local time in the zone specified on the server. Therefore
-the time zone of the input *ltraj* is stored in the *pgtrajs* table's *time_zone*
+the time zone of the input *ltraj* is stored in the *pgtraj* table's *time_zone*
 field in order to restore the *ltraj* with the original time zone when using
 *pgtraj2ltraj()*.
 
@@ -156,4 +144,3 @@ zone names in your system use ```OlsonNames()```[^3].
 
 [^3]: http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html
 
-## Use cases

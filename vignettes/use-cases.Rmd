@@ -1,0 +1,236 @@
+---
+title: "rpostgisLT: Use cases"
+author: "Mathieu Basille, Balázs Dukai"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Motivation for the package and its relation to adehabitatLT
+
+Recent technological progress allowed ecologists to obtain a huge amount and diversity of animal movement data sets of increasing spatial and temporal resolution and size, together with complex associated information related to the environmental context, such as habitat types based on remote sensing, population density, weather. Most advanced movement data management now relies on the use of an integrated database system based on PostGIS, an extension of the open-source database management system PostgreSQL that adds support for spatial data.
+
+Storing spatial objects in a PostGIS-enabled database is particularly useful for movement data (usually from wildlife collars/sensors), which are often very large, regularly updated, and require cleaning and manipulation prior to being used in research. On the other end of the process, the advancement of a movement ecology theoretical framework led to an unprecedented development of new analytical tools and methods, mostly available in the R statistical environment.
+
+The package *rpostgisLT* focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data.
+
+The package [adehabitatLT](https://cran.r-project.org/web/packages/adehabitatLT/index.html) is a collection of tools for the analysis of animal movements. In particular, it builds on a dedicated class for animal movement data (*ltraj*), which abstracts movement to a set of trajectories and its geometrical descriptors. Then *rpostgisLT* streamlines location dataset processing into trajectories, including full integration with the R package *adehabitatLT* data type *ltraj*.
+
+Although the [vignette of *adehabitatLT*](https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf) defines a trajectory and its elements clearly, it is worth to repeat a few key concepts that are regularly used in this vignette. Thus a **trajectory** is a continuous curve described by an animal, person or object when it moves. If a trajectory is sampled with e.g. a GPS tracker, each measurement represent a **relocation**, while each two successive relocations form the start- and endpoint of a **step** respectively.
+
+## Use cases for the rpostgisLT package
+
+At the core, we are dealing with trajectories, which are loosely defined objects, but essentially a sequence of points built into successive steps. That’s the starting point. Now together PostgreSQL and R provides tools to process, manage and analyse trajectories. Good practice and the strengths of both tools would tend towards using PostgreSQL for processing and management, and R for analysis, but there is no strict border, and both allow some (or all) of the other processes as well. In R, adehabitatLT actually allows for pretty much everything using the ‘ltraj’ class, which is already defined. On top of this thus comes rpostgisLT: the essence of rpostgisLT is to allow for bidirectional transfer, at any times between PostgreSQL and R, with no data loss or data alteration. This works by establishing the corresponding structure of data in PostgreSQL (‘pgtraj’) that stores (non destructively) all information from ‘ltraj’ in the DB, and allows for the use of PostgreSQL tools (notably PostGIS) on the data.
+
+### Initialization
+
+A typical session will start by initializing the connection to the database, using PostgreSQL credentials through the RPostgreSQL package:
+
+```{r eval=FALSE}
+
+```
+
+```{r eval=FALSE}
+library(rpostgisLT)
+drv <- dbDriver("PostgreSQL")
+con <- dbConnect(drv, dbname = <dbname>, host = <host>, user = <user>, password = <password>)
+```
+
+The next step will be to check whether the intended pgtraj schema is ready to use:
+
+```{r eval=FALSE}
+pgTrajSchema(con)                       # By default, test the 'traj'
+                                        # schema
+## Or:
+pgTrajSchema(con, name = "other_schema") # To work with another schema
+```
+
+The function should return ‘TRUE’, together with a message like:
+
+```{r eval=FALSE}
+The pgtraj schema ‘traj’ has correctly been created and is ready to use.
+The schema ‘traj’ is a valid pgtraj schema.
+```
+
+### Basic transfer
+
+The most basic feature (hence test) is then a simple transfer from R to PostgreSQL and back to R: it is assumed that the resulting object equals to the original:
+
+
+            ltraj2pgtraj              pgtraj2ltraj
+    ltraj1 [R]   →   pgtraj1 [PostgreSQL]   →   ltraj2 [R]
+
+```{r eval=FALSE}
+library(adehabitatLT)
+data(ibexraw)
+ibexraw                                 # No infolocs in ibexraw.
+is.regular(ibexraw)
+## FALSE
+
+## Note that there is an issue with the time zone. In 'ibexraw', the
+## time zone is not set:
+attr(ld(ibexraw)$date, "tzone")
+## This means that it is assumed to be UTC, and is thus converted to
+## local time zone on display (EDT2EST for me):
+head(ld(ibexraw)$date)                 # Note that the first timestamp
+                                       # should be '2003-06-01
+                                       # 00:00:56'
+## We need to fix that upfront:
+ibex <- ld(ibexraw)
+attr(ibex$date, "tzone") <- "Europe/Paris"
+ibex <- dl(ibex)
+
+ltraj2pgtraj(ibex)                       # Default should be in schema
+                                             # 'traj' and use ltraj name
+                                         # ('ibex') as pgtraj name.
+ibexTest <- pgtraj2ltraj(con, "ibex")    # Default should look into
+                                        # 'traj' schema.
+all.equal(ibex, ibexTest)
+## TRUE
+```
+
+Note that we’re working under the assumptions of the changes planned to be implemented in adehabitatLT about the data structure in ltraj: 1) row names are character strings; 2) there is an additional attribute “proj4string” in an ltraj that stores the projection reference.
+
+Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that ‘all.equal’ between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns ‘TRUE’.
+
+### Missing steps [seq, t, dt]
+
+‘ltraj’ can include NAs in their sequence (i.e. missing relocations), but still provide a record of them with their timestamp but no coordinates (as is the case with ‘puechcirc’ for instance). On the other hand, ‘ibexraw’ only provides a record when coordinates are available. We can add missing relocations using ‘setNA’:
+
+```{r eval=FALSE}
+refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M", tz = "Europe/Paris")
+(ibex <- setNA(ibex, refda, 4, units = "hour"))
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+## TRUE
+```
+
+### Regularize [t, dt]
+
+The next logical step is to regularize the trajectory, by “rounding” timestamps to their expected values using ‘sett0’::
+
+```{r eval=FALSE}
+(ibex <- sett0(ibex, refda, 4, units = "hour"))
+ibex.bkp <- ibex                        # At this stage, 'ibex' is our
+                                        # reference data
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+## TRUE
+```
+
+### Interpolate [seq, geom, t, dt]
+
+Two types of interpolation can be computed: in space, i.e. rebuilding a trajectory based on a given step length; and in time, i.e. linearly interpolate missing data. 
+
+```{r eval=FALSE}
+## 1. In space
+summary(ld(ibex)$dist)
+(ibex <- redisltraj(ibex, 400))
+ibex <- removeinfo(ibex)
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+## TRUE
+
+## 2. In time
+ibex <- ibex.ref
+(ibex <- redisltraj(na.omit(ibex), 14400, type = "time"))
+ibex <- removeinfo(ibex)
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+## TRUE
+```
+
+### Subset the trajectory [seq, (geom), (dt)]
+
+In practice, there is two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.
+
+```{r eval=FALSE}
+## 1. Subset on given parameters
+ibex <- ibex.ref
+## We work on the data frame from the trajectory, which we subset, and
+## then rebuild the ltraj without recomputing trajectory parameters;
+## this is essentially what 'hab::subset' does.
+## Note that the steps are not continuous any more.
+ibex <- ld(ibex)
+ibex <- droplevels(ibex[ibex$dist < 400 & !is.na(ibex$dist), ])
+dlfast <- function(x) {
+    trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
+        "R2n", "abs.angle", "rel.angle")
+    idd <- tapply(as.character(x$id), x$burst, unique)
+    traj <- split(x[, names(x) %in% trajnam], x$burst)
+    names(traj) <- NULL
+    class(traj) <- c("ltraj", "list")
+    attr(traj, "typeII") <- TRUE
+    attr(traj, "regular") <- is.regular(traj)
+    for (i in (1:length(traj))) {
+        attr(traj[[i]], "id") <- as.character(idd[i])
+        attr(traj[[i]], "burst") <- names(idd[i])
+    }
+    return(traj)
+}
+ibex <- dlfast(ibex)
+head(ibex[[1]])
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+
+## 2. Subsample on the temporal sequence
+ibex <- ibex.ref
+(ibex <- subsample(ibex, 14400*2))
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+```
+
+### Cut, bind bursts [burst]
+
+Sometimes, it is useful to cut a trajectory into sub-bursts, based on a given condition assessed on the trajectory parameter. For instance, we may want to cut into different bursts when steps are too large:
+
+```{r eval=FALSE}
+## 1. Cut if there is a step greater than 3000 m
+ibex <- ibex.ref
+(ibex <- cutltraj(ibex, "dist > 3000"))
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+```
+
+The opposite process is to bind bursts from a unique individual into a single burst:
+
+```{r eval=FALSE}
+## 2. Bind back by individual:
+(ibex <- bindltraj(ibex))
+ibex <- removeinfo(ibex)
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+```
+
+### Combine trajectories or bursts [burst, traj]
+
+The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a ‘list’), which can be manipulated just as a list:
+
+```{r eval=FALSE}
+ibex <- ibex.ref
+ibex2 <- ibex
+burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
+(ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))])
+ltraj2pgtraj(con, ibex, overwrite = TRUE)
+ibexTest <- pgtraj2ltraj(con, "ibex")
+all.equal(ibex, ibexTest)
+```
+
+
+
+ 
