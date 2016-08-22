@@ -1,26 +1,21 @@
 Package: rpostgisLT
-Title: Managing and visualizing animal movement data with PostGIS and
-    R
+Title: Managing animal movement data with PostGIS and R
 Version: 0.2.1
-Authors@R: c(
-    person("Mathieu", "Basille", email = "basille@ufl.edu", role =
-           c("aut")),
-    person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
-           c("aut", "cre")),
-    person("Clément", "Calenge", email =
-           "clement.calenge@oncfs.gouv.fr", role = "ctb"),
-    person("Balázs", "Dukai", email = "balazs.dukai@gmail.com", role =
-        c("aut")) )
-Description: The `rpostgisLT` package develops the integration of R
+Date: 2016-08-22
+Authors@R: as.person(c(
+    "Balázs Dukai <balazs.dukai@gmail.com> [aut] (Package creator during Google Summer of Code 2016)",
+    "Mathieu Basille <basille@ufl.edu> [aut]",
+    "David Bucklin <dbucklin@ufl.edu> [aut, cre]",
+    "Clément Calenge <clement.calenge@oncfs.gouv.fr> [aut]"))
+Description: The 'rpostgisLT' package develops the integration of R
     and PostGIS for managing movement trajectories. The focus is on
     streamlining the workflow for biologists to store and process
     animal trajectories in PostGIS and analyze them in R, thus
     utilizing the strengths of both software. The package relies on
-    `ltraj` objects from the R package `adehabitatLT`, and provides
-    the analogous `pgtraj` data structure in PostGIS, with all
-    functions to create and manage `pgtraj` data, and convert from and
-    to both format (`pgtraj` in PostGIS, `ltraj` in R). For a list of
-    documented functions, use `library(help = "rpostgisLT")`
+    'ltraj' objects from the R package 'adehabitatLT', and provides
+    the analogous 'pgtraj' data structure in PostGIS, with all
+    functions to create and manage 'pgtraj' data, and convert from and
+    to both format ('pgtraj' in PostGIS, 'ltraj' in R).
 SystemRequirements:
     PostgreSQL with PostGIS extension
 Depends:
@@ -28,13 +23,11 @@ Depends:
     rpostgis,
     adehabitatLT
 License: GPL (>= 3)
+URL: https://github.com/mablab/rpostgisLT
+BugReports: https://github.com/mablab/rpostgisLT/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
-Author: David Bucklin [aut, cre],
-    Mathieu Basille [aut],
-    Balázs Dukai [aut],
-    Clément Calenge [ctb]
 Imports:
     testthat
 Suggests:
