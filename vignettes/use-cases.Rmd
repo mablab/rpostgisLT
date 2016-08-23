@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Use cases"
-author: "Bal&#225;zs Dukai, Mathieu Basille, David Bucklin, and Cl&#233;ment Calenge"
+author: "Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -57,6 +57,9 @@ straight line segment that connects two successive relocations forms a
 
 
 ## Use cases for the rpostgisLT package
+
+**NOTE: infolocs of an `ltraj` are not implemented yet! Although infolocs have their
+place in the database model, the `rpostgisLT` functions will ignore them.**
 
 At the core, we are dealing with trajectories, which are loosely
 defined objects, but essentially a sequence of points built into
