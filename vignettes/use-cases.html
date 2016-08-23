@@ -12,7 +12,7 @@
 
 <meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-08-22" />
+<meta name="date" content="2016-08-23" />
 
 <title>rpostgisLT: Use cases</title>
 
@@ -20,28 +20,46 @@
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
+div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
 table.sourceCode { width: 100%; line-height: 100%; }
 td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
 td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
 
 
 
-<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20700px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%201%2E35%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%2010px%3B%0A%20%20padding%3A%204px%3B%0A%20%20width%3A%20400px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%200%2E25em%200%2E75em%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%20%20white%2Dspace%3A%20pre%2Dwrap%3B%20%20%20%20%2F%2A%20Wrap%20long%20lines%20%2A%2F%0A%7D%0Apre%20%7B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%20%20font%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%200px%3B%0A%7D%0A%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
 
 </head>
 
@@ -52,7 +70,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 <h1 class="title toc-ignore">rpostgisLT: Use cases</h1>
 <h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-08-22</em></h4>
+<h4 class="date"><em>2016-08-23</em></h4>
 
 
 <div id="TOC">
@@ -80,14 +98,15 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </div>
 <div id="use-cases-for-the-rpostgislt-package" class="section level2">
 <h2>Use cases for the rpostgisLT package</h2>
+<p><strong>NOTE: infolocs of an <code>ltraj</code> are not implemented yet! Although infolocs have their place in the database model, the <code>rpostgisLT</code> functions will ignore them.</strong></p>
 <p>At the core, we are dealing with trajectories, which are loosely defined objects, but essentially a sequence of points built into successive steps. That’s the starting point. Now, together PostgreSQL and R provides tools to process, manage and analyse trajectories. Good practice and the strengths of both tools would tend towards using PostgreSQL for processing and management, and R for analysis, but there is no strict border, and both allow some (or all) of the other processes as well. In R, <code>adehabitatLT</code> actually allows for pretty much everything using the <code>ltraj</code> class, which is already formally defined. On top of this thus comes <code>rpostgisLT</code>: the essence of this package is to allow for bidirectional transfer, at any times between PostgreSQL and R, with no data loss or data alteration. This works by establishing the corresponding structure of data in PostgreSQL (<code>pgtraj</code> objects, see the <a href="/web/packages/rpostgisLT/vignettes/data-model.html">vignette of the package</a>) that stores (non destructively) all information from <code>ltraj</code> objects in the database, and allows for the use of PostgreSQL tools (notably PostGIS) on the data.</p>
 <div id="initialization" class="section level3">
 <h3>Initialization</h3>
 <p>A typical session will start by initializing the connection to the database, using PostgreSQL credentials through the <code>RPostgreSQL</code> package (note that loading <code>rpostgisLT</code> automatically loads <code>RPostgreSQL</code> too):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rpostgisLT)
-con &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(<span class="st">&quot;PostgreSQL&quot;</span>, <span class="dt">dbname =</span> &lt;dbname&gt;, <span class="dt">host =</span> &lt;host&gt;, <span class="dt">user =</span> &lt;user&gt;, <span class="dt">password =</span> &lt;password&gt;)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rpostgisLT)
+con &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(<span class="st">&quot;PostgreSQL&quot;</span>, <span class="dt">dbname =</span> &lt;dbname&gt;, <span class="dt">host =</span> &lt;host&gt;, <span class="dt">user =</span> &lt;user&gt;, <span class="dt">password =</span> &lt;password&gt;)</code></pre></div>
 <p>The next step will be to check whether the intended pgtraj schema is ready to use with the function <code>pgTrajSchema</code> (note that by default, the function checks and/or create the schema “traj”, which can be changed with the <code>name</code> argument):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pgTrajSchema</span>(con)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pgTrajSchema</span>(con)</code></pre></div>
 <p>If it is successful, the function should return <code>TRUE</code>, together with a message like:</p>
 <pre><code>The pgtraj schema 'traj' was successfully created in the database.</code></pre>
 <p>Or in the case of an existing schema:</p>
@@ -97,7 +116,7 @@ con &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(<span class=
 <div id="basic-transfer" class="section level3">
 <h3>Basic transfer</h3>
 <p>The most basic feature demonstrates a simple transfer from R to PostgreSQL and back to R: the resulting object should equal the original.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(ibexraw)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(ibexraw)
 ibexraw
 <span class="kw">is.regular</span>(ibexraw)
 ## FALSE
@@ -121,35 +140,35 @@ ibex &lt;-<span class="st"> </span><span class="kw">dl</span>(ibex)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)    <span class="co"># Default should look into</span>
                                         <span class="co"># 'traj' schema.</span>
 <span class="kw">all.equal</span>(ibex, ibexTest)
-## TRUE</code></pre>
-<p>NA</p>
-<p>NA</p>
+## TRUE</code></pre></div>
+<p>Note that we’re working under the assumptions of the changes planned to be implemented in adehabitatLT about the data structure in ltraj: 1) row names are character strings; 2) there is an additional attribute “proj4string” in an ltraj that stores the projection reference.</p>
+<p>Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that ‘all.equal’ between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns ‘TRUE’.</p>
 </div>
 <div id="missing-steps-seq-t-dt" class="section level3">
 <h3>Missing steps [seq, t, dt]</h3>
-<p>NA</p>
-<pre class="sourceCode r"><code class="sourceCode r">refda &lt;-<span class="st"> </span><span class="kw">strptime</span>(<span class="st">&quot;2003-06-01 00:00&quot;</span>, <span class="st">&quot;%Y-%m-%d %H:%M&quot;</span>, <span class="dt">tz =</span> <span class="st">&quot;Europe/Paris&quot;</span>)
+<p>‘ltraj’ can include NAs in their sequence (i.e. missing relocations), but still provide a record of them with their timestamp but no coordinates (as is the case with ‘puechcirc’ for instance). On the other hand, ‘ibexraw’ only provides a record when coordinates are available. We can add missing relocations using ‘setNA’:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">refda &lt;-<span class="st"> </span><span class="kw">strptime</span>(<span class="st">&quot;2003-06-01 00:00&quot;</span>, <span class="st">&quot;%Y-%m-%d %H:%M&quot;</span>, <span class="dt">tz =</span> <span class="st">&quot;Europe/Paris&quot;</span>)
 (ibex &lt;-<span class="st"> </span><span class="kw">setNA</span>(ibex, refda, <span class="dv">4</span>, <span class="dt">units =</span> <span class="st">&quot;hour&quot;</span>))
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
 <span class="kw">all.equal</span>(ibex, ibexTest)
-## TRUE</code></pre>
+## TRUE</code></pre></div>
 </div>
 <div id="regularize-t-dt" class="section level3">
 <h3>Regularize [t, dt]</h3>
-<p>NA</p>
-<pre class="sourceCode r"><code class="sourceCode r">(ibex &lt;-<span class="st"> </span><span class="kw">sett0</span>(ibex, refda, <span class="dv">4</span>, <span class="dt">units =</span> <span class="st">&quot;hour&quot;</span>))
+<p>The next logical step is to regularize the trajectory, by “rounding” timestamps to their expected values using ‘sett0’::</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(ibex &lt;-<span class="st"> </span><span class="kw">sett0</span>(ibex, refda, <span class="dv">4</span>, <span class="dt">units =</span> <span class="st">&quot;hour&quot;</span>))
 ibex.bkp &lt;-<span class="st"> </span>ibex                        <span class="co"># At this stage, 'ibex' is our</span>
                                         <span class="co"># reference data</span>
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
 <span class="kw">all.equal</span>(ibex, ibexTest)
-## TRUE</code></pre>
+## TRUE</code></pre></div>
 </div>
 <div id="interpolate-seq-geom-t-dt" class="section level3">
 <h3>Interpolate [seq, geom, t, dt]</h3>
 <p>Two types of interpolation can be computed: in space, i.e. rebuilding a trajectory based on a given step length; and in time, i.e. linearly interpolate missing data.</p>
-<pre class="sourceCode r"><code class="sourceCode r">## 1. In space
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## 1. In space
 <span class="kw">summary</span>(<span class="kw">ld</span>(ibex)$dist)
 (ibex &lt;-<span class="st"> </span><span class="kw">redisltraj</span>(ibex, <span class="dv">400</span>))
 ibex &lt;-<span class="st"> </span><span class="kw">removeinfo</span>(ibex)
@@ -165,12 +184,12 @@ ibex &lt;-<span class="st"> </span><span class="kw">removeinfo</span>(ibex)
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
 <span class="kw">all.equal</span>(ibex, ibexTest)
-## TRUE</code></pre>
+## TRUE</code></pre></div>
 </div>
 <div id="subset-the-trajectory-seq-geom-dt" class="section level3">
 <h3>Subset the trajectory [seq, (geom), (dt)]</h3>
 <p>In practice, there is two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.</p>
-<pre class="sourceCode r"><code class="sourceCode r">## 1. Subset on given parameters
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## 1. Subset on given parameters
 ibex &lt;-<span class="st"> </span>ibex.ref
 ## We work on the data frame from the trajectory, which we subset, and
 ## then rebuild the ltraj without recomputing trajectory parameters;
@@ -204,35 +223,35 @@ ibex &lt;-<span class="st"> </span>ibex.ref
 (ibex &lt;-<span class="st"> </span><span class="kw">subsample</span>(ibex, <span class="dv">14400</span>*<span class="dv">2</span>))
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
-<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre>
+<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre></div>
 </div>
 <div id="cut-bind-bursts-burst" class="section level3">
 <h3>Cut, bind bursts [burst]</h3>
 <p>Sometimes, it is useful to cut a trajectory into sub-bursts, based on a given condition assessed on the trajectory parameter. For instance, we may want to cut into different bursts when steps are too large:</p>
-<pre class="sourceCode r"><code class="sourceCode r">## 1. Cut if there is a step greater than 3000 m
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## 1. Cut if there is a step greater than 3000 m
 ibex &lt;-<span class="st"> </span>ibex.ref
 (ibex &lt;-<span class="st"> </span><span class="kw">cutltraj</span>(ibex, <span class="st">&quot;dist &gt; 3000&quot;</span>))
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
-<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre>
+<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre></div>
 <p>The opposite process is to bind bursts from a unique individual into a single burst:</p>
-<pre class="sourceCode r"><code class="sourceCode r">## 2. Bind back by individual:
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## 2. Bind back by individual:
 (ibex &lt;-<span class="st"> </span><span class="kw">bindltraj</span>(ibex))
 ibex &lt;-<span class="st"> </span><span class="kw">removeinfo</span>(ibex)
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
-<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre>
+<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre></div>
 </div>
 <div id="combine-trajectories-or-bursts-burst-traj" class="section level3">
 <h3>Combine trajectories or bursts [burst, traj]</h3>
-<p>NA</p>
-<pre class="sourceCode r"><code class="sourceCode r">ibex &lt;-<span class="st"> </span>ibex.ref
+<p>The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a ‘list’), which can be manipulated just as a list:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ibex &lt;-<span class="st"> </span>ibex.ref
 ibex2 &lt;-<span class="st"> </span>ibex
 <span class="kw">burst</span>(ibex2) &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="kw">burst</span>(ibex2), <span class="st">&quot;2&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;-&quot;</span>)
 (ibex &lt;-<span class="st"> </span><span class="kw">c</span>(ibex, ibex2)[<span class="kw">order</span>(<span class="kw">id</span>(<span class="kw">c</span>(ibex, ibex2)))])
 <span class="kw">ltraj2pgtraj</span>(con, ibex, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)
 ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con, <span class="st">&quot;ibex&quot;</span>)
-<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre>
+<span class="kw">all.equal</span>(ibex, ibexTest)</code></pre></div>
 </div>
 </div>
 

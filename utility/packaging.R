@@ -16,7 +16,8 @@ uninstall(pkg)
 document(pkg)
 system("R CMD Rd2pdf --force /home/bdukai/Development/rpostgisLT/ -o /home/bdukai/Development/rpostgisLT/rpostgisLT.pdf")
 
-render("/home/bdukai/Development/rpostgisLT/vignettes/rpostgisLT.Rmd")
+render("/home/bdukai/Development/rpostgisLT/vignettes/data-model.Rmd")
+render("/home/bdukai/Development/rpostgisLT/vignettes/use-cases.Rmd")
 
 #install_github("mablab/rpostgis")
 install("rpostgis")
