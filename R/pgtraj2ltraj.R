@@ -16,39 +16,41 @@
 #' 
 #' @export 
 #' 
-################################################################################
+##############################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
-    # Get parameters
-    query <- paste0("SELECT * FROM ",schema,".", pgtraj, "_params;")
-    DF <- invisible(dbGetQuery(conn, query))
+    view <- paste0(pgtraj, "_parameters")
+    DF <- invisible(dbReadTable(conn, c(schema, view)))
     
-    query <- paste0("SELECT ltraj_tz FROM ",schema,".pgtrajs WHERE p_name = '",pgtraj,"';")
-    tz <- dbGetQuery(conn, query)[1,1]
+    # Get time zone
+    sql_query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    tz <- dbGetQuery(conn, sql_query)[1,1]
     
-    query <- paste0("SELECT proj4string FROM ",schema,".pgtrajs WHERE p_name = '",pgtraj,"';")
-    proj4string <- dbGetQuery(conn, query)[1,1]
+    # Get proj
+    sql_query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    proj4string <- dbGetQuery(conn, sql_query)[1,1]
     
-    DF2 <- data.frame(
-            x = DF[["x"]],
-            y = DF[["y"]],
-            date = DF[["date"]],
-            dx = DF[["dx"]],
-            dy = DF[["dy"]],
-            dist = DF[["dist"]],
-            dt = DF[["dt"]],
-            R2n = DF[["r2n"]],
-            abs.angle = DF[["abs_angle"]],
-            rel.angle = DF[["rel_angle"]],
-            id = DF[["id"]],
-            burst = DF[["burst"]],
-            r.row.names = DF[["r_rowname"]])
+    # Rename and prepare data frame for conversion to ltraj
+    names(DF)[names(DF)=="r2n"] <- "R2n"
+    names(DF)[names(DF)=="abs_angle"] <- "abs.angle"
+    names(DF)[names(DF)=="rel_angle"] <- "rel.angle"
+    names(DF)[names(DF)=="animal_name"] <- "id"
+    
+    DF <- DF[,-which(names(DF)=="pgtraj")]
+    
+    # Check if the row names are stored in the pgtraj
+    rnames <- all(complete.cases(DF$r_rowname))
+    if (rnames) {
+        names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
+    } else {
+        DF <- DF[,-which(names(DF)=="r_rowname")]
+    }
     
     # Set time zone
-    attr(DF2$date, "tzone") <- tz
+    attr(DF$date, "tzone") <- tz
     
     # Cast into ltraj
-    ltraj <- dl_opt(DF2)
+    ltraj <- dl_opt(DF, rnames)
     
     if (proj4string %in% c("NA", "NULL", "NaN")) {
         attr(ltraj, "proj4string") <- CRS()

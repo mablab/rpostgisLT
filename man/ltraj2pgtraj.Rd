@@ -4,7 +4,8 @@
 \alias{ltraj2pgtraj}
 \title{Export an ltraj object from R into a traj database schema.}
 \usage{
-ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL)
+ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL,
+  overwrite = FALSE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -14,20 +15,30 @@ ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, comment = NULL)
 \item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 
 \item{pgtraj}{String. Name of the new pgtraj. Defaults to the name of the 
-variable that stores the ltraj.}
+object that stores the ltraj.}
 
-\item{comment}{String. A comment that will be stored with the pgtraj in the database.}
+\item{note}{String. A comment that will be stored with the pgtraj in the database.}
 
-\item{epsg}{Numeric. The EPSG code of the Coordinate Reference System of the 
-relocation coordinates in the ltraj. Defaults to 0.}
+\item{overwrite}{Boolean. If \code{TRUE}, and a \code{pgtraj} with the same
+name as the provided \code{ltraj} exists in the database, the \code{pgtraj}
+is deleted and the provided \code{ltraj} is inserted. If \code{FALSE}, the
+function exits. Note that \code{overwrite}
+requires an exact match among the \code{pgtraj} names otherwise it is ignored.}
+
+\item{create}{Logical. If no matching SRID is found, should a new SRID be created? 
+User must have write access on spatial_ref_sys table.}
+
+\item{new.srid}{Integer. Optional SRID to give to a newly created SRID. If left NULL (default),
+the next open value of `srid` in `spatial_ref_sys` between 880000 and 890000 will be used.}
 }
 \value{
 TRUE on success
 }
 \description{
 \code{ltraj2pgtraj} creates a new traj schema or uses an existing one and 
-exports an ltraj to the database. Uses \code{as_pgtraj} to insert the values 
-into the traj schema.
+exports an ltraj to the database. The time zone and projection information
+stored in the ltraj is transferred to the database. Uses \code{as_pgtraj} 
+to insert the values into the traj schema.
 }
 \examples{
 \dontrun{ltraj2pgtraj(conn, ibex, "traj_t2")}

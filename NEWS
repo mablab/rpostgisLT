@@ -1,3 +1,32 @@
+rpostgisLT 0.3 (Release date: )
+==============
+
+Changes:
+
+* Add pgTrajVacuum(), pgTrajDrop()
+* Add ltraj2pgtraj(overwrite = TRUE/FALSE)
+* Add dl_opt(rnames=TRUE/FALSE)
+
+Breaking changes:
+
+* The traj database model has changed by adding r_rowname, r2n, rel_angle to the table 'step'.
+* Remove pgTrajR2TempT().
+* Renaming <pgtraj_name>_step_geom –> <pgtraj_name>_step_geometry; <pgtraj_name>_params –> <pgtraj_name>_parameters
+
+rpostgisLT 0.2.3 (Release date: 2016-08-10)
+==============
+
+Changes:
+
+* Depends on adehabitatLT package.
+* Add <pgtraj_name>_step_geom view for visualizing pgtrajes in QGIS.
+
+Breaking changes:
+
+* The traj database model has changed, including field and table name changes.
+* Remove pgDropTempT().
+
+
 rpostgisLT 0.2.2 (Release date: 2016-08-01)
 ==============
 
