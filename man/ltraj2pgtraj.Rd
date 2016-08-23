@@ -2,52 +2,52 @@
 % Please edit documentation in R/ltraj2pgtraj.R
 \name{ltraj2pgtraj}
 \alias{ltraj2pgtraj}
-\title{Export an ltraj object from R into a traj database schema.}
+\title{Export ltraj object from R into database.}
 \usage{
 ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL,
   overwrite = FALSE)
 }
 \arguments{
-\item{conn}{Connection object created with RPostgreSQL}
+\item{conn}{A connection object.}
 
-\item{ltraj}{An ltraj object.}
+\item{ltraj}{An object of class \code{ltraj}.}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{Character. Name of the schema that stores or will
+store the pgtraj data model.}
 
-\item{pgtraj}{String. Name of the new pgtraj. Defaults to the name of the 
-object that stores the ltraj.}
+\item{pgtraj}{Character. Name of the new \code{pgtraj}. Defaults
+to the name of the provided \code{ltraj}.}
 
-\item{note}{String. A comment that will be stored with the pgtraj in the database.}
+\item{note}{Character. A note that will be stored with the
+\code{pgtraj} in the database.}
 
-\item{overwrite}{Boolean. If \code{TRUE}, and a \code{pgtraj} with the same
-name as the provided \code{ltraj} exists in the database, the \code{pgtraj}
-is deleted and the provided \code{ltraj} is inserted. If \code{FALSE}, the
-function exits. Note that \code{overwrite}
-requires an exact match among the \code{pgtraj} names otherwise it is ignored.}
-
-\item{create}{Logical. If no matching SRID is found, should a new SRID be created? 
-User must have write access on spatial_ref_sys table.}
-
-\item{new.srid}{Integer. Optional SRID to give to a newly created SRID. If left NULL (default),
-the next open value of `srid` in `spatial_ref_sys` between 880000 and 890000 will be used.}
+\item{overwrite}{Logical. Use if a \code{pgtraj} with the same
+name as the provided \code{ltraj} already exists in the
+database: If \code{TRUE}, the existing \code{pgtraj} is
+deleted and the provided \code{ltraj} is inserted. If
+\code{FALSE}, the function exits. Note that \code{overwrite}
+requires an exact match among the \code{pgtraj} names
+otherwise it is ignored.}
 }
 \value{
-TRUE on success
+\code{TRUE} on success.
 }
 \description{
-\code{ltraj2pgtraj} creates a new traj schema or uses an existing one and 
-exports an ltraj to the database. The time zone and projection information
-stored in the ltraj is transferred to the database. Uses \code{as_pgtraj} 
-to insert the values into the traj schema.
+\code{ltraj2pgtraj} creates a new traj schema or uses an existing
+one and exports an ltraj to the database. The time zone and
+projection information stored in the ltraj is transferred to the
+database.
 }
 \examples{
-\dontrun{ltraj2pgtraj(conn, ibex, "traj_t2")}
-
+\dontrun{
+    ltraj2pgtraj(conn, ibex, "traj_t2")
+}
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \seealso{
-\code{\link{as_pgtraj}}
+\code{\link{as_pgtraj}} to create a \code{pgtraj} with
+    data already stored in the database.
 }
 
