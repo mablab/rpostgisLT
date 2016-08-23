@@ -244,6 +244,7 @@ porpoise <- dl(ld(porpoise))
 
 
 ibex_dl <- ld(ibex)
+dbDrop(conn, name = c("example_data", "ibex"), type = "table", ifexists = TRUE)
 pgInsert(conn, name = c("example_data", "ibex"), data.obj = ibex_dl, new.id = "gid")
 
 as_pgtraj(conn, 
@@ -261,6 +262,7 @@ all.equal(ibex, ibex_re)
 
 
 albatross_dl <- ld(albatross)
+dbDrop(conn, name = c("example_data", "albatross"), type = "table", ifexists = TRUE)
 pgInsert(conn, name = c("example_data", "albatross"), data.obj = albatross_dl, new.id = "gid")
 
 as_pgtraj(conn, 
@@ -283,5 +285,6 @@ all.equal(albatross, albatross_re)
 
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-rm(ibex, ibex_re, albatross, albatross_re)
+rm(ibex, ibex_re, albatross, albatross_re, albatross_dl, ibex_dl, refda,
+        porpoise)
 
