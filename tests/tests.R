@@ -113,10 +113,6 @@ ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
 ## TRUE
-head(ibex[[1]])
-head(ibexTest[[1]])
-attributes(ibex[[1]]["date"])
-attributes(ibexTest[[1]]["date"])
 
 ## 2. In time
 ibex <- ibex.ref
