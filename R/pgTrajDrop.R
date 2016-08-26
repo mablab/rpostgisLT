@@ -23,10 +23,10 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
     
     # Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbSendQuery(conn, sql_query))
     
-    sql_query <- paste0("SELECT id FROM pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    sql_query <- paste0("SELECT id FROM pgtraj WHERE pgtraj_name = ",dbQuoteString(conn,pgtraj),";")
     i <- dbGetQuery(conn, sql_query)[1,1]
     if (is.null(i)) {
         stop(paste("The pgtraj", pgtraj, "doesn't exist in schema", schema))
@@ -41,7 +41,7 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
                         JOIN s_i_b_rel rel ON rel.infoloc_id = i.id
                         JOIN animal_burst ab ON ab.id = rel.animal_burst_id
                         JOIN pgtraj p ON p.id = ab.pgtraj_id
-                        WHERE p.pgtraj_name = '",pgtraj,"'
+                        WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
                         );
                     
                     DELETE FROM relocation WHERE id IN (
@@ -53,7 +53,7 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
                         JOIN s_i_b_rel rel ON rel.step_id = s.id
                         JOIN animal_burst ab ON ab.id = rel.animal_burst_id
                         JOIN pgtraj p ON p.id = ab.pgtraj_id
-                        WHERE p.pgtraj_name = '",pgtraj,"'
+                        WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
                         UNION
                         SELECT
                             r2.id AS relocation_id
@@ -63,10 +63,10 @@ pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
                         JOIN s_i_b_rel rel ON rel.step_id = s.id
                         JOIN animal_burst ab ON ab.id = rel.animal_burst_id
                         JOIN pgtraj p ON p.id = ab.pgtraj_id
-                        WHERE p.pgtraj_name = '",pgtraj,"'
+                        WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
                         );
                         
-                    DELETE FROM pgtraj WHERE pgtraj_name = '",pgtraj,"';
+                    DELETE FROM pgtraj WHERE pgtraj_name = ",dbQuoteString(conn,pgtraj),";
                     ")
     sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     

@@ -38,8 +38,8 @@ pgTrajSchema <- function(conn, name = "traj") {
     ## Check and/or create schema
     dbSchema(conn, name, display = FALSE, exec = TRUE)
     # Is the traj schema in the DB or just created and empty
-    tmp.query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname='",
-        name, "';")
+    tmp.query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname=",
+        dbQuoteString(conn,name), ";")
     dbtables <- dbGetQuery(conn, tmp.query, stringsAsFactors = FALSE)
     dbtables <- dbtables$tablename
     traj_tables <- c("animal_burst", "pgtraj", "step", "infoloc",
@@ -47,7 +47,7 @@ pgTrajSchema <- function(conn, name = "traj") {
     if (length(dbtables) == 0) {
         ## In case of empty schema, set DB search path for the schema
         current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-        tmp.query <- paste0("SET search_path TO ", name, ",public;")
+        tmp.query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,name), ",public;")
         invisible(dbGetQuery(conn, tmp.query))
         ## SQL query to set up schema
         pgtraj_schema_file <- paste0(path.package("rpostgisLT"),

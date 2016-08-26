@@ -19,15 +19,18 @@
 ##############################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
+    # sanitize schema name
+    schema_q <- dbQuoteIdentifier(conn,schema)
+  
     view <- paste0(pgtraj, "_parameters")
     DF <- invisible(dbReadTable(conn, c(schema, view)))
     
     # Get time zone
-    sql_query <- paste0("SELECT time_zone FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    sql_query <- paste0("SELECT time_zone FROM ",schema_q,".pgtraj WHERE pgtraj_name = ",dbQuoteString(conn, pgtraj),";")
     tz <- dbGetQuery(conn, sql_query)[1,1]
     
-    # Get proj
-    sql_query <- paste0("SELECT proj4string FROM ",schema,".pgtraj WHERE pgtraj_name = '",pgtraj,"';")
+    # Get proj4string
+    sql_query <- paste0("SELECT proj4string FROM ",schema_q,".pgtraj WHERE pgtraj_name = ",dbQuoteString(conn, pgtraj),";")
     proj4string <- dbGetQuery(conn, sql_query)[1,1]
     
     # Rename and prepare data frame for conversion to ltraj

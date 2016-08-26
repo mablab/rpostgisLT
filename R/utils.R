@@ -122,7 +122,7 @@ dl_opt <- function(x, rnames = TRUE) {
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
-#' @param relocations_table String. Name of the table that stores the relocations, e.g. "public.relocations"
+#' @param relocations_table String. Name of the table that stores the relocations, e.g. c("schema","relocations")
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
@@ -130,24 +130,32 @@ dl_opt <- function(x, rnames = TRUE) {
 #' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
 #' @param relocations Vector of string(s). Name of the field(s) that contains 
 #' the relocations in relocations_table. If relocations are stored as pairs of (X,Y) or 
-#' (long, lat) coorindates, the coordinates should be separeted in two fields 
+#' (long, lat) coorindates, the coordinates should be separated in two fields 
 #' and referenced accordingly.
 #' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
+#' @param proj4string String. The PROJ4 string to be inserted into \code{pgtraj} table.
+#' @param note Sting. Comment on the pgtraj. The comment is only used in
+#' the database and not transferred into an ltraj.
+#' @param time_zone String. Time zone to be inserted into \code{pgtraj} table.
 ###############################################################################
 pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
         note, time_zone) {
+    # check table name
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(relocations_table), collapse = ".")  
+    # sanitize schema, rids, relocations 
+    schema_q <- dbQuoteIdentifier(conn,schema)
+    rids_q<- dbQuoteIdentifier(conn,rids)
+    relocations_q<- dbQuoteIdentifier(conn,relocations)
     
+
     # Test for correct inputs
     test_input(pgtrajs, animals, relocations, bursts)
     
     # Set DB search path for the schema
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    sql_query <- paste0("SET search_path TO ", schema_q, ",public;")
     invisible(dbSendQuery(conn, sql_query))
-    
-    # Table name is separated from schema declaration
-    rd_split <- unlist(strsplit(relocations_table, "[.]"))
     
     # Populate 'zgaqtsn_temp'-------------------------------------------------
     # Insert relocations if trajectory Type I
@@ -156,94 +164,105 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         if (length(relocations) == 1) {
             
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom)
-                            SELECT ",rids,",",relocations,"::geometry
-                            FROM ",relocations_table,"
-                            ORDER BY ",rids,";")
+                            SELECT ",rids_q,",",relocations_q,"::geometry
+                            FROM ",relocations_table_q,"
+                            ORDER BY ",rids_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             t <- c(t, dbSendQuery(conn, sql_query))
             
         } else if (length(relocations) == 2) {
             
             # Relocations provided as a coordinate pair
-            x <- relocations[1]
-            y <- relocations[2]
+            x <- relocations_q[1]
+            y <- relocations_q[2]
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
-                            FROM ",relocations_table,"
-                            ORDER BY ",rids,";")
+                            SELECT ",rids_q,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
+                            FROM ",relocations_table_q,"
+                            ORDER BY ",rids_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
             
         }
     # If trajectory Type II
     } else {
+        # sanitize timestamps
+        timestamps_q<-dbQuoteIdentifier(conn,timestamps)
         
         if (length(relocations) == 1) {
             
             # Relocations provided as point geometry
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom, relocation_time)
-                            SELECT ",rids,",",relocations,"::geometry, ",timestamps,"
-                            FROM ",relocations_table,"
-                            ORDER BY ",timestamps,";")
+                            SELECT ",rids_q,",",relocations_q,"::geometry, ",timestamps_q,"
+                             FROM ",relocations_table_q,"
+                             ORDER BY ",timestamps_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
             
         } else if (length(relocations) == 2) {
             
             # relocations provided as a coordinate pair
-            x <- relocations[1]
-            y <- relocations[2]
+            x <- relocations_q[1]
+            y <- relocations_q[2]
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom, relocation_time)
-                            SELECT ",rids,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps,"
-                            FROM ",relocations_table,"
-                            ORDER BY ",timestamps,";")
+                            SELECT ",rids_q,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps_q,"
+                            FROM ",relocations_table_q,"
+                            ORDER BY ",timestamps_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
         }
         
     }
     
-    fields <- dbListFields(conn, rd_split)
+    fields <- dbListFields(conn, relocations_table)
     # Insert pgtraj
+    # sanitize pgtraj
+    pgtrajs_q<-dbQuoteIdentifier(conn, pgtrajs)
+    
     if (pgtrajs %in% fields) {
         
         # use the field values for pgtraj
         sql_query <- paste0("UPDATE zgaqtsn_temp
-                        SET pgtraj_name = a.",pgtrajs,"
+                        SET pgtraj_name = a.",pgtrajs_q,"
                         FROM (
-                        SELECT ",rids,", ",pgtrajs,"
-                        FROM ",relocations_table,"
+                        SELECT ",rids_q,", ",pgtrajs_q,"
+                        FROM ",relocations_table_q,"
                         ) a
-                        WHERE zgaqtsn_temp.id = a.",rids,";")
+                        WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
     } else {
-        
-        # Use the string
-        sql_query <- paste0("UPDATE zgaqtsn_temp SET pgtraj_name = '", pgtrajs, "';")
+        # use the string
+        # check for valid pgtraj names
+        if (!grepl("^[A-Za-z]",pgtrajs) || make.names(pgtrajs) != pgtrajs) {
+        stop("Invalid pgtraj name. Valid pgtraj names can contain letters, numbers, '.', and '_',
+             and must begin with a letter.")
+        }
+        sql_query <- paste0("UPDATE zgaqtsn_temp SET pgtraj_name = ", dbQuoteString(conn,pgtrajs), ";")
         invisible(dbSendQuery(conn, sql_query))
         
     }
     
     # Insert animal
+    # sanitizes animals
+    animals_q<-dbQuoteIdentifier(conn,animals)
     if (animals %in% fields) {
         
         # Use the field values for animal
         sql_query <- paste0("UPDATE zgaqtsn_temp
-                        SET animal_name = a.",animals,"
+                        SET animal_name = a.",animals_q,"
                         FROM (
-                        SELECT ",rids,", ",animals,"
-                        FROM ",relocations_table,"
+                        SELECT ",rids_q,", ",animals_q,"
+                        FROM ",relocations_table_q,"
                         ) a
-                        WHERE zgaqtsn_temp.id = a.",rids,";")
+                        WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
     } else {
         
         # Use the string
-        sql_query <- paste("UPDATE zgaqtsn_temp SET animal_name = '", animals, "';")
+        sql_query <- paste("UPDATE zgaqtsn_temp SET animal_name = ",dbQuoteString(conn,animals), ";")
         invisible(dbSendQuery(conn, sql_query))
         
     }
@@ -253,37 +272,39 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         
         # Use animal name as default burst name
         sql_query <- paste0("UPDATE zgaqtsn_temp
-                        SET burst_name = a.",animals,"
+                        SET burst_name = a.",animals_q,"
                         FROM (
-                        SELECT ",rids,", ",animals,"
-                        FROM ",relocations_table,"
+                        SELECT ",rids_q,", ",animals_q,"
+                        FROM ",relocations_table_q,"
                         ) a
-                        WHERE zgaqtsn_temp.id = a.",rids,";")
+                        WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
     } else if (is_blank(bursts) & length(animals) == 1) {
         
-        sql_query <- paste0("UPDATE zgaqtsn_temp SET burst_name = '",animals,"';")
+        sql_query <- paste0("UPDATE zgaqtsn_temp SET burst_name = ",dbQuoteString(conn,animals),";")
         invisible(dbSendQuery(conn, sql_query))
         
     } else if (bursts %in% fields) {
+        # sanitize bursts
+        bursts_q<-dbQuoteIdentifier(conn,bursts)
         
         # Use the field values for bursts
         sql_query <- paste0("UPDATE zgaqtsn_temp
-                        SET burst_name = a.",bursts,"
+                        SET burst_name = a.",bursts_q,"
                         FROM (
-                        SELECT ",rids,", ",bursts,"
-                        FROM ",relocations_table,"
+                        SELECT ",rids_q,", ",bursts_q,"
+                        FROM ",relocations_table_q,"
                         ) a
-                        WHERE zgaqtsn_temp.id = a.",rids,";")
+                        WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
     } else {
         
         # Use the string
-        sql_query <- paste("UPDATE zgaqtsn_temp SET burst_name = '", bursts, "';")
+        sql_query <- paste("UPDATE zgaqtsn_temp SET burst_name = ", dbQuoteString(conn,bursts), ";")
         invisible(dbSendQuery(conn, sql_query))
         
     }
@@ -296,31 +317,38 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         invisible(dbSendQuery(conn, sql_query))
         
     } else if (note %in% fields) {
-        
+        note_q<-dbQuoteIdentifier(conn,note)
         # use the values for note
         sql_query <- paste0("UPDATE zgaqtsn_temp
-                        SET note = a.",note,"
+                        SET note = a.",note_q,"
                         FROM (
-                        SELECT ",rids,", ",note,"
-                        FROM ",relocations_table,"
+                        SELECT ",rids_q,", ",note_q,"
+                        FROM ",relocations_table_q,"
                         ) a
-                        WHERE zgaqtsn_temp.id = a.",rids,";")
+                        WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
         
     } else {
         
         # Use the string
-        sql_query <- paste0("UPDATE zgaqtsn_temp SET note = '", note, "';")
+        sql_query <- paste0("UPDATE zgaqtsn_temp SET note = ",dbQuoteString(conn,note),";")
         invisible(dbSendQuery(conn, sql_query))
         
     }
     
     # Insert proj4string and time zone
-    sql_query <- paste0("UPDATE zgaqtsn_temp
-                         SET proj4string = '",proj4string,"',
-                             time_zone = '",time_zone,"';")
-    invisible(dbSendQuery(conn, sql_query))
+    if (!is_blank(proj4string)) {
+     sql_query <- paste0("UPDATE zgaqtsn_temp
+                          SET proj4string = ",dbQuoteString(conn, proj4string),";")
+     invisible(dbSendQuery(conn, sql_query))
+    }
+    
+    if (!is_blank(time_zone)) {
+     sql_query <- paste0("UPDATE zgaqtsn_temp
+                          SET time_zone = ",dbQuoteString(conn, time_zone),";")
+     invisible(dbSendQuery(conn, sql_query))
+    }
     
     # Reset DB search path to the public schema
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
@@ -351,7 +379,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 ###############################################################################
 pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
-    sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = '", schema, "';")
+    sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = ", dbQuoteString(conn,schema), ";")
     tables <- invisible(dbGetQuery(conn, sql_query))
     if ('zgaqtsn_temp' %in% tables$tablename) {
         acr <- NA
@@ -363,7 +391,7 @@ pgTrajTempT <- function(conn, schema) {
         if (acr %in% "n") {
             return(FALSE)
         } else {
-            sql_query <- paste0("DROP TABLE IF EXISTS ", schema, ".zgaqtsn_temp;")
+            sql_query <- paste0("DROP TABLE IF EXISTS ", dbQuoteIdentifier(conn,schema), ".zgaqtsn_temp;")
             invisible(dbSendQuery(conn, sql_query))
         }
     }
@@ -431,12 +459,14 @@ pgTrajTempT <- function(conn, schema) {
 pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbGetQuery(conn, sql_query))
+    
+    view <- dbQuoteIdentifier(conn,paste0(pgtraj, "_parameters"))
     
     if (db) {
         sql_query <- paste0(
-        "CREATE OR REPLACE VIEW ",pgtraj,"_parameters AS
+        "CREATE OR REPLACE VIEW ",view," AS
         WITH step_geom AS (
             SELECT
                 s.id AS step_id,
@@ -456,7 +486,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             JOIN s_i_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
-            WHERE p.pgtraj_name = '",pgtraj,"'
+            WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
             ),
         step_shape AS (
             SELECT
@@ -618,7 +648,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             JOIN s_i_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
-            WHERE p.pgtraj_name = '",pgtraj,"'
+            WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
             )
         SELECT
             t.r_rowname,
@@ -707,11 +737,13 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
 pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbGetQuery(conn, sql_query))
     
+    view <- dbQuoteIdentifier(conn,paste0(pgtraj, "_step_geometry"))
+    
     sql_query <- paste0(
-    "CREATE OR REPLACE VIEW ",pgtraj,"_step_geometry AS
+    "CREATE OR REPLACE VIEW ",view," AS
     SELECT
         s.id AS step_id,
         ST_Makeline(r1.geom, r2.geom) AS step_geom,
@@ -730,7 +762,7 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     JOIN s_i_b_rel rel ON rel.step_id = s.id
     JOIN animal_burst ab ON ab.id = rel.animal_burst_id
     JOIN pgtraj p ON p.id = ab.pgtraj_id
-    WHERE p.pgtraj_name = '",pgtraj,"';"
+    WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),";"
     )
     create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     

@@ -23,7 +23,7 @@
 pgTrajVacuum <- function(conn, schema, full = FALSE, verbose = FALSE,
         analyze = TRUE) {
     # Get all the tables in the schema
-    sql_query <- paste0("SELECT tablename schemaname FROM pg_tables WHERE schemaname = '",schema,"';")
+    sql_query <- paste0("SELECT tablename schemaname FROM pg_tables WHERE schemaname = ",dbQuoteString(conn, schema),";")
     tables <- dbGetQuery(conn, sql_query)
     
     for (tbl in tables$tablename) {
@@ -31,6 +31,6 @@ pgTrajVacuum <- function(conn, schema, full = FALSE, verbose = FALSE,
                 display = TRUE, exec = TRUE)
     }
     
-    # Return nothing
+    # Return TRUE
     return(TRUE)
 }

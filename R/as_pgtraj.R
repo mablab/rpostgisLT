@@ -8,7 +8,7 @@
 #' <pgtraj_name>_step_geometry and <pgtraj_name>_summary and described more in
 #' detail in the package vignette.
 #' 
-#' The time zone of the pgtraj is set to the local time zone.
+#' The time zone of the pgtraj is set to the local time zone of the user.
 #' 
 #' @details
 #' Opening and closing connections have to be done manually by the user. 
@@ -23,7 +23,7 @@
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
-#' @param relocations_table String. Name of the table that stores the relocations, e.g. "public.relocations"
+#' @param relocations_table String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
@@ -34,6 +34,8 @@
 #' @param timestamps String. Name of the field in relocations_table that contains the timestamps.
 #' If NULL, Type I trajectory is assumed.
 #' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
+#' @param srid Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
+#' Ignored if relocations is a geometry type.
 #' @param note String. Comment on the pgtraj. The comment is only used in
 #' the database and not transferred into an ltraj.
 #' 
@@ -43,7 +45,7 @@
 #' \dontrun{
 #' as_pgtraj(conn, 
 #'         schema = "traj_t4",
-#'         relocations_table = "example_data.relocations_plus",
+#'         relocations_table = c("example_data","relocations_plus"),
 #'         pgtrajs = "id",
 #'         animals = "animal",
 #'         bursts = "burst",
@@ -55,7 +57,7 @@
 #' #' \dontrun{
 #' as_pgtraj(conn, 
 #'         schema = "traj_t4",
-#'         relocations_table = "example_data.relocations_plus",
+#'         relocations_table = c("example_data","relocations_plus"),
 #'         pgtrajs = "id",
 #'         animals = "animal",
 #'         bursts = "burst",
@@ -73,18 +75,22 @@
 ## below line comment
 ### standalone
 ###############################################################################
-as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL, 
+as_pgtraj <- function(conn, schema = "traj", relocations_table, 
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
-        relocations = NULL, timestamps = NULL, rids = "rid", srid = NULL,
+        relocations, timestamps = NULL, rids = "rid", srid = NULL,  #srid not in parameters desc.
         note = NULL) {
     
     ## Check if PostGIS is installed
     suppressMessages(pgPostGIS(conn))
+  
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(relocations_table), collapse = ".")
+    # sanitize column name strings used in queries
+    relocations_q <- dbQuoteIdentifier(conn,relocations)
     
     ##### Test input before doing anything else 
     # Test connection, table, field and values
-    sql_query <- paste0("SELECT ", relocations[1], " FROM ",
-            relocations_table," LIMIT 1;")
+    sql_query <- paste0("SELECT ", relocations_q[1], " FROM ",
+            relocations_table_q," LIMIT 1;")  # should this include where is not null?
     a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
     if (is.null(a)) {
         print(paste("Field", relocations ,"does not contain values."))
@@ -92,8 +98,8 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Check if the relocation geometry is projected
     if (length(relocations) == 1) {
-        sql_query <- paste0("SELECT ST_SRID(", relocations,
-        ") FROM ", relocations_table," LIMIT 1;")
+        sql_query <- paste0("SELECT ST_SRID(", relocations_q,
+        ") FROM ", relocations_table_q," LIMIT 1;")  # should this include where is not null?
         srid <- dbGetQuery(conn, sql_query)[1,1]
         if (srid == 0) {
             acr <- NA
@@ -183,7 +189,7 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table = NULL,
     
     # Set search path in the database
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", schema, ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbSendQuery(conn, sql_query))
     
     # Run the SQL import script to insert the data from the temporary
