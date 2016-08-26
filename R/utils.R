@@ -730,6 +730,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param pgtraj String. Name of the pgtraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 

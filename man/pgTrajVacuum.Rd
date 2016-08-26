@@ -3,18 +3,19 @@
 \name{pgTrajVacuum}
 \alias{pgTrajVacuum}
 \title{pgTrajVacuum
-Performs a VACUUM (garbage-collect and optionally analyze) on all the
-tables of a \code{traj} schema.}
+VACUUM on a pgrtraj schema.}
 \usage{
 pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{String. Name of the schema that stores or will store
+the pgtraj data model.}
 
-\item{full}{Logical. Whether to perform a "full" vacuum, which can reclaim
-more space, but takes much longer and exclusively locks the table.}
+\item{full}{Logical. Whether to perform a "full" vacuum, which can
+reclaim more space, but takes much longer and exclusively
+locks the table.}
 
 \item{verbose}{Logical. Whether to print a detailed vacuum
 activity report for each table.}
@@ -24,15 +25,16 @@ planner to determine the most efficient way to execute a query
 (default to \code{TRUE}).}
 }
 \value{
-\code{TRUE}
+\code{TRUE} on success.
 }
 \description{
-pgTrajVacuum
-Performs a VACUUM (garbage-collect and optionally analyze) on all the
-tables of a \code{traj} schema.
+Performs a VACUUM (garbage-collect and optionally analyze) on all
+the tables of a \code{traj} schema.
 }
 \examples{
-\dontrun{pgTrajVacuum(conn, "traj_1")}
+\dontrun{
+    pgTrajVacuum(conn, "traj_1")
+}
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}

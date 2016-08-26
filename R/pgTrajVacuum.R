@@ -17,7 +17,7 @@
 ##'     planner to determine the most efficient way to execute a query
 ##'     (default to \code{TRUE}).
 ##' @return \code{TRUE} on success.
-##' @author Bal·zs Dukai \email{balazs.dukai@@gmail.com}
+##' @author Bal√°zs Dukai \email{balazs.dukai@@gmail.com}
 ##' @export
 ##' @examples
 ##' \dontrun{

@@ -4,17 +4,16 @@
 \alias{as_pgtraj}
 \title{Imports location data from a database table into a 'traj' schema.}
 \usage{
-as_pgtraj(conn, schema = "traj", relocations_table = NULL,
-  pgtrajs = "pgtraj", animals = "animal", bursts = NULL,
-  relocations = NULL, timestamps = NULL, rids = "rid", srid = NULL,
-  note = NULL)
+as_pgtraj(conn, schema = "traj", relocations_table, pgtrajs = "pgtraj",
+  animals = "animal", bursts = NULL, relocations, timestamps = NULL,
+  rids = "rid", srid = NULL, note = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
 \item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 
-\item{relocations_table}{String. Name of the table that stores the relocations, e.g. "public.relocations"}
+\item{relocations_table}{String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")}
 
 \item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
 
@@ -32,6 +31,9 @@ If NULL, Type I trajectory is assumed.}
 
 \item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.}
 
+\item{srid}{Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
+Ignored if relocations is a geometry type.}
+
 \item{note}{String. Comment on the pgtraj. The comment is only used in
 the database and not transferred into an ltraj.}
 }
@@ -46,7 +48,7 @@ each pgtraj. These views are named <pgtraj_name>_parameters,
 <pgtraj_name>_step_geometry and <pgtraj_name>_summary and described more in
 detail in the package vignette.
 
-The time zone of the pgtraj is set to the local time zone.
+The time zone of the pgtraj is set to the local time zone of the user.
 }
 \details{
 Opening and closing connections have to be done manually by the user. 
@@ -57,7 +59,7 @@ Not tested with capital letters for PostgreSQL field names.
 \dontrun{
 as_pgtraj(conn, 
         schema = "traj_t4",
-        relocations_table = "example_data.relocations_plus",
+        relocations_table = c("example_data","relocations_plus"),
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",
@@ -69,7 +71,7 @@ as_pgtraj(conn,
 #' \dontrun{
 as_pgtraj(conn, 
         schema = "traj_t4",
-        relocations_table = "example_data.relocations_plus",
+        relocations_table = c("example_data","relocations_plus"),
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",

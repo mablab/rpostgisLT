@@ -20,10 +20,10 @@ TRUE on success
 \code{pgTrajDrop} deletes one or more pgtrajs from a traj schema.
 }
 \examples{
-\dontrun{pgTrajDrop(conn, "traj", "ibex")}
-
-\dontrun{pgTrajDrop(conn, schema="traj", pgtraj=c("ibex", "puechcirc")}
-
+\dontrun{
+  pgTrajDrop(conn, "traj", "ibex")
+  pgTrajDrop(conn, schema="traj", pgtraj=c("ibex", "puechcirc")
+}
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
