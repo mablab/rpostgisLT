@@ -22,4 +22,5 @@ Creates a view of the step geometries for visualization.
 \author{
 Balázs Dukai
 }
+\keyword{internal}
 

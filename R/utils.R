@@ -137,6 +137,8 @@ dl_opt <- function(x, rnames = TRUE) {
 #' @param note Sting. Comment on the pgtraj. The comment is only used in
 #' the database and not transferred into an ltraj.
 #' @param time_zone String. Time zone to be inserted into \code{pgtraj} table.
+#' 
+#' @keywords internal
 ###############################################################################
 pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
@@ -373,6 +375,8 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 
+#' @keywords internal
+#' 
 #' @examples
 #' \dontrun{pgTrajTempT(conn, "traj_1")}
 #' 
@@ -454,6 +458,8 @@ pgTrajTempT <- function(conn, schema) {
 #' reused from the ltraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
+#' 
+#' @keywords internal
 #' 
 ##############################################################################
 pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
@@ -733,6 +739,8 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
 #' @param pgtraj String. Name of the pgtraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
+#' 
+#' @keywords internal
 #' 
 ###############################################################################
 pgTrajViewStepGeom <- function(conn, schema, pgtraj) {

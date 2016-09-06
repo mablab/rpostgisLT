@@ -46,4 +46,5 @@ geometry in PostGIS.
 \author{
 Balázs Dukai
 }
+\keyword{internal}
 

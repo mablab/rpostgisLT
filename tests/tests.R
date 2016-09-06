@@ -1,8 +1,7 @@
 ## Establish connection with rpostgisLT database
-#source("./rpostgisLT/utility/utility_functions.R")
-#cs() # creates globals conn and drv
-library(rpostgisLT)
-conn<-dbConnect(PostgreSQL(),dbname="rpostgis",host="localhost",user="postgres",password="")
+source("C:/David/git/rpostgisLT/utility/utility_functions.R")
+cs() # creates globals conn and drv
+#library(rpostgisLT)
 
 ## Get test datasets
 data(ibex)
@@ -200,7 +199,6 @@ all.equal(ibex, ibexTest)
 
 #############################################################################
 ## Test database import
-conn<-dbConnect(PostgreSQL(),host="basille-flrec",user="rpostgis",password="")
 
 # all variables stored with the raw data
 as_pgtraj(conn, 

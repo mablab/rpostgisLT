@@ -1,21 +1,25 @@
 Package: rpostgisLT
-Title: Managing animal movement data with 'PostGIS' and R
+Title: Managing Animal Movement Data with 'PostGIS' and R
 Version: 0.4.0  
 Date: 2016-09-06
-Authors@R: as.person(c(
-    "Bal√°zs Dukai <balazs.dukai@gmail.com> [aut] (Package creator during Google Summer of Code 2016)",
-    "Mathieu Basille <basille@ufl.edu> [aut]",
-    "David Bucklin <dbucklin@ufl.edu> [aut, cre]",
-    "Cl√©ment Calenge <clement.calenge@oncfs.gouv.fr> [aut]"))
+Authors@R: c(
+    person("Bal·zs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut"),
+          comment =  "Package creator during Google Summer of Code 2016"),
+    person("Mathieu", "Basille", email = "basille@ufl.edu", role =
+           c("aut")),
+    person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
+           c("aut", "cre")),
+    person("ClÈment", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
+          role = c("aut")) )
 Description: The 'rpostgisLT' package develops the integration of R
-    and PostGIS for managing movement trajectories. The focus is on
-    streamlining the workflow for biologists to store and process
-    animal trajectories in PostGIS and analyze them in R, thus
+    and 'PostGIS' for managing movement trajectories. The focus is on
+    streamlining the work flow for biologists to store and process
+    animal trajectories in 'PostGIS' and analyze them in R, thus
     utilizing the strengths of both software. The package relies on
     'ltraj' objects from the R package 'adehabitatLT', and provides
-    the analogous 'pgtraj' data structure in PostGIS, with all
+    the analogous 'pgtraj' data structure in 'PostGIS', with all
     functions to create and manage 'pgtraj' data, and convert from and
-    to both formats ('pgtraj' in PostGIS, 'ltraj' in R).
+    to both formats ('pgtraj' in 'PostGIS', 'ltraj' in R).
 SystemRequirements:
     PostgreSQL with PostGIS extension
 Depends:

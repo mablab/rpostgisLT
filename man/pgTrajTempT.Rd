@@ -26,4 +26,5 @@ name is a random string to avoid collation with user generated tables.
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
+\keyword{internal}
 

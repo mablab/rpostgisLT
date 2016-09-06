@@ -31,7 +31,7 @@ On the other end of the process, the advancement of a movement ecology
 theoretical framework led to an unprecedented development of new
 analytical tools and methods, mostly available in the R statistical
 environment.  The R package
-[adehabitatLT](https://cran.r-project.org/web/packages/adehabitatLT/index.html)
+[adehabitatLT](https://cran.r-project.org/package=adehabitatLT/)
 is a collection of tools for the analysis of animal movements. In
 particular, it builds on a dedicated class for animal movement data
 (`ltraj` objects), which abstracts movement to a set of trajectories

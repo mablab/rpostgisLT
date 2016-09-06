@@ -14,10 +14,10 @@ uninstall(pkg)
 
 # Documentation
 document(pkg)
-system("R CMD Rd2pdf --force /home/bdukai/Development/rpostgisLT/ -o /home/bdukai/Development/rpostgisLT/rpostgisLT.pdf")
+#system("R CMD Rd2pdf --force /home/bdukai/Development/rpostgisLT/ -o /home/bdukai/Development/rpostgisLT/rpostgisLT.pdf")
 
-render("/home/bdukai/Development/rpostgisLT/vignettes/data-model.Rmd")
-render("/home/bdukai/Development/rpostgisLT/vignettes/use-cases.Rmd")
+render("C:/David/git/rpostgisLT/vignettes/data-model.Rmd")
+render("C:/David/git/rpostgisLT/vignettes/use-cases.Rmd")
 
 #install_github("mablab/rpostgis")
 install("rpostgis")

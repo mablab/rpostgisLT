@@ -10,6 +10,13 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, include=FALSE}
+# Global options
+library(knitr)
+opts_chunk$set(fig.path="fig/")
+```
+
 ## The traj database model
 
 ### General remarks
@@ -31,7 +38,7 @@ create a new step or burst and delete the old one.
 
 ### Database model
 
-![ER diagram of the pgtraj database model](./figure/database_model.png)
+![ER diagram of the pgtraj database model](fig/database_model.png)
 
 **animal_burst table**\
 Contains animal and burst names and their relation to pgtrajes.

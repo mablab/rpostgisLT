@@ -33,4 +33,5 @@ view for the pgtraj. The views are always named as '<pgtraj_name>_parameters'.
 \author{
 Balázs Dukai
 }
+\keyword{internal}
 
