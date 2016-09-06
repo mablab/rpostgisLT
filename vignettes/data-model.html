@@ -10,9 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
+<meta name="author" content="BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge" />
 
-<meta name="date" content="2016-08-23" />
+<meta name="date" content="2016-09-06" />
 
 <title>rpostgisLT: Database model</title>
 
@@ -69,8 +69,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">rpostgisLT: Database model</h1>
-<h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-08-23</em></h4>
+<h4 class="author"><em>BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge</em></h4>
+<h4 class="date"><em>2016-09-06</em></h4>
 
 
 <div id="TOC">
@@ -90,7 +90,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="general-remarks" class="section level3">
 <h3>General remarks</h3>
 <p>It is possible, but not recommended, to add extra columns to the tables to store additional information. For example to preserve the old, non-integer burst IDs additionally to the burst names (b_name), and also create new burst IDs (b_id), the user might want to add a column to store the old burst IDs (e.g. b_old_id). Note that although the columns *_id use auto-incrementing integers, it is possible to provide own integer values for these columns. Also note that additional information about the data can be provided in the infolocs tables, which the the recommended procedure See further at the table description.</p>
-<p>The default schema name is ‘pgtraj’, and can store as many pgtrajes as needed. Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all functions default to schema ‘pgtraj’, but the user can change the target schema.</p>
+<p>The default schema name is â€˜pgtrajâ€™, and can store as many pgtrajes as needed. Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all functions default to schema â€˜pgtrajâ€™, but the user can change the target schema.</p>
 <p>It is possible to modify steps and bursts. The procedure in this case is to create a new step or burst and delete the old one.</p>
 </div>
 <div id="database-model" class="section level3">
@@ -104,36 +104,36 @@ Contains animal and burst names and their relation to pgtrajes.</p>
 <table>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">id</td>
-<td align="left">serial</td>
-<td align="left">PK</td>
-<td align="left">Auto-generated numeric ID.</td>
+<td>id</td>
+<td>serial</td>
+<td>PK</td>
+<td>Auto-generated numeric ID.</td>
 </tr>
 <tr class="even">
-<td align="left">burst_name</td>
-<td align="left">text</td>
-<td align="left">Not Null</td>
-<td align="left">Name of the burst.</td>
+<td>burst_name</td>
+<td>text</td>
+<td>Not Null</td>
+<td>Name of the burst.</td>
 </tr>
 <tr class="odd">
-<td align="left">animal_name</td>
-<td align="left">text</td>
-<td align="left">Not Null</td>
-<td align="left">Name of the animal.</td>
+<td>animal_name</td>
+<td>text</td>
+<td>Not Null</td>
+<td>Name of the animal.</td>
 </tr>
 <tr class="even">
-<td align="left">pgtraj_id</td>
-<td align="left">integer</td>
-<td align="left">Not Null, FK</td>
-<td align="left">ID of pgtraj.</td>
+<td>pgtraj_id</td>
+<td>integer</td>
+<td>Not Null, FK</td>
+<td>ID of pgtraj.</td>
 </tr>
 </tbody>
 </table>
@@ -143,24 +143,24 @@ Contains additional information on steps. Mirrors the infolocs attribute of an l
 <table>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">id</td>
-<td align="left">serial</td>
-<td align="left">PK</td>
-<td align="left">Auto-generated numeric ID of infoloc.</td>
+<td>id</td>
+<td>serial</td>
+<td>PK</td>
+<td>Auto-generated numeric ID of infoloc.</td>
 </tr>
 <tr class="even">
-<td align="left">infoloc</td>
-<td align="left">json</td>
-<td align="left"></td>
-<td align="left">Contains the additional information encoded in JSON.</td>
+<td>infoloc</td>
+<td>json</td>
+<td></td>
+<td>Contains the additional information encoded in JSON.</td>
 </tr>
 </tbody>
 </table>
@@ -175,42 +175,42 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">id</td>
-<td align="left">serial</td>
-<td align="left">PK</td>
-<td align="left">Auto-generated numeric ID of pgtraj.</td>
+<td>id</td>
+<td>serial</td>
+<td>PK</td>
+<td>Auto-generated numeric ID of pgtraj.</td>
 </tr>
 <tr class="even">
-<td align="left">pgtraj_name</td>
-<td align="left">text</td>
-<td align="left">Not Null, unique</td>
-<td align="left">Name or other identifier of trajectory group.</td>
+<td>pgtraj_name</td>
+<td>text</td>
+<td>Not Null, unique</td>
+<td>Name or other identifier of trajectory group.</td>
 </tr>
 <tr class="odd">
-<td align="left">proj4string</td>
-<td align="left">text</td>
-<td align="left"></td>
-<td align="left">Projection string of the ltraj, imported from R.</td>
+<td>proj4string</td>
+<td>text</td>
+<td></td>
+<td>Projection string of the ltraj, imported from R.</td>
 </tr>
 <tr class="even">
-<td align="left">time_zone</td>
-<td align="left">text</td>
-<td align="left"></td>
-<td align="left">Time zone of the corresponding ltraj.</td>
+<td>time_zone</td>
+<td>text</td>
+<td></td>
+<td>Time zone of the corresponding ltraj.</td>
 </tr>
 <tr class="odd">
-<td align="left">note</td>
-<td align="left">text</td>
-<td align="left"></td>
-<td align="left"></td>
+<td>note</td>
+<td>text</td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -219,30 +219,30 @@ Contains the geometry and time stamp of relocations.</p>
 <table>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">id</td>
-<td align="left">serial</td>
-<td align="left">PK</td>
-<td align="left">Auto-generated numeric ID.</td>
+<td>id</td>
+<td>serial</td>
+<td>PK</td>
+<td>Auto-generated numeric ID.</td>
 </tr>
 <tr class="even">
-<td align="left">geom</td>
-<td align="left">geometry</td>
-<td align="left"></td>
-<td align="left">Geometry of the relocation.</td>
+<td>geom</td>
+<td>geometry</td>
+<td></td>
+<td>Geometry of the relocation.</td>
 </tr>
 <tr class="odd">
-<td align="left">relocation_time</td>
-<td align="left">timestamptz</td>
-<td align="left"></td>
-<td align="left">Time stamp of the relocation.</td>
+<td>relocation_time</td>
+<td>timestamptz</td>
+<td></td>
+<td>Time stamp of the relocation.</td>
 </tr>
 </tbody>
 </table>
@@ -257,59 +257,59 @@ Steps and their relocations.</p>
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">id</td>
-<td align="left">serial</td>
-<td align="left">PK</td>
-<td align="left">Auto-generated numeric ID of step.</td>
+<td>id</td>
+<td>serial</td>
+<td>PK</td>
+<td>Auto-generated numeric ID of step.</td>
 </tr>
 <tr class="even">
-<td align="left">relocation_id_1</td>
-<td align="left">integer</td>
-<td align="left">FK</td>
-<td align="left">ID of the first relocation that form a step</td>
+<td>relocation_id_1</td>
+<td>integer</td>
+<td>FK</td>
+<td>ID of the first relocation that form a step</td>
 </tr>
 <tr class="odd">
-<td align="left">relocation_id_2</td>
-<td align="left">integer</td>
-<td align="left">FK</td>
-<td align="left">ID of the second relocation that form a step</td>
+<td>relocation_id_2</td>
+<td>integer</td>
+<td>FK</td>
+<td>ID of the second relocation that form a step</td>
 </tr>
 <tr class="even">
-<td align="left">dt</td>
-<td align="left">interval</td>
-<td align="left"></td>
-<td align="left">Duration of the step.</td>
+<td>dt</td>
+<td>interval</td>
+<td></td>
+<td>Duration of the step.</td>
 </tr>
 <tr class="odd">
-<td align="left">r_rowname</td>
-<td align="left">text</td>
-<td align="left"></td>
-<td align="left">Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.</td>
+<td>r_rowname</td>
+<td>text</td>
+<td></td>
+<td>Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.</td>
 </tr>
 <tr class="even">
-<td align="left">r2n</td>
-<td align="left">float8</td>
-<td align="left"></td>
-<td align="left">R2n parameter copied from the ltraj on import from R.</td>
+<td>r2n</td>
+<td>float8</td>
+<td></td>
+<td>R2n parameter copied from the ltraj on import from R.</td>
 </tr>
 <tr class="odd">
-<td align="left">rel_angle</td>
-<td align="left">float8</td>
-<td align="left"></td>
-<td align="left">Rel.angle parameter copied from the ltraj on import from R.</td>
+<td>rel_angle</td>
+<td>float8</td>
+<td></td>
+<td>Rel.angle parameter copied from the ltraj on import from R.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>s_i_b_rel table</strong><br />
-Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step–burst pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.</p>
+Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One stepâ€“burst pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.</p>
 <table style="width:100%;">
 <colgroup>
 <col width="8%"></col>
@@ -319,30 +319,30 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">Name</th>
-<th align="left">Type</th>
-<th align="left">Constraint</th>
-<th align="left">Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Constraint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">step_id</td>
-<td align="left">integer</td>
-<td align="left">PK, FK, Not Null</td>
-<td align="left">Pointing to the entry in step table.</td>
+<td>step_id</td>
+<td>integer</td>
+<td>PK, FK, Not Null</td>
+<td>Pointing to the entry in step table.</td>
 </tr>
 <tr class="even">
-<td align="left">infoloc_id</td>
-<td align="left">integer</td>
-<td align="left">FK, Not Null</td>
-<td align="left">Pointing to the entry in infoloc table.</td>
+<td>infoloc_id</td>
+<td>integer</td>
+<td>FK, Not Null</td>
+<td>Pointing to the entry in infoloc table.</td>
 </tr>
 <tr class="odd">
-<td align="left">animal_burst_id</td>
-<td align="left">integer</td>
-<td align="left">PK, FK, Not Null</td>
-<td align="left">Pointing to the entry in animal_burst table.</td>
+<td>animal_burst_id</td>
+<td>integer</td>
+<td>PK, FK, Not Null</td>
+<td>Pointing to the entry in animal_burst table.</td>
 </tr>
 </tbody>
 </table>

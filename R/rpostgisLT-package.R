@@ -15,5 +15,8 @@
 ##' @name rpostgisLT
 ##' @docType package
 ##' @import rpostgis
+##' @import RPostgreSQL
+##' @import DBI
+##' @import adehabitatLT
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 NULL

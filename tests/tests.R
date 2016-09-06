@@ -2,7 +2,7 @@
 #source("./rpostgisLT/utility/utility_functions.R")
 #cs() # creates globals conn and drv
 library(rpostgisLT)
-conn<-dbConnect(PostgreSQL(),dbname="rpostgis",host="localhost",user="postgres",password="pgis")
+conn<-dbConnect(PostgreSQL(),dbname="rpostgis",host="localhost",user="postgres",password="")
 
 ## Get test datasets
 data(ibex)
@@ -124,11 +124,11 @@ for (i in 1:10) {
  print(i)
   print(all.equal(ibex[[1]][,i],ibexTest[[1]][,i]))
 }
-#dates attributes are switched around, but all other columns are equal. Should not be a problem(?)
-#> attr(ibex[[1]]$date,"class")
-#[1] "POSIXt"  "POSIXct"
-#> attr(ibexTest[[1]]$date,"class")
-#[1] "POSIXct" "POSIXt" 
+
+#time rounding causing all.equal == FALSE
+ibexTest[[1]]$date == ibex[[1]]$date
+all.equal(as.integer(ibex[[1]]$date),as.integer(ibexTest[[1]]$date))
+
 all.equal(ibex[[1]][,3],ibexTest[[1]][,3])
 
 head(ibex[[1]])
@@ -200,7 +200,7 @@ all.equal(ibex, ibexTest)
 
 #############################################################################
 ## Test database import
-conn<-dbConnect(PostgreSQL(),host="basille-flrec",user="rpostgis",password="gsoc")
+conn<-dbConnect(PostgreSQL(),host="basille-flrec",user="rpostgis",password="")
 
 # all variables stored with the raw data
 as_pgtraj(conn, 

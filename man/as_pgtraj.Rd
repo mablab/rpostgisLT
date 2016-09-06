@@ -68,7 +68,7 @@ as_pgtraj(conn,
         rid = "gid")
 }
 
-#' \dontrun{
+\dontrun{
 as_pgtraj(conn, 
         schema = "traj_t4",
         relocations_table = c("example_data","relocations_plus"),

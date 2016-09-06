@@ -11,6 +11,9 @@
 #' 
 #' @return an ltraj object
 #' 
+#' @importFrom stats complete.cases
+#' @importFrom sp CRS
+#' 
 #' @examples 
 #' \dontrun{pgtraj2ltraj(conn, "traj_t2", "ibex")}
 #' 
@@ -42,7 +45,7 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     DF <- DF[,-which(names(DF)=="pgtraj")]
     
     # Check if the row names are stored in the pgtraj
-    rnames <- all(complete.cases(DF$r_rowname))
+    rnames <- all(stats::complete.cases(DF$r_rowname))
     if (rnames) {
         names(DF)[names(DF)=="r_rowname"] <- "r.row.names"
     } else {
@@ -56,9 +59,9 @@ pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     ltraj <- dl_opt(DF, rnames)
     
     if (proj4string %in% c("NA", "NULL", "NaN")) {
-        attr(ltraj, "proj4string") <- CRS()
+        attr(ltraj, "proj4string") <- sp::CRS()
     } else {
-        attr(ltraj, "proj4string") <- CRS(proj4string)
+        attr(ltraj, "proj4string") <- sp::CRS(proj4string)
     }
     
     message(paste0("Ltraj successfully created from ", pgtraj, "."))
