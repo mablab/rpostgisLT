@@ -1,6 +1,8 @@
 ## Establish connection with rpostgisLT database
 #source("./rpostgisLT/utility/utility_functions.R")
 #cs() # creates globals conn and drv
+library(rpostgisLT)
+conn<-dbConnect(PostgreSQL(),dbname="rpostgis",host="localhost",user="postgres",password="pgis")
 
 ## Get test datasets
 data(ibex)
@@ -22,6 +24,7 @@ ib_min <- dl(ld(ibexraw[1])[1:10, ]) # note that step parameters are recomputed 
 ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min, pgtraj = "ib_min")
 ib_min_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
 all.equal(ib_min, ib_min_re)
+identical(ib_min, ib_min_re)
 
 dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
 rm(ib_min_re, ib_min)
@@ -102,21 +105,36 @@ all.equal(ibex, ibexTest)
 
 ## Interpolation
 
+
 ## 1. In space
 summary(ld(ibex)$dist)
-(ibex <- redisltraj(ibex, 400))         # Note that 'redisltraj'
+(ibex <- redisltraj(ibex, 400,type="space"))         # Note that 'redisltraj'
                                         # creates an 'infolocs'
                                         # attribute, which we remove
                                         # for now:
+                                        # this function is adding an extra column - "rel.ang"
 ibex <- removeinfo(ibex)
+ibex[[1]]$rel.ang<-NULL
+
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-all.equal(ibex, ibexTest)
-## TRUE
+all.equal(ibex, ibexTest) # not TRUE
+
+for (i in 1:10) {
+ print(i)
+  print(all.equal(ibex[[1]][,i],ibexTest[[1]][,i]))
+}
+#dates attributes are switched around, but all other columns are equal. Should not be a problem(?)
+#> attr(ibex[[1]]$date,"class")
+#[1] "POSIXt"  "POSIXct"
+#> attr(ibexTest[[1]]$date,"class")
+#[1] "POSIXct" "POSIXt" 
+all.equal(ibex[[1]][,3],ibexTest[[1]][,3])
+
 head(ibex[[1]])
 head(ibexTest[[1]])
-attributes(ibex[[1]]["date"])
-attributes(ibexTest[[1]]["date"])
+attributes(ibex[[1]]$date)
+attributes(ibexTest[[1]]$date)
 
 ## 2. In time
 ibex <- ibex.ref
@@ -182,11 +200,12 @@ all.equal(ibex, ibexTest)
 
 #############################################################################
 ## Test database import
+conn<-dbConnect(PostgreSQL(),host="basille-flrec",user="rpostgis",password="gsoc")
 
 # all variables stored with the raw data
 as_pgtraj(conn, 
-        schema = "traj_t1",
-        relocations_table = "example_data.relocations_plus",
+        schema = "traj_db_t1",
+        relocations_table = c("example_data","relocations_plus"),
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",
@@ -194,16 +213,16 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
-continental <- pgtraj2ltraj(conn, "traj_t1", "continental")
-large <- pgtraj2ltraj(conn, "traj_t1", "large")
-large2 <- pgtraj2ltraj(conn, "traj_t1", "large2")
-medium <- pgtraj2ltraj(conn, "traj_t1", "medium")
-small <- pgtraj2ltraj(conn, "traj_t1", "small")
+continental <- pgtraj2ltraj(conn, "traj_db_t1", "continental")
+large <- pgtraj2ltraj(conn, "traj_db_t1", "large")
+large2 <- pgtraj2ltraj(conn, "traj_db_t1", "large2")
+medium <- pgtraj2ltraj(conn, "traj_db_t1", "medium")
+small <- pgtraj2ltraj(conn, "traj_db_t1", "small")
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 
         schema = "traj_t2",
-        relocations_table = "example_data.relocations_plus",
+        relocations_table = c("example_data","relocations_plus"),
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",
@@ -216,7 +235,7 @@ medium <- pgtraj2ltraj(conn, "traj_t2", "medium")
 # variables provided manually
 as_pgtraj(conn, 
         schema = "traj_t3",
-        relocations_table = "example_data.reloc_medium", 
+        relocations_table = c("example_data","reloc_medium"), 
         pgtrajs = "medium",
         animals = "sea turtle",
         relocations = "geom",
@@ -225,7 +244,7 @@ as_pgtraj(conn,
 
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-dbDrop(conn, "traj_t1", type = "schema", cascade = TRUE)
+dbDrop(conn, "traj_db_t1", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_t2", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_t3", type = "schema", cascade = TRUE)
 rm(albatross, continental, ibex, ibex2, ibexraw, ibex.ref, ibexTest, large,
@@ -249,7 +268,7 @@ pgInsert(conn, name = c("example_data", "ibex"), data.obj = ibex_dl, new.id = "g
 
 as_pgtraj(conn, 
         schema = "traj",
-        relocations_table = "example_data.ibex",
+        relocations_table = c("example_data","ibex"),
         pgtraj = "ibex",
         animals = "id",
         bursts = "burst",
@@ -260,14 +279,13 @@ ibex_re <- pgtraj2ltraj(conn, "traj", "ibex")
 all.equal(ibex, ibex_re)
 # gives warning of inconsistent time zone attribute but that is expected
 
-
 albatross_dl <- ld(albatross)
 dbDrop(conn, name = c("example_data", "albatross"), type = "table", ifexists = TRUE)
 pgInsert(conn, name = c("example_data", "albatross"), data.obj = albatross_dl, new.id = "gid")
 
 as_pgtraj(conn, 
         schema = "traj",
-        relocations_table = "example_data.albatross",
+        relocations_table = c("example_data","albatross"),
         pgtraj = "albatross",
         animals = "id",
         bursts = "burst",
