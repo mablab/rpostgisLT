@@ -79,15 +79,18 @@ as_pgtraj <- function(conn, schema = "traj", relocations_table,
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
         relocations, timestamps = NULL, rids = "rid", srid = NULL,  #srid not in parameters desc.
         note = NULL) {
-    
-    ## Check if PostGIS is installed
-    suppressMessages(pgPostGIS(conn))
-  
+    ## check PostgreSQL connection and PostGIS
+    if (!inherits(conn, "PostgreSQLConnection")) {
+        stop("'conn' should be a PostgreSQL connection.")
+    }
+    if (!suppressMessages(pgPostGIS(conn))) {
+        stop("PostGIS is not enabled on this database.")
+    }
+    # sanitize table name
     relocations_table_q <- paste(rpostgis:::dbTableNameFix(relocations_table), collapse = ".")
     # sanitize column name strings used in queries
     relocations_q <- dbQuoteIdentifier(conn,relocations)
-    
-    ##### Test input before doing anything else 
+    ##### Test inputs
     # Test connection, table, field and values
     sql_query <- paste0("SELECT ", relocations_q[1], " FROM ",
             relocations_table_q," LIMIT 1;")  # should this include where is not null?

@@ -34,6 +34,13 @@
 
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     note = NULL, overwrite = FALSE) {
+    ## check PostgreSQL connection and PostGIS
+    if (!inherits(conn, "PostgreSQLConnection")) {
+        stop("'conn' should be a PostgreSQL connection.")
+    }
+    if (!suppressMessages(pgPostGIS(conn))) {
+        stop("PostGIS is not enabled on this database.")
+    }
     ## 'pgtraj' defaults to the name of ltraj
     if (is_blank(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))

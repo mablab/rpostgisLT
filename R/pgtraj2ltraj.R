@@ -22,6 +22,9 @@
 ##############################################################################
 pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
     
+    ## check PostgreSQL connection
+    if (!inherits(conn, "PostgreSQLConnection"))
+        stop("'conn' should be a PostgreSQL connection.")
     # sanitize schema name
     schema_q <- dbQuoteIdentifier(conn,schema)
   

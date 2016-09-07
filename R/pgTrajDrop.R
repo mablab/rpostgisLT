@@ -21,6 +21,10 @@
 
 pgTrajDrop <- function(conn, schema = "traj", pgtraj) {
     
+    ## check PostgreSQL connection
+    if (!inherits(conn, "PostgreSQLConnection"))
+        stop("'conn' should be a PostgreSQL connection.")
+  
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")

@@ -26,8 +26,12 @@
 
 pgTrajVacuum <- function(conn, schema, full = FALSE, verbose = FALSE,
         analyze = TRUE) {
+    ## check PostgreSQL connection
+    if (!inherits(conn, "PostgreSQLConnection")) {
+        stop("'conn' should be a PostgreSQL connection.")
+    }
     # Get all the tables in the schema
-    sql_query <- paste0("SELECT tablename schemaname FROM pg_tables WHERE schemaname = ",
+    sql_query <- paste0("SELECT tablename, schemaname FROM pg_tables WHERE schemaname = ",
                         dbQuoteString(conn, schema),";")
     tables <- dbGetQuery(conn, sql_query)
     
