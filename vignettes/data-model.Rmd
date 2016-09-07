@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Database model"
-author: "Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge"
+author: "Bal�zs Dukai, Mathieu Basille, David Bucklin, and Cl�ment Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -22,16 +22,16 @@ opts_chunk$set(fig.path="fig/")
 ### General remarks
 It is possible, but not recommended, to add extra columns to the tables to store
 additional information. For example to preserve the old, non-integer burst IDs
-additionally to the burst names (b_name), and also create new burst IDs (b_id),
-the user might want to add a column to store the old burst IDs (e.g. b_old_id).
-Note that although the columns *_id use auto-incrementing integers, it is
+additionally to the burst names (*b_name*), and also create new burst IDs (*b_id*),
+the user might want to add a column to store the old burst IDs (e.g. *b_old_id*).
+Note that although the columns with "_id" use auto-incrementing integers, it is
 possible to provide own integer values for these columns. Also note that
 additional information about the data can be provided in the infolocs tables,
 which the the recommended procedure See further at the table description. 
 
-The default schema name is ‘pgtraj’, and can store as many pgtrajes as needed.
+The default schema name is **traj**, and can store as many pgtrajes as needed.
 Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all
-functions default to schema ‘pgtraj’, but the user can change the target schema.
+functions default to schema **traj**, but the user can change the target schema.
 
 It is possible to modify steps and bursts. The procedure in this case is to
 create a new step or burst and delete the old one.
@@ -40,7 +40,7 @@ create a new step or burst and delete the old one.
 
 ![ER diagram of the pgtraj database model](fig/database_model.png)
 
-**animal_burst table**\
+***animal_burst* table**\
 Contains animal and burst names and their relation to pgtrajes.
 
 | Name   | Type   | Constraint       | Description                          |
@@ -50,9 +50,9 @@ Contains animal and burst names and their relation to pgtrajes.
 |animal_name | text   | Not Null | Name of the animal.                  |
 |pgtraj_id | integer   | Not Null, FK | ID of pgtraj.                  |
 
-Table constraint: the combination of burst_name and pgtraj_id must be unique.
+Table constraint: the combination of *burst_name* and *pgtraj_id* must be unique.
 
-**infoloc table**\
+***infoloc* table**\
 Contains additional information on steps. Mirrors the infolocs attribute of an ltraj object.
 
 | Name    | Type   | Constraint | Description                                          |
@@ -60,7 +60,7 @@ Contains additional information on steps. Mirrors the infolocs attribute of an l
 | id    | serial | PK         | Auto-generated numeric ID of infoloc.                |
 | infoloc | json   |            | Contains the additional information encoded in JSON. |
 
-**pgtraj table**\
+***pgtraj* table**\
 Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
 
 | Name    | Type   | Constraint       | Description                                      |
@@ -71,7 +71,7 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 | time_zone    | text   |                  | Time zone of the corresponding ltraj.            |
 | note | text   |                  |                                                  |
 
-**relocation table**\
+***relocation* table**\
 Contains the geometry and time stamp of relocations.
 
 | Name    | Type   | Constraint | Description                                          |
@@ -80,7 +80,7 @@ Contains the geometry and time stamp of relocations.
 | geom | geometry   |            | Geometry of the relocation. |
 | relocation_time | timestamptz   |            | Time stamp of the relocation. |
 
-**step table**\
+***step* table**\
 Steps and their relocations.
 
 | Name      | Type        | Constraint    | Description                                                                                                           |
@@ -93,8 +93,8 @@ Steps and their relocations.
 | r2n      | float8      |             | R2n parameter copied from the ltraj on import from R. |
 | rel_angle      | float8      |             | Rel.angle parameter copied from the ltraj on import from R. |
 
-**s_i_b_rel table**\
-Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step–burst pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.
+***s_i_b_rel* table**\
+Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step, burst) pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.
 
 | Name | Type    | Constraint       | Description                              |
 |------|---------|------------------|------------------------------------------|
@@ -103,7 +103,7 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 | animal_burst_id | integer | PK, FK, Not Null | Pointing to the entry in animal_burst table.   |
 
 ### Storing geometries in PostGIS
-PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS) [^1]. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered flat anymore and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type [^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
+PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS)[^1]. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered in two dimensions, and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type[^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
 
 The R object class *ltraj* assumes that the coordinates stored in the object are projected and their projection is known. However, in many cases the projection is not known or ignored, therefore the data should be treated as unprojected. Because the *geography* type stores the data in the WGS 84 lon/lat CRS, this case cannot be handled and assuming the WGS 84 projection for each dataset would be clearly erroneous.
 
@@ -111,23 +111,23 @@ The R object class *ltraj* assumes that the coordinates stored in the object are
 [^2]: http://postgis.net/docs/PostGIS_Special_Functions_Index.html#PostGIS_TypeFunctionMatrix
 
 ### Managing projections in PostGIS and R
-From version 0.3.21 an *ltraj* object stores the projection of the relocations in
-its *proj4string* attribute. The function *ltraj2pgtraj* tries to find the 
+From `adehabitat` version 0.3.21 an *ltraj* object stores the projection of the relocations in
+its *proj4string* attribute. The function `ltraj2pgtraj` tries to find the 
 matching SRID (Spatial Reference Identifier) in the PostGIS database by using
-rpostgis::pgSRID, and use the SRID for creating geometries. 
+`rpostgis::pgSRID`, and if found, uses the SRID for creating geometries. 
 The *pgtraj* table stores the original *proj4string* so it can be
-restored by *pgtraj2ltraj*.
+restored by `pgtraj2ltraj`.
 
 ### Managing time zones in PostgreSQL and R
 In PostgreSQL all timezone-aware dates and times are stored internally in UTC.
 For display they are converted to local time in the zone specified on the server. Therefore
 the time zone of the input *ltraj* is stored in the *pgtraj* table's *time_zone*
 field in order to restore the *ltraj* with the original time zone when using
-*pgtraj2ltraj()*.
+`pgtraj2ltraj`.
 
-This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. "2003-05-31 17:00:56 EST"), puts the ltraj into the database, then for the same date he will see "2003-06-01 00:00:56" in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.
+This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. "2003-05-31 17:00:56 EST"), puts the ltraj into the database, then for the same date they will see "2003-06-01 00:00:56" in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.
 
-**A note on managing time zones in R**
+**A note on managing time zones in R:**
 Care must be taken when changing the time zone of a POSIXt object in R. 
 Consider the following example:
 
@@ -142,10 +142,10 @@ format(ibexraw[[1]][1, "date"], tz="America/Florida", usetz=TRUE)
 # [1] "2003-05-31 22:00:56 America"
 ```
 
-Notice that the time zone 'America/Florida' is not valid, as it is not in the
+Notice that the time zone 'America/Florida' is **not valid**, as it is not in the
 system's time zone database. Therefore the dates are assumed to be in the 
 standard time zone (UTC) and no warning is given. To check the valid time
-zone names in your system use ```OlsonNames()```[^3].
+zone names in your system use `OlsonNames()`[^3].
 
 [^3]: http://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html
 

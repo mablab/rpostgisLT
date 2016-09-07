@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Use cases"
-author: "Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge"
+author: "Bal�zs Dukai, Mathieu Basille, David Bucklin, and Cl�ment Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -155,14 +155,18 @@ all.equal(ibex, ibexTest)
 ## TRUE
 ```
 
-Note that we're working under the assumptions of the changes planned to be implemented in adehabitatLT about the data structure in ltraj: 1) row names are character strings; 2) there is an additional attribute “proj4string” in an ltraj that stores the projection reference.
+Note that changes were implemented to the `ltraj` data structure in `adehabitatLT` v0.3.21:  1) row names are character strings; 2) there is an additional attribute *proj4string* in an ltraj that stores the projection reference. The adehabitatLT package must be updated to that version in order to install `rpostgisLT`; however, old `ltraj`s that were created with a previous version of `adehabitatLT` should still work with `rpostgisLT`, and can be manually updated to include a proj4string using a valid `CRS` object as follows:
 
-Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that ‘all.equal' between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns ‘TRUE'.
+```{r eval=FALSE}
+attr(ltraj, "proj4string") <- CRS("+proj=longlat +datum=WGS84")
+```
+
+Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that `all.equal` between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns `TRUE`.
 
 
 ### Missing steps [seq, t, dt]
 
-‘ltraj' can include NAs in their sequence (i.e. missing relocations), but still provide a record of them with their timestamp but no coordinates (as is the case with ‘puechcirc' for instance). On the other hand, ‘ibexraw' only provides a record when coordinates are available. We can add missing relocations using ‘setNA':
+An `ltraj` can include NAs in their sequence (i.e. missing relocations), but still provide a record of them with their timestamp but no coordinates (as is the case with the example dataset `puechcirc`). On the other hand, `ibexraw` only provides a record when coordinates are available. We can add missing relocations using `setNA`:
 
 ```{r eval=FALSE}
 refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M", tz = "Europe/Paris")
@@ -175,7 +179,7 @@ all.equal(ibex, ibexTest)
 
 ### Regularize [t, dt]
 
-The next logical step is to regularize the trajectory, by “rounding” timestamps to their expected values using ‘sett0'::
+The next logical step is to regularize the trajectory, by "rounding" timestamps to their expected values using `sett0'`:
 
 ```{r eval=FALSE}
 (ibex <- sett0(ibex, refda, 4, units = "hour"))
@@ -213,7 +217,7 @@ all.equal(ibex, ibexTest)
 
 ### Subset the trajectory [seq, (geom), (dt)]
 
-In practice, there is two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.
+In practice, there are two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.
 
 ```{r eval=FALSE}
 ## 1. Subset on given parameters
@@ -279,7 +283,7 @@ all.equal(ibex, ibexTest)
 
 ### Combine trajectories or bursts [burst, traj]
 
-The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a ‘list'), which can be manipulated just as a list:
+The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a `list`), which can be manipulated just as any R `list`:
 
 ```{r eval=FALSE}
 ibex <- ibex.ref
