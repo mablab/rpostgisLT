@@ -111,9 +111,8 @@ summary(ld(ibex)$dist)
                                         # creates an 'infolocs'
                                         # attribute, which we remove
                                         # for now:
-                                        # this function is adding an extra column - "rel.ang"
+                                        # this function is adding an extra column - "rel.ang" (FIXED in latest version)
 ibex <- removeinfo(ibex)
-ibex[[1]]$rel.ang<-NULL
 
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
