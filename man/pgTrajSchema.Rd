@@ -4,12 +4,12 @@
 \alias{pgTrajSchema}
 \title{Check pgtraj schema.}
 \usage{
-pgTrajSchema(conn, name = "traj")
+pgTrajSchema(conn, schema = "traj")
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL.}
 
-\item{name}{Character string. Name of the schema that stores or
+\item{schema}{Character string. Name of the schema that stores or
 will store the pgtraj data model.}
 }
 \value{
@@ -35,7 +35,8 @@ The function has it's standalone transaction control.
 }
 \examples{
 \dontrun{
-pgTrajSchema(conn, name = "traj_1")
+  # Check (or create) pgtraj schema with name "traj_1"
+  pgTrajSchema(conn,"traj_1")
 }
 }
 \author{

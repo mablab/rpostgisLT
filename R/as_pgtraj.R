@@ -22,8 +22,8 @@
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param relocations_table String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")
+#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
 #' @param bursts String. Name of the burst or name of the field that stores the burst names.
@@ -44,8 +44,8 @@
 #' @examples 
 #' \dontrun{
 #' as_pgtraj(conn, 
-#'         schema = "traj_t4",
 #'         relocations_table = c("example_data","relocations_plus"),
+#'         schema = "traj_t4",
 #'         pgtrajs = "id",
 #'         animals = "animal",
 #'         bursts = "burst",
@@ -56,8 +56,8 @@
 #' 
 #' \dontrun{
 #' as_pgtraj(conn, 
-#'         schema = "traj_t4",
 #'         relocations_table = c("example_data","relocations_plus"),
+#'         schema = "traj_t4",
 #'         pgtrajs = "id",
 #'         animals = "animal",
 #'         bursts = "burst",
@@ -69,13 +69,12 @@
 #' @export 
 #' 
 #' 
-# TODO test capital letters in field names
 # TODO subset raw data 
 # line end comment
 ## below line comment
 ### standalone
 ###############################################################################
-as_pgtraj <- function(conn, schema = "traj", relocations_table, 
+as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
         relocations, timestamps = NULL, rids = "rid", srid = NULL,  #srid not in parameters desc.
         note = NULL) {

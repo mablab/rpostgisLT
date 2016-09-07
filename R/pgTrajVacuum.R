@@ -21,10 +21,11 @@
 ##' @export
 ##' @examples
 ##' \dontrun{
-##'     pgTrajVacuum(conn, "traj_1")
+##'   # Vacuum analyze all tables in pgtraj schema with default name "traj"
+##'   pgTrajVacuum(conn)
 ##' }
 
-pgTrajVacuum <- function(conn, schema, full = FALSE, verbose = FALSE,
+pgTrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
         analyze = TRUE) {
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection")) {
@@ -36,7 +37,7 @@ pgTrajVacuum <- function(conn, schema, full = FALSE, verbose = FALSE,
     tables <- dbGetQuery(conn, sql_query)
     
     for (tbl in tables$tablename) {
-        dbVacuum(conn, name = tbl, full, verbose, analyze, display = TRUE,
+        dbVacuum(conn, name = c(schema,tbl), full, verbose, analyze, display = TRUE,
                  exec = TRUE)
     }
     

@@ -4,14 +4,14 @@
 \alias{pgtraj2ltraj}
 \title{Import a pgtraj into an ltraj.}
 \usage{
-pgtraj2ltraj(conn, schema = "traj", pgtraj)
+pgtraj2ltraj(conn, pgtraj, schema = "traj")
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
-
 \item{pgtraj}{String. Name of the pgtraj.}
+
+\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 }
 \value{
 an ltraj object
@@ -20,7 +20,10 @@ an ltraj object
 \code{pgtraj2ltraj} imports a single pgtraj from a database into an ltraj object.
 }
 \examples{
-\dontrun{pgtraj2ltraj(conn, "traj_t2", "ibex")}
+\dontrun{
+ # create ltraj from pgtraj named "ibex" in schema "traj_t2"
+ ibex<-pgtraj2ltraj(conn, "ibex", "traj_t2")
+}
 
 }
 \author{

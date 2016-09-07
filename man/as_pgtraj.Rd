@@ -4,16 +4,16 @@
 \alias{as_pgtraj}
 \title{Imports location data from a database table into a 'traj' schema.}
 \usage{
-as_pgtraj(conn, schema = "traj", relocations_table, pgtrajs = "pgtraj",
+as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
   animals = "animal", bursts = NULL, relocations, timestamps = NULL,
   rids = "rid", srid = NULL, note = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
-
 \item{relocations_table}{String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")}
+
+\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
 
 \item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
 
@@ -58,8 +58,8 @@ Not tested with capital letters for PostgreSQL field names.
 \examples{
 \dontrun{
 as_pgtraj(conn, 
-        schema = "traj_t4",
         relocations_table = c("example_data","relocations_plus"),
+        schema = "traj_t4",
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",
@@ -70,8 +70,8 @@ as_pgtraj(conn,
 
 \dontrun{
 as_pgtraj(conn, 
-        schema = "traj_t4",
         relocations_table = c("example_data","relocations_plus"),
+        schema = "traj_t4",
         pgtrajs = "id",
         animals = "animal",
         bursts = "burst",

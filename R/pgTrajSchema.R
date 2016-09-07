@@ -17,7 +17,7 @@
 ##'
 ##' The function has it's standalone transaction control.
 ##' @param conn Connection object created with RPostgreSQL.
-##' @param name Character string. Name of the schema that stores or
+##' @param schema Character string. Name of the schema that stores or
 ##'     will store the pgtraj data model.
 ##' @return \code{TRUE} if the schema exists (whether it was already
 ##'     available or was successfully created).
@@ -25,10 +25,11 @@
 ##' @export
 ##' @examples
 ##' \dontrun{
-##' pgTrajSchema(conn, name = "traj_1")
+##'   # Check (or create) pgtraj schema with name "traj_1"
+##'   pgTrajSchema(conn,"traj_1")
 ##' }
 
-pgTrajSchema <- function(conn, name = "traj") {
+pgTrajSchema <- function(conn, schema = "traj") {
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
@@ -40,10 +41,10 @@ pgTrajSchema <- function(conn, name = "traj") {
     ## Begin transaction block
     invisible(dbGetQuery(conn, "BEGIN TRANSACTION;"))
     ## Check and/or create schema
-    dbSchema(conn, name, display = FALSE, exec = TRUE)
+    dbSchema(conn, schema, display = FALSE, exec = TRUE)
     # Is the traj schema in the DB or just created and empty
     tmp.query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname=",
-        dbQuoteString(conn,name), ";")
+        dbQuoteString(conn,schema), ";")
     dbtables <- dbGetQuery(conn, tmp.query, stringsAsFactors = FALSE)
     dbtables <- dbtables$tablename
     traj_tables <- c("animal_burst", "pgtraj", "step", "infoloc",
@@ -51,7 +52,7 @@ pgTrajSchema <- function(conn, name = "traj") {
     if (length(dbtables) == 0) {
         ## In case of empty schema, set DB search path for the schema
         current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-        tmp.query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,name), ",public;")
+        tmp.query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
         invisible(dbGetQuery(conn, tmp.query))
         ## SQL query to set up schema
         pgtraj_schema_file <- paste0(path.package("rpostgisLT"),
@@ -64,18 +65,18 @@ pgTrajSchema <- function(conn, name = "traj") {
         invisible(dbGetQuery(conn, tmp.query))
         ## Commit transaction block
         invisible(dbCommit(conn))
-        message(paste0("The pgtraj schema '", name,
+        message(paste0("The pgtraj schema '", schema,
             "' was successfully created in the database."))
         return(TRUE)
     } else if (all(traj_tables %in% dbtables)) {
         # All required tables are present in the schema
         invisible(dbCommit(conn))
-        message(paste0("The schema '", name,
+        message(paste0("The schema '", schema,
             "' already exists in the database, and is a valid pgtraj schema."))
         return(TRUE)
     } else {
         invisible(dbRollback(conn))
-        stop(paste0("A schema '", name,
+        stop(paste0("A schema '", schema,
             "' already exists in the database, and is not a valid pgtraj schema."))
     }
 }

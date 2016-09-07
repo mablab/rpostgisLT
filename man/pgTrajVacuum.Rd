@@ -5,7 +5,8 @@
 \title{pgTrajVacuum
 VACUUM on a pgrtraj schema.}
 \usage{
-pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE)
+pgTrajVacuum(conn, schema = "traj", full = FALSE, verbose = FALSE,
+  analyze = TRUE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -33,7 +34,8 @@ the tables of a \code{traj} schema.
 }
 \examples{
 \dontrun{
-    pgTrajVacuum(conn, "traj_1")
+  # Vacuum analyze all tables in pgtraj schema with default name "traj"
+  pgTrajVacuum(conn)
 }
 }
 \author{

@@ -29,7 +29,8 @@
 ##' @export
 ##' @examples
 ##' \dontrun{
-##'     ltraj2pgtraj(conn, ibex, "traj_t2")
+##'   # create pgtraj from ltraj "ibex" in schema "traj_t2"
+##'   ltraj2pgtraj(conn, ibex, "traj_t2")
 ##' }
 
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,

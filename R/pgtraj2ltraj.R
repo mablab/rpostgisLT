@@ -6,8 +6,8 @@
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
+#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' 
 #' @return an ltraj object
 #' 
@@ -15,12 +15,15 @@
 #' @importFrom sp CRS
 #' 
 #' @examples 
-#' \dontrun{pgtraj2ltraj(conn, "traj_t2", "ibex")}
+#' \dontrun{
+#'  # create ltraj from pgtraj named "ibex" in schema "traj_t2"
+#'  ibex<-pgtraj2ltraj(conn, "ibex", "traj_t2")
+#' }
 #' 
 #' @export 
 #' 
 ##############################################################################
-pgtraj2ltraj <- function(conn, schema = "traj", pgtraj) {
+pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection"))

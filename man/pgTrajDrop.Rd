@@ -4,14 +4,14 @@
 \alias{pgTrajDrop}
 \title{Delete one or more pgtrajs from a traj schema.}
 \usage{
-pgTrajDrop(conn, schema = "traj", pgtraj)
+pgTrajDrop(conn, pgtraj, schema = "traj")
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores the traj data model.}
-
 \item{pgtraj}{String. A vector containing the names of the pgtrajs.}
+
+\item{schema}{String. Name of the schema that stores the traj data model.}
 }
 \value{
 TRUE on success
@@ -21,8 +21,10 @@ TRUE on success
 }
 \examples{
 \dontrun{
-  pgTrajDrop(conn, "traj", "ibex")
-  pgTrajDrop(conn, schema="traj", pgtraj=c("ibex", "puechcirc")
+  # drop "ibex" pgtraj in schema "traj"
+  pgTrajDrop(conn, "ibex")
+  # drop "ibex" pgtraj and "puechcirc" pgtraj in schema "traj"
+  pgTrajDrop(conn, pgtraj=c("ibex", "puechcirc")
 }
 }
 \author{
