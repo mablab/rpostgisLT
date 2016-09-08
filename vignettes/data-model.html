@@ -12,7 +12,7 @@
 
 <meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-09-07" />
+<meta name="date" content="2016-09-08" />
 
 <title>rpostgisLT: Database model</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">rpostgisLT: Database model</h1>
 <h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-09-07</em></h4>
+<h4 class="date"><em>2016-09-08</em></h4>
 
 
 <div id="TOC">
@@ -359,7 +359,7 @@ Relates step, infoloc and burst. The exact same step (ID) can belong to many bur
 <div id="managing-time-zones-in-postgresql-and-r" class="section level3">
 <h3>Managing time zones in PostgreSQL and R</h3>
 <p>In PostgreSQL all timezone-aware dates and times are stored internally in UTC. For display they are converted to local time in the zone specified on the server. Therefore the time zone of the input <em>ltraj</em> is stored in the <em>pgtraj</em> table’s <em>time_zone</em> field in order to restore the <em>ltraj</em> with the original time zone when using <code>pgtraj2ltraj</code>.</p>
-<p>This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. “2003-05-31 17:00:56 EST”), puts the ltraj into the database, then for the same date he will see “2003-06-01 00:00:56” in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.</p>
+<p>This also means that if for some reason the user lives in The Hague (NL), has the dates in his ltraj in EST (e.g. “2003-05-31 17:00:56 EST”), puts the ltraj into the database, then for the same date they will see “2003-06-01 00:00:56” in the database, because the date is displayed in CEST (his local time zone), however internally it is stored in UTC.</p>
 <p><strong>A note on managing time zones in R:</strong> Care must be taken when changing the time zone of a POSIXt object in R. Consider the following example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(adehabitatLT)
 <span class="kw">data</span>(ibexraw)

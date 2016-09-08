@@ -32,7 +32,18 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     schema_q <- dbQuoteIdentifier(conn,schema)
   
     view <- paste0(pgtraj, "_parameters")
+    view_q <- dbQuoteIdentifier(conn,view)
+    
+    # check if infolocs exist
+   if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj)))) {
+      info_tab<-dbQuoteIdentifier(conn,paste0("z_infolocs_",pgtraj))
+      sql_query<-paste0("SELECT * FROM ",schema_q,".",view_q," JOIN ",
+                        schema_q,".",info_tab," USING (step_id);")
+      DF <- dbGetQuery(conn,sql_query)
+      DF$step_id<- NULL
+    } else {
     DF <- invisible(dbReadTable(conn, c(schema, view)))
+    }
     
     # Get time zone
     sql_query <- paste0("SELECT time_zone FROM ",schema_q,".pgtraj WHERE pgtraj_name = ",dbQuoteString(conn, pgtraj),";")

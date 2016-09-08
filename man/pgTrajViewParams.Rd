@@ -16,7 +16,7 @@ pgTrajViewParams(conn, schema, pgtraj, epsg, db = TRUE)
 
 \item{epsg}{Numeric. EPSG code of the relocation geometry.}
 
-\item{db}{Boolean. A switch that controlls the parameters view creation 
+\item{db}{Boolean. A switch that controls the parameters view creation 
 depending on source of data (R or PostgreSQL). If TRUE, raw data input from
 a database table is assumed. In this case all parameters will be computed.
 If FALSE, it is assumed that an ltraj was input from R with already computed

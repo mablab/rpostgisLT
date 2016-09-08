@@ -24,6 +24,7 @@
 ##'   # Vacuum analyze all tables in pgtraj schema with default name "traj"
 ##'   pgTrajVacuum(conn)
 ##' }
+## should be modified to only vaccuum the core tables of the pgtraj data model (so not infolocs)
 
 pgTrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
         analyze = TRUE) {

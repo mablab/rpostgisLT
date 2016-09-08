@@ -21,6 +21,8 @@
 ##' @export 
 ##' 
 
+## need to add views to drop query
+
 pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     
     ## check PostgreSQL connection
@@ -36,7 +38,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
                         dbQuoteString(conn,pgtraj),";")
     i <- dbGetQuery(conn, sql_query)[1,1]
     if (is.null(i)) {
-        stop(paste("The pgtraj '", pgtraj, "'doesn't exist in schema '"
+        stop(paste("The pgtraj '", pgtraj, "' doesn't exist in schema '"
                    , schema, "'."))
     }
     
@@ -73,7 +75,8 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
             );
         DELETE FROM pgtraj WHERE pgtraj_name = ",
-                        dbQuoteString(conn,pgtraj),";")
+                        dbQuoteString(conn,pgtraj),";
+        DROP TABLE IF EXISTS ", dbQuoteIdentifier(conn,paste0("z_infolocs_",pgtraj)),";")
     sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     # Begin transaction block
@@ -99,7 +102,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     invisible(dbSendQuery(conn, sql_query))
     
     # Vacuum the schema
-    pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE)
+    suppressMessages(pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE))
     
     message(paste0("The pgtraj '", pgtraj,
                    "' has been deleted from the database schema '",

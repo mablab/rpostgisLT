@@ -210,11 +210,11 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
-continental <- pgtraj2ltraj(conn, "traj_db_t1", "continental")
-large <- pgtraj2ltraj(conn, "traj_db_t1", "large")
-large2 <- pgtraj2ltraj(conn, "traj_db_t1", "large2")
-medium <- pgtraj2ltraj(conn, "traj_db_t1", "medium")
-small <- pgtraj2ltraj(conn, "traj_db_t1", "small")
+continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
+large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
+large2 <- pgtraj2ltraj(conn, "large2" , "traj_db_t1")
+medium <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
+small <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 
@@ -227,7 +227,7 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
-medium <- pgtraj2ltraj(conn, "traj_t2", "medium")
+medium <- pgtraj2ltraj(conn, "medium", "traj_t2")
 
 # variables provided manually
 as_pgtraj(conn, 
@@ -272,7 +272,7 @@ as_pgtraj(conn,
         relocations = c("x", "y"),
         timestamps = "date",
         rid = "gid")
-ibex_re <- pgtraj2ltraj(conn, "traj", "ibex")
+ibex_re <- pgtraj2ltraj(conn, "ibex")
 all.equal(ibex, ibex_re)
 # gives warning of inconsistent time zone attribute but that is expected
 
@@ -289,7 +289,7 @@ as_pgtraj(conn,
         relocations = c("x", "y"),
         timestamps = "date",
         rid = "gid")
-albatross_re <- pgtraj2ltraj(conn, "traj", "albatross")
+albatross_re <- pgtraj2ltraj(conn, "albatross")
 all.equal(albatross, albatross_re)
 # gives warning of inconsistent time zone attribute but that is expected
 # furthermore gives a high number of 'Mean absoloute difference'

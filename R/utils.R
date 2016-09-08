@@ -19,7 +19,7 @@ ld_opt <- function(ltraj) {
     if (!inherits(ltraj, "ltraj"))
         stop("ltraj should be of class ltraj")
     ## Equivalent of hab::ld(strict = FALSE)
-    inf <- infolocs(ltraj)
+    #inf <- infolocs(ltraj)
     df <- data.frame(
         x = unlist(lapply(ltraj, function(x) x$x)),
         y = unlist(lapply(ltraj, function(x) x$y)),
@@ -37,14 +37,23 @@ ld_opt <- function(ltraj) {
         r.row.names = unlist(lapply(ltraj, function(x) rownames(x))))
     class(df$date) <- c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")
-    if (!is.null(inf)) {
-        nc <- ncol(inf[[1]])
-        infdf <- as.data.frame(matrix(nrow = nrow(df), ncol = nc))
-        names(infdf) <- names(inf[[1]])
-        for (i in 1:nc)
-            infdf[[i]] <- unlist(lapply(inf, function(x) x[[i]]))
-        df <- cbind(df, infdf)
-    }
+    # no infolocs needed here (done in seperate function)
+    # if (!is.null(inf)) {
+    #     icols <- unlist(lapply(inf,function(x) colnames(x)))
+    #     icols <- unique(icols)
+    #     infdf <- as.data.frame(matrix(nrow = nrow(df), ncol = length(icols)))
+    #     names(infdf) <- icols
+    #     #add missing columns
+    #     for (l in 1:length(inf)) {
+    #       missing<-icols[!icols %in% names(inf[[l]])]
+    #       inf[[l]][missing]<-NA
+    #     }
+    #     #bind data frames
+    #     for (i in icols) {
+    #         infdf[[i]] <- unlist(lapply(inf, function(x) x[[i]]))
+    #     }
+    #       df <- cbind(df, infdf)
+    # }
     return(df)
 }
 
@@ -144,7 +153,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
         note, time_zone) {
     # check table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(relocations_table), collapse = ".")  
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")  
     # sanitize schema, rids, relocations 
     schema_q <- dbQuoteIdentifier(conn,schema)
     rids_q<- dbQuoteIdentifier(conn,rids)
@@ -450,7 +459,7 @@ pgTrajTempT <- function(conn, schema) {
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' @param epsg Numeric. EPSG code of the relocation geometry.
-#' @param db Boolean. A switch that controlls the parameters view creation 
+#' @param db Boolean. A switch that controls the parameters view creation 
 #' depending on source of data (R or PostgreSQL). If TRUE, raw data input from
 #' a database table is assumed. In this case all parameters will be computed.
 #' If FALSE, it is assumed that an ltraj was input from R with already computed
@@ -581,6 +590,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             ON TRUE
         )
         SELECT
+            p.step_id,
             p.r_rowname,
             p.x, 
             p.y,
@@ -656,7 +666,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
             )
-        SELECT
+        SELECT t.step_id,
             t.r_rowname,
             ST_x(t.relocation1_geom) AS x, 
             ST_y(t.relocation1_geom) AS y,
@@ -674,7 +684,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             t.animal_name,
             t.burst_name AS burst,
             t.pgtraj_name AS pgtraj
-        FROM (SELECT
+        FROM (SELECT step_id,
                   relocation_time,
                   dt,
                   r_rowname,
@@ -893,5 +903,80 @@ is_blank <- function(x, false_triggers=FALSE){
 }
 
 
+## writeInfoFromLtraj
 
+##' Write infolocs table to database from ltraj in ltraj2pgtraj()
+##'
+##' @param conn A PostgreSQL connection object.
+##' @param ltraj An adehabitatLT ltraj object
+##' @param pgtraj String, name of the pgtraj being created
+##' @return boolean TRUE on successful infolocs writing
+##' @keywords internal
+##' @author David Bucklin \email{david.bucklin@@gmail.com}
+
+writeInfoFromLtraj<-function(conn,ltraj,pgtraj) {
+  
+  inf<-infolocs(ltraj)
+  if (is.null(inf)) {
+    message("No Infolocs data in ltraj.")
+    return(invisible())
+  }
+  
+  rnms<-row.names(do.call("rbind",ltraj))
+  
+  suppressPackageStartupMessages(requireNamespace("dplyr",quietly=TRUE))
+  
+  #table_name
+  iloc_nm<-paste0("z_infolocs_",pgtraj)
+
+  ## data frame method
+  #bind all list data frames 
+  #iloc_df<-dplyr::bind_rows(iloc)
+  
+  # no dplyr method
+  icols <- unlist(lapply(inf,function(x) colnames(x)))
+  icols <- unique(icols)
+  iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol = length(icols)))
+  names(iloc_df) <- icols
+  #add missing columns
+  for (l in 1:length(inf)) {
+    missing<-icols[!icols %in% names(inf[[l]])]
+    inf[[l]][missing]<-NA
+  }
+  #bind data frames
+  for (i in icols) {
+      iloc_df[[i]] <- unlist(lapply(inf, function(x) x[[i]]))
+  }
+  #add original ltraj row names  
+  iloc_df$r_rowname931<-as.character(rnms)
+  
+  sql_query<-paste0("select s_i_b_rel.step_id,step.r_rowname as r_rowname931
+                      from
+                      pgtraj,
+                      animal_burst,
+                      s_i_b_rel,
+                      step 
+                      WHERE
+                      pgtraj.id = animal_burst.pgtraj_id AND
+                      animal_burst.id = s_i_b_rel.animal_burst_id AND
+                      s_i_b_rel.step_id = step.id AND
+                      pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+                      order by step_id;")
+  
+  step_ids<-dbGetQuery(conn,sql_query)
+  
+  fj<-dplyr::right_join(step_ids,iloc_df,by="r_rowname931")
+  fj$r_rowname931<-NULL
+  
+  pgInsert(conn,name = c(iloc_nm),data.obj = fj,overwrite = TRUE, alter.names = FALSE)
+  dbAddKey(conn,name = c(iloc_nm),type = "primary","step_id")
+  
+  # foreign key
+  sql_query<-paste0("ALTER TABLE ",dbQuoteIdentifier(conn,iloc_nm), 
+                    "ADD FOREIGN KEY (step_id) REFERENCES step (id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE;")
+  dbSendQuery(conn,sql_query)
+  message(paste0("Infolocs written to table '",iloc_nm,"'."))
+  return(TRUE)
+}
 

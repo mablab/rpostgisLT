@@ -22,6 +22,7 @@
 ##'     \code{FALSE}, the function exits. Note that \code{overwrite}
 ##'     requires an exact match among the \code{pgtraj} names
 ##'     otherwise it is ignored.
+##' @param infolocs Logical. Whether to write infolocs to database.
 ##' @return \code{TRUE} on success.
 ##' @seealso \code{\link{as_pgtraj}} to create a \code{pgtraj} with
 ##'     data already stored in the database.
@@ -34,7 +35,7 @@
 ##' }
 
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
-    note = NULL, overwrite = FALSE) {
+    note = NULL, overwrite = FALSE, infolocs = FALSE) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
@@ -64,7 +65,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (pgtraj %in% pgt$pgtraj_name) {
         ## If 'overwrite', drop 'pgtraj', else stop
         if (overwrite) {
-            pgTrajDrop(conn, schema, pgtraj)
+            pgTrajDrop(conn, pgtraj, schema)
         } else {
             stop(paste0("The pgtraj '", pgtraj, "' already exists in the schema '",
                 schema, "'"))
@@ -167,15 +168,22 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     ## Commit transaction and restore search path
     tryCatch({
         if (all(res)) {
-            ## Restore database search path
-            sql_query <- paste0("SET search_path TO ", current_search_path,
-                ";")
-            invisible(dbSendQuery(conn, sql_query))
             dbCommit(conn)
             message(paste0("The ltraj '", pgtraj, "' has been successfully inserted into the database schema '",
                 schema, "'."))
             ## Vacuum the tables
-            pgTrajVacuum(conn, schema)
+            suppressMessages(pgTrajVacuum(conn, schema))
+            ## infolocs writing
+            if (infolocs) {
+              info<-NULL
+              info<-try(suppressMessages(writeInfoFromLtraj(conn, ltraj, pgtraj)),silent=TRUE)
+              if (info) {message("Infolocs written to table '",paste0("z_infolocs_",pgtraj),"'.")} else 
+              {message("Infolocs writing failed.")}
+            }
+            ## Restore database search path
+            sql_query <- paste0("SET search_path TO ", current_search_path,
+                ";")
+            invisible(dbSendQuery(conn, sql_query))
             return(TRUE)
         } else {
             dbRollback(conn)

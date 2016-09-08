@@ -5,7 +5,7 @@
 \title{Export ltraj object from R into database.}
 \usage{
 ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL,
-  overwrite = FALSE)
+  overwrite = FALSE, infolocs = FALSE)
 }
 \arguments{
 \item{conn}{A connection object.}
@@ -28,6 +28,8 @@ deleted and the provided \code{ltraj} is inserted. If
 \code{FALSE}, the function exits. Note that \code{overwrite}
 requires an exact match among the \code{pgtraj} names
 otherwise it is ignored.}
+
+\item{infolocs}{Logical. Whether to write infolocs to database.}
 }
 \value{
 \code{TRUE} on success.

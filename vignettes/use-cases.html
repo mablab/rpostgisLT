@@ -12,7 +12,7 @@
 
 <meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-09-07" />
+<meta name="date" content="2016-09-08" />
 
 <title>rpostgisLT: Use cases</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">rpostgisLT: Use cases</h1>
 <h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-09-07</em></h4>
+<h4 class="date"><em>2016-09-08</em></h4>
 
 
 <div id="TOC">
@@ -245,7 +245,7 @@ ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con,
 </div>
 <div id="combine-trajectories-or-bursts-burst-traj" class="section level3">
 <h3>Combine trajectories or bursts [burst, traj]</h3>
-<p>The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a <code>list</code>), which can be manipulated just as a list:</p>
+<p>The structure of a ltraj allows to combine different ltraj objects (or selection of bursts); in other word, a ltraj is a collection of bursts (technically a <code>list</code>), which can be manipulated just as any R <code>list</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ibex &lt;-<span class="st"> </span>ibex.ref
 ibex2 &lt;-<span class="st"> </span>ibex
 <span class="kw">burst</span>(ibex2) &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="kw">burst</span>(ibex2), <span class="st">&quot;2&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;-&quot;</span>)

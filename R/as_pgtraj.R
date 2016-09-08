@@ -86,7 +86,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         stop("PostGIS is not enabled on this database.")
     }
     # sanitize table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(relocations_table), collapse = ".")
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")
     # sanitize column name strings used in queries
     relocations_q <- dbQuoteIdentifier(conn,relocations)
     ##### Test inputs
@@ -259,7 +259,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     if (suppressWarnings(all(res))) {
         dbCommit(conn)
         # Vacuum the tables
-        pgTrajVacuum(conn, schema)
+        suppressMessages(pgTrajVacuum(conn, schema))
         # Return TRUE
         return(all(res))
     } else {
