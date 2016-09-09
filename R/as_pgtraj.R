@@ -38,6 +38,13 @@
 #' Ignored if relocations is a geometry type.
 #' @param note String. Comment on the pgtraj. The comment is only used in
 #' the database and not transferred into an ltraj.
+#' @param info_cols String. Optional character vector of column names of 
+#' additional information on relocations (replicating "infolocs" from the
+#' \code{adehabitatLT} object \code{ltraj}).
+#' @param info_table Character vector of \code{c("schema","table")} holding the 
+#' \code{info_cols}. If \code{info_cols} are in \code{relocations_table}, leave NULL.
+#' @param info_rids String. Column name of unique integer ID in \code{info_table} to join with
+#' \code{rids}. If \code{info_cols} are in \code{relocations_table}, leave NULL.
 #' 
 #' @return TRUE on success
 #' 
@@ -50,8 +57,8 @@
 #'         animals = "animal",
 #'         bursts = "burst",
 #'         relocations = "geom",
-#'         timestamp = "time",
-#'         rid = "gid")
+#'         timestamps = "time",
+#'         rids = "gid")
 #' }
 #' 
 #' \dontrun{
@@ -62,8 +69,8 @@
 #'         animals = "animal",
 #'         bursts = "burst",
 #'         relocations = c("x","y"),
-#'         timestamp = "time",
-#'         rid = "gid")
+#'         timestamps = "time",
+#'         rids = "gid")
 #' }
 #' 
 #' @export 
@@ -76,8 +83,8 @@
 ###############################################################################
 as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
-        relocations, timestamps = NULL, rids = "rid", srid = NULL,  #srid not in parameters desc.
-        note = NULL) {
+        relocations, timestamps = NULL, rids = "rid", srid = NULL,
+        note = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
@@ -85,6 +92,13 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     if (!suppressMessages(pgPostGIS(conn))) {
         stop("PostGIS is not enabled on this database.")
     }
+    
+    # Ensure length-2 table names (search path changes throughout fn)
+    relocations_table<-rpostgis:::dbTableNameFix(conn,relocations_table,as.identifier = FALSE)
+    if (!is.null(info_table)) {
+      info_table<-rpostgis:::dbTableNameFix(conn,info_table,as.identifier = FALSE)
+    }
+    
     # sanitize table name
     relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")
     # sanitize column name strings used in queries
@@ -252,18 +266,34 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         
     }
     
-    # Commit transaction and reset search path in the database
-    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbGetQuery(conn, sql_query))
-    
+    # Commit transaction, infolocs if specified
     if (suppressWarnings(all(res))) {
+        # infolocs
+        if (!is.null(info_cols)) {
+          suppressMessages(dbSendQuery(conn, "ANALYZE zgaqtsn_temp;"))
+          pgtraj_list<-dbGetQuery(conn, "SELECT DISTINCT pgtraj_name as p FROM zgaqtsn_temp;")$p
+          if (is.null(info_rids)) info_rids <-rids
+          if (is.null(info_table)) info_table <- relocations_table
+          for (p in pgtraj_list) {
+          info<-FALSE
+          try(info<-writeInfoFromDB(conn, pgtraj = p, info_cols, info_table, info_rids))
+          if (!info) message("Infolocs writing for pgtraj '",p,"' failed.")
+          }
+        }
+        # commit transaction (drops temp table)
         dbCommit(conn)
         # Vacuum the tables
         suppressMessages(pgTrajVacuum(conn, schema))
+        #reset search path in the database
+        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        invisible(dbGetQuery(conn, sql_query))
         # Return TRUE
         return(all(res))
     } else {
         message("Insert faliure, rolling back transaction")
         dbRollback(conn)
+        #reset search path in the database
+        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        invisible(dbGetQuery(conn, sql_query))
     }
 }

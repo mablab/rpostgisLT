@@ -40,10 +40,11 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
       sql_query<-paste0("SELECT * FROM ",schema_q,".",view_q," JOIN ",
                         schema_q,".",info_tab," USING (step_id);")
       DF <- dbGetQuery(conn,sql_query)
-      DF$step_id<- NULL
     } else {
-    DF <- invisible(dbReadTable(conn, c(schema, view)))
+      DF <- invisible(dbReadTable(conn, c(schema, view)))
     }
+    #remove step_id column
+    DF$step_id<- NULL
     
     # Get time zone
     sql_query <- paste0("SELECT time_zone FROM ",schema_q,".pgtraj WHERE pgtraj_name = ",dbQuoteString(conn, pgtraj),";")

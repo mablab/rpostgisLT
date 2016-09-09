@@ -32,10 +32,15 @@ pgTrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
     }
+    
     # Get all the tables in the schema
     sql_query <- paste0("SELECT tablename, schemaname FROM pg_tables WHERE schemaname = ",
                         dbQuoteString(conn, schema),";")
     tables <- dbGetQuery(conn, sql_query)
+    
+    #just list main tables
+    #pgtraj_tlist<-c("animal_burst","pgtraj","relocation","s_i_b_rel","step")
+    #for (tbl in pgtraj_tlist) {
     
     for (tbl in tables$tablename) {
         dbVacuum(conn, name = c(schema,tbl), full, verbose, analyze, display = TRUE,

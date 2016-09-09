@@ -1,13 +1,10 @@
-/*
- * pgtraj_v8
- */
-
 CREATE TABLE pgtraj (
     id                 serial      PRIMARY KEY,
     pgtraj_name        text        UNIQUE NOT NULL,
     proj4string        text        DEFAULT NULL,
     time_zone          text        DEFAULT NULL,
-    note               text        DEFAULT NULL
+    note               text        DEFAULT NULL,
+	insert_timestamp	timestamptz DEFAULT now()
 );
 
 
@@ -24,7 +21,8 @@ CREATE TABLE animal_burst (
 CREATE TABLE relocation (
     id               serial      PRIMARY KEY,
     geom             geometry    DEFAULT NULL,
-    relocation_time  timestamptz DEFAULT NULL
+    relocation_time  timestamptz DEFAULT NULL,
+    orig_id	     integer 	 DEFAULT NULL --added for infolocs support
 );
 
 CREATE TABLE step (
@@ -81,7 +79,6 @@ COMMENT ON COLUMN step.dt IS 'Duration of the step.';
 COMMENT ON COLUMN step.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
 COMMENT ON COLUMN step.r2n IS 'R2n parameter copied from the ltraj on import from R.';
 COMMENT ON COLUMN step.rel_angle IS 'Rel.angle parameter copied from the ltraj on import from R.';
-
 COMMENT ON TABLE relocation IS 'Relocation geometry and time stamp.';
 COMMENT ON COLUMN relocation.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';

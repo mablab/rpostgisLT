@@ -1,8 +1,3 @@
-/*
- * Populate the traj schema in case data was input from a database table
- */
-
-/*prepares relocations for insert and passing data to other tables*/
 WITH relocation_input AS (
     SELECT
         nextval('relocation_id_seq') AS id,
@@ -13,13 +8,14 @@ WITH relocation_input AS (
         pgtraj_name,
         proj4string,
         time_zone,
-        note
+        note,
+        id as orig_id --added for infoloc support
     FROM zgaqtsn_temp
     ORDER BY pgtraj_name, burst_name, relocation_time
     ),
 insert_relocation AS (
-    INSERT INTO relocation (id, geom, relocation_time)
-    SELECT id, geom, relocation_time
+    INSERT INTO relocation (id, geom, relocation_time, orig_id) --added orig_id for infoloc support
+    SELECT id, geom, relocation_time ,orig_id			--added orig_id for infoloc support
     FROM relocation_input
     ),
 --/*prepares steps for insert and passing data to other tables*/

@@ -6,7 +6,8 @@
 \usage{
 as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
   animals = "animal", bursts = NULL, relocations, timestamps = NULL,
-  rids = "rid", srid = NULL, note = NULL)
+  rids = "rid", srid = NULL, note = NULL, info_cols = NULL,
+  info_table = NULL, info_rids = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -36,6 +37,16 @@ Ignored if relocations is a geometry type.}
 
 \item{note}{String. Comment on the pgtraj. The comment is only used in
 the database and not transferred into an ltraj.}
+
+\item{info_cols}{String. Optional character vector of column names of 
+additional information on relocations (replicating "infolocs" from the
+\code{adehabitatLT} object \code{ltraj}).}
+
+\item{info_table}{Character vector of \code{c("schema","table")} holding the 
+\code{info_cols}. If \code{info_cols} are in \code{relocations_table}, leave NULL.}
+
+\item{info_rids}{String. Column name of unique integer ID in \code{info_table} to join with
+\code{rids}. If \code{info_cols} are in \code{relocations_table}, leave NULL.}
 }
 \value{
 TRUE on success
@@ -64,8 +75,8 @@ as_pgtraj(conn,
         animals = "animal",
         bursts = "burst",
         relocations = "geom",
-        timestamp = "time",
-        rid = "gid")
+        timestamps = "time",
+        rids = "gid")
 }
 
 \dontrun{
@@ -76,8 +87,8 @@ as_pgtraj(conn,
         animals = "animal",
         bursts = "burst",
         relocations = c("x","y"),
-        timestamp = "time",
-        rid = "gid")
+        timestamps = "time",
+        rids = "gid")
 }
 
 }

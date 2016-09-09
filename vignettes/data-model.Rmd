@@ -1,6 +1,6 @@
----
+﻿---
 title: "rpostgisLT: Database model"
-author: "Bal�zs Dukai, Mathieu Basille, David Bucklin, and Cl�ment Calenge"
+author: "BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:

@@ -109,14 +109,12 @@ all.equal(ibex, ibexTest)
 summary(ld(ibex)$dist)
 (ibex <- redisltraj(ibex, 400,type="space"))         # Note that 'redisltraj'
                                         # creates an 'infolocs'
-                                        # attribute, which we remove
-                                        # for now:
-                                        # this function is adding an extra column - "rel.ang" (FIXED in latest version)
-ibex <- removeinfo(ibex)
+                                        # attribute
+#ibex <- removeinfo(ibex)
 
-ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-all.equal(ibex, ibexTest) # not TRUE
+all.equal(ibex, ibexTest) # not TRUE...infolocs$pkey isn't a factor, date rounding
 
 for (i in 1:10) {
  print(i)
@@ -137,11 +135,11 @@ attributes(ibexTest[[1]]$date)
 ## 2. In time
 ibex <- ibex.ref
 (ibex <- redisltraj(na.omit(ibex), 14400, type = "time"))
-ibex <- removeinfo(ibex)
-ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+#ibex <- removeinfo(ibex)
+ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-## TRUE
+## TRUE (except infolocs factor)
 
 
 ## Subset
@@ -200,6 +198,8 @@ all.equal(ibex, ibexTest)
 ## Test database import
 
 # all variables stored with the raw data
+# infolocs in same relocations_table
+
 as_pgtraj(conn, 
         schema = "traj_db_t1",
         relocations_table = c("example_data","relocations_plus"),
@@ -208,7 +208,26 @@ as_pgtraj(conn,
         bursts = "burst",
         relocations = "geom",
         timestamps = "time",
-        rid = "gid")
+        rid = "gid"
+        ,info_cols = c("info_day","dummy")
+        )
+
+dbDrop(conn,name = "traj_db_t1",type = "schema",cascade = TRUE)
+
+# infolocs in other table
+as_pgtraj(conn, 
+        schema = "traj_db_t1",
+        relocations_table = c("example_data","relocations_plus"),
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = "geom",
+        timestamps = "time",
+        rid = "gid",
+        info_cols = c("info_day","dummy"),
+        info_table = c("infoloc_test"),
+        info_rids = "gid"
+        )
 
 continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
@@ -297,6 +316,33 @@ all.equal(albatross, albatross_re)
 # also expected, because the original albatross is in UTC and albatross_re 
 # is in local time zone, thus the 'Mean absoloute difference' is the time
 # differece between the two time zones
+
+
+# infolocs ltraj2pgtraj
+## example of an object with an attribute "infolocs"
+data(capreochiz)
+head(capreochiz)
+## Create an object of class "ltraj"
+cap <- as.ltraj(xy = capreochiz[,c("x","y")], date = capreochiz$date,
+                id = "Roe.Deer", typeII = TRUE,
+                infolocs = capreochiz[,4:8])
+#split it
+cap <- cutltraj(cap, "dist > 100")
+#add dummy column manually to one burst
+infolocs(cap)[[1]]$dummy<-1
+# dumb row names
+row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
+
+ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
+
+cap2<-pgtraj2ltraj(conn,"cap")
+all.equal(cap,cap2)
+# differences due to "dummy" being included in every burst infolocs, not just the first,
+# and factor vs character of Status column
+
+all.equal(removeinfo(cap),removeinfo(cap2)) #only difference in row.names character/numeric of the "infolocs",
+# cap2 has matching row names for ltraj and infolocs, while cap doesn't (due to manual setting)
+
 
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)

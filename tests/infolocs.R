@@ -26,7 +26,7 @@ infolocs(cap)[[1]]$dummy<-1
 row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
 
 pgTrajDrop(conn,"cap")
-ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite = TRUE)
+ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 
 cap2<-pgtraj2ltraj(conn,pgtraj="cap")
 

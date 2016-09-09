@@ -81,11 +81,14 @@ dl_opt <- function(x, rnames = TRUE) {
         if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
             inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst",
                 "r.row.names")), drop = FALSE], x$burst)
+            names(inf) <- NULL
             for (i in (1:length(traj))) {
+                # Add row names to infolocs list
+                rownames(inf[[i]]) <- traj_rname[[i]]
                 attr(traj[[i]], "id") <- as.character(idd[i])
                 attr(traj[[i]], "burst") <- names(idd[i])
                 attr(traj[[i]], "infolocs") <- inf[[i]]
-                ## + Add r.row.names
+                ## + Add r.row.names to infolocs and ltraj
                 rownames(traj[[i]]) <- traj_rname[[i]]
             }
         } else for (i in (1:length(traj))) {
@@ -116,7 +119,6 @@ dl_opt <- function(x, rnames = TRUE) {
         }
         return(traj)
     }
-
 }
 
 
@@ -223,7 +225,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         }
         
     }
-    
+    # maybe analyze table here (to speed up updates)
     fields <- dbListFields(conn, relocations_table)
     # Insert pgtraj
     # sanitize pgtraj
@@ -922,8 +924,9 @@ writeInfoFromLtraj<-function(conn,ltraj,pgtraj) {
     return(invisible())
   }
   
-  rnms<-row.names(do.call("rbind",ltraj))
-  
+  burst<-rep(burst(ltraj), sapply(ltraj, nrow))
+  rnms<-unlist(lapply(ltraj, function(x) rownames(x)))
+
   suppressPackageStartupMessages(requireNamespace("dplyr",quietly=TRUE))
   
   #table_name
@@ -949,34 +952,88 @@ writeInfoFromLtraj<-function(conn,ltraj,pgtraj) {
   }
   #add original ltraj row names  
   iloc_df$r_rowname931<-as.character(rnms)
+  iloc_df$burst_931<-as.character(burst)
   
-  sql_query<-paste0("select s_i_b_rel.step_id,step.r_rowname as r_rowname931
-                      from
-                      pgtraj,
-                      animal_burst,
-                      s_i_b_rel,
-                      step 
+  sql_query<-paste0("SELECT s_i_b_rel.step_id,
+                            step.r_rowname as r_rowname931,
+                            animal_burst.burst_name as burst_931
+                      FROM
+                        pgtraj,
+                        animal_burst,
+                        s_i_b_rel,
+                        step 
                       WHERE
-                      pgtraj.id = animal_burst.pgtraj_id AND
-                      animal_burst.id = s_i_b_rel.animal_burst_id AND
-                      s_i_b_rel.step_id = step.id AND
-                      pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-                      order by step_id;")
+                        pgtraj.id = animal_burst.pgtraj_id AND
+                        animal_burst.id = s_i_b_rel.animal_burst_id AND
+                        s_i_b_rel.step_id = step.id AND
+                        pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+                      ORDER BY step_id;")
   
   step_ids<-dbGetQuery(conn,sql_query)
   
-  fj<-dplyr::right_join(step_ids,iloc_df,by="r_rowname931")
+  fj<-dplyr::right_join(step_ids,iloc_df,by=c("r_rowname931","burst_931"))
   fj$r_rowname931<-NULL
+  fj$burst_931<-NULL
   
-  pgInsert(conn,name = c(iloc_nm),data.obj = fj,overwrite = TRUE, alter.names = FALSE)
-  dbAddKey(conn,name = c(iloc_nm),type = "primary","step_id")
+  suppressMessages(pgInsert(conn,name = c(iloc_nm),data.obj = fj, alter.names = FALSE))
+  dbAddKey(conn,name = c(iloc_nm),type = "primary","step_id", display = FALSE)
   
   # foreign key
   sql_query<-paste0("ALTER TABLE ",dbQuoteIdentifier(conn,iloc_nm), 
-                    "ADD FOREIGN KEY (step_id) REFERENCES step (id)
+                    " ADD FOREIGN KEY (step_id) REFERENCES step (id)
                     ON UPDATE NO ACTION ON DELETE CASCADE;")
   dbSendQuery(conn,sql_query)
-  message(paste0("Infolocs written to table '",iloc_nm,"'."))
+  message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '",iloc_nm,"'."))
   return(TRUE)
 }
 
+
+# take info_cols from as_pgtraj, info_table should == relocations_table and info_rids should == rids if not given
+# relocations_table must be 2-length character.
+writeInfoFromDB<-function(conn, pgtraj, info_cols, info_table, info_rids) {
+  
+  # add column checks
+  
+  # data goes with rids to zqaqtsn_temp as id
+  # send this id as original relocation ids (orig_id) to relocation table
+  # select orig_id using join step.relocation_id_1 = relocation.id where steps in current pgtraj
+  
+  info_tableq<-dbQuoteIdentifier(conn,info_table)
+  info_colsq<-dbQuoteIdentifier(conn,info_cols)
+  ins_cols<-paste("info_tab.",info_colsq,sep = "")
+  info_ridsq<-dbQuoteIdentifier(conn,info_rids)
+  iloc_nm<-paste0("z_infolocs_",pgtraj)
+  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
+  
+  # create and populate table
+  sql_query<-paste0("SELECT --relocation.orig_id, 
+                        step.id as step_id,",
+                        paste(ins_cols,collapse = ",")," 
+                      INTO TABLE ",iloc_nmq," FROM ",
+                        paste(info_tableq,collapse=".")," as info_tab,
+                        relocation,
+                        pgtraj,
+                        animal_burst,
+                        s_i_b_rel,
+                        step
+                      WHERE
+                        pgtraj.id = animal_burst.pgtraj_id AND
+                        animal_burst.id = s_i_b_rel.animal_burst_id AND
+                        s_i_b_rel.step_id = step.id AND
+                        step.relocation_id_1 = relocation.id AND
+                        relocation.orig_id = info_tab.",info_ridsq," AND
+                        pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+                      ORDER BY step_id;")
+  
+  dbSendQuery(conn,sql_query)
+  
+  dbAddKey(conn,name = iloc_nm,type = "primary","step_id", display = FALSE)
+  
+  # foreign key
+  sql_query<-paste0("ALTER TABLE ",iloc_nmq, 
+                    " ADD FOREIGN KEY (step_id) REFERENCES step (id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE;")
+  dbSendQuery(conn,sql_query)
+  message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '",iloc_nm,"'."))
+  return(TRUE)
+}
