@@ -4,7 +4,7 @@
 \alias{writeInfoFromLtraj}
 \title{Write infolocs table to database from ltraj in ltraj2pgtraj()}
 \usage{
-writeInfoFromLtraj(conn, ltraj, pgtraj)
+writeInfoFromLtraj(conn, ltraj, pgtraj, schema)
 }
 \arguments{
 \item{conn}{A PostgreSQL connection object.}
@@ -12,9 +12,11 @@ writeInfoFromLtraj(conn, ltraj, pgtraj)
 \item{ltraj}{An adehabitatLT ltraj object}
 
 \item{pgtraj}{String, name of the pgtraj being created}
+
+\item{schema}{String, name of the schema holding the pgtraj}
 }
 \value{
-boolean TRUE on successful infolocs writing
+TRUE on successful infolocs writing
 }
 \description{
 Write infolocs table to database from ltraj in ltraj2pgtraj()

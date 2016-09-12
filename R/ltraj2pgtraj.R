@@ -176,7 +176,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             ## infolocs writing
             if (infolocs) {
               info<-FALSE
-              try(info<-writeInfoFromLtraj(conn, ltraj, pgtraj))
+              try(info<-writeInfoFromLtraj(conn, ltraj, pgtraj, schema))
               if (!info) message("Infolocs writing for pgtraj '",pgtraj,"' failed.")
             }
             ## Restore database search path

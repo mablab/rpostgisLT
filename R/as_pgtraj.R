@@ -276,7 +276,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
           if (is.null(info_table)) info_table <- relocations_table
           for (p in pgtraj_list) {
           info<-FALSE
-          try(info<-writeInfoFromDB(conn, pgtraj = p, info_cols, info_table, info_rids))
+          try(info<-writeInfoFromDB(conn, pgtraj = p, schema, info_cols, info_table, info_rids))
           if (!info) message("Infolocs writing for pgtraj '",p,"' failed.")
           }
         }

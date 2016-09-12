@@ -14,7 +14,7 @@ dl_opt(x, rnames = TRUE)
 }
 \value{
 \code{ld_opt} returns a data frame with all trajectory
-    parameters (and infolocs fields) as columns; \code{dl_opt}
+    parameters as columns; \code{dl_opt}
     returns an object of class \code{ltraj}.
 }
 \description{
