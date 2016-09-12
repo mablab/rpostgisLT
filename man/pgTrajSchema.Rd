@@ -31,7 +31,7 @@ were manually deleted).  In this case, a new pgtraj schema needs
 to be created, or the existing schema needs to be deleted and
 recreated.
 
-The function has it's standalone transaction control.
+The function has its own standalone transaction control.
 }
 \examples{
 \dontrun{

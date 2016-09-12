@@ -15,7 +15,7 @@
 ##' to be created, or the existing schema needs to be deleted and
 ##' recreated.
 ##'
-##' The function has it's standalone transaction control.
+##' The function has its own standalone transaction control.
 ##' @param conn Connection object created with RPostgreSQL.
 ##' @param schema Character string. Name of the schema that stores or
 ##'     will store the pgtraj data model.

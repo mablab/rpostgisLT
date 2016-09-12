@@ -926,14 +926,13 @@ writeInfoFromLtraj<-function(conn,ltraj,pgtraj) {
   
   burst<-rep(burst(ltraj), sapply(ltraj, nrow))
   rnms<-unlist(lapply(ltraj, function(x) rownames(x)))
-
-  suppressPackageStartupMessages(requireNamespace("dplyr",quietly=TRUE))
   
   #table_name
   iloc_nm<-paste0("z_infolocs_",pgtraj)
 
   ## data frame method
   #bind all list data frames 
+  #suppressPackageStartupMessages(requireNamespace("dplyr",quietly=TRUE))
   #iloc_df<-dplyr::bind_rows(iloc)
   
   # no dplyr method
@@ -950,35 +949,49 @@ writeInfoFromLtraj<-function(conn,ltraj,pgtraj) {
   for (i in icols) {
       iloc_df[[i]] <- unlist(lapply(inf, function(x) x[[i]]))
   }
-  #add original ltraj row names  
+  
+  #add original ltraj row and burst names  
   iloc_df$r_rowname931<-as.character(rnms)
   iloc_df$burst_931<-as.character(burst)
   
-  sql_query<-paste0("SELECT s_i_b_rel.step_id,
-                            step.r_rowname as r_rowname931,
-                            animal_burst.burst_name as burst_931
-                      FROM
-                        pgtraj,
-                        animal_burst,
-                        s_i_b_rel,
-                        step 
-                      WHERE
-                        pgtraj.id = animal_burst.pgtraj_id AND
-                        animal_burst.id = s_i_b_rel.animal_burst_id AND
-                        s_i_b_rel.step_id = step.id AND
-                        pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-                      ORDER BY step_id;")
+  # if "step_id" is already a column, change its name
+  names(iloc_df)[names(iloc_df) == "step_id"]<-"orig.step_id"
   
-  step_ids<-dbGetQuery(conn,sql_query)
+  # insert into new table
+  suppressMessages(pgInsert(conn,name = iloc_nm,data.obj = iloc_df, alter.names = FALSE, new.id = "step_id"))
   
-  fj<-dplyr::right_join(step_ids,iloc_df,by=c("r_rowname931","burst_931"))
-  fj$r_rowname931<-NULL
-  fj$burst_931<-NULL
+  # add step_id column
+  # dbColumn(conn,iloc_nm,colname="step_id",action = "add", coltype = "integer", display = FALSE)
   
-  suppressMessages(pgInsert(conn,name = c(iloc_nm),data.obj = fj, alter.names = FALSE))
+  # update step_id column
+  sql_query<-paste0("UPDATE ",dbQuoteIdentifier(conn,iloc_nm)," a SET
+                        step_id = b.step_id FROM 
+                                      (SELECT s_i_b_rel.step_id as step_id,
+                                        step.r_rowname as r_rowname931,
+                                        animal_burst.burst_name as burst_931
+                                      FROM
+                                        pgtraj,
+                                        animal_burst,
+                                        s_i_b_rel,
+                                        step 
+                                      WHERE
+                                        pgtraj.id = animal_burst.pgtraj_id AND
+                                        animal_burst.id = s_i_b_rel.animal_burst_id AND
+                                        s_i_b_rel.step_id = step.id AND
+                                        pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+                                      ORDER BY step_id) b WHERE
+                                  a.r_rowname931 = b.r_rowname931 AND
+                                  a.burst_931 = b.burst_931;")
+  dbSendQuery(conn,sql_query)
+  
+  # drop r_rowname and burst columns
+  dbColumn(conn,iloc_nm,colname="burst_931",action = "drop", display = FALSE)
+  dbColumn(conn,iloc_nm,colname="r_rowname931",action = "drop", display = FALSE)
+  
+  # add primary key to step_id
   dbAddKey(conn,name = c(iloc_nm),type = "primary","step_id", display = FALSE)
   
-  # foreign key
+  # add foreign key to step_id
   sql_query<-paste0("ALTER TABLE ",dbQuoteIdentifier(conn,iloc_nm), 
                     " ADD FOREIGN KEY (step_id) REFERENCES step (id)
                     ON UPDATE NO ACTION ON DELETE CASCADE;")
@@ -1000,13 +1013,14 @@ writeInfoFromDB<-function(conn, pgtraj, info_cols, info_table, info_rids) {
   
   info_tableq<-dbQuoteIdentifier(conn,info_table)
   info_colsq<-dbQuoteIdentifier(conn,info_cols)
+  
   ins_cols<-paste("info_tab.",info_colsq,sep = "")
   info_ridsq<-dbQuoteIdentifier(conn,info_rids)
   iloc_nm<-paste0("z_infolocs_",pgtraj)
   iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
   
   # create and populate table
-  sql_query<-paste0("SELECT --relocation.orig_id, 
+  sql_query<-paste0("SELECT
                         step.id as step_id,",
                         paste(ins_cols,collapse = ",")," 
                       INTO TABLE ",iloc_nmq," FROM ",
@@ -1027,9 +1041,9 @@ writeInfoFromDB<-function(conn, pgtraj, info_cols, info_table, info_rids) {
   
   dbSendQuery(conn,sql_query)
   
+  # add primary key to step_id
   dbAddKey(conn,name = iloc_nm,type = "primary","step_id", display = FALSE)
-  
-  # foreign key
+  # add foreign key to step_id
   sql_query<-paste0("ALTER TABLE ",iloc_nmq, 
                     " ADD FOREIGN KEY (step_id) REFERENCES step (id)
                     ON UPDATE NO ACTION ON DELETE CASCADE;")
