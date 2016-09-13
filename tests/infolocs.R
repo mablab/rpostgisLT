@@ -10,20 +10,104 @@ conn<-dbConnect("PostgreSQL",dbname="rpostgis",user="postgres",password="pgis",h
 
 ## example of an object with an attribute "infolocs"
 data(capreochiz)
-head(capreochiz)
+cap.alt<-capreochiz
+cap.alt$dist<-10
+cap.alt$Status<-droplevels(cap.alt$Status)  # if not, unused levels cause all.equal != TRUE
+cap.alt$date2<-cap.alt$date
+cap.alt$date3<-cap.alt$date
+
+#mess with tz
+attr(cap.alt$date3,"tzone")<-"America/New_York"
+#attr(cap.alt$date2,"tzone")<-"bla" #this still causes errors
+attr(cap.alt$date2,"tzone")<-NULL #this works
+
+
+#head(capreochiz)
 
 ## Create an object of class "ltraj"
-cap <- as.ltraj(xy = capreochiz[,c("x","y")], date = capreochiz$date,
+cap <- as.ltraj(xy = cap.alt[,c("x","y")], date = cap.alt$date,
                 id = "Roe.Deer", typeII = TRUE,
-                infolocs = capreochiz[,4:8])
+                infolocs = cap.alt[,4:11])
 
 #split it
 cap <- cutltraj(cap, "dist > 100")
 
-#add dummy column manually to one burst
-infolocs(cap)[[1]]$dummy<-1
+#add dummy column manually to one burst (these alterations will cause not allow all.equal = TRUE, but still are valid)
+#infolocs(cap)[[1]]$dummy<-1
 # dumb row names
-row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
+#row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
+
+# storing column types with info
+#info<-infolocs(cap)
+
+###############################################################
+#make iloc_df from infolocs fn()
+iloc_df
+
+types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
+types<-t(types)
+
+# handle time types
+tz<-types %in% c("POSIXct","POSIXlt","POSIXt")
+tz2<-lapply(iloc_df[1,],function(x) {attr(x,"tzone")})
+tz2<-t(tz2)
+
+# make array of columns, types, and time zones
+info_nm<-paste0("'{{",paste(names(iloc_df),collapse=","),"},{",
+                paste(as.character(types),collapse=","),"},{",
+                paste(as.character(tz2),collapse=","),"}}'")
+
+# write info_nm to pgtraj.info_cols
+dbSendQuery(conn,paste0("insert into traj.pgtraj (pgtraj_name, info_cols) 
+                        VALUES ('captest',",
+                        info_nm,");"))
+
+# write infolocs table
+dbWriteTable(conn,c("traj","iloc_captest"),value = iloc_df[FALSE,],row.names= FALSE)
+for (n in names(iloc_df)[tz]) {
+  dbSendQuery(conn,paste0("ALTER TABLE traj.iloc_captest ALTER COLUMN ",
+                          dbQuoteIdentifier(conn,n),
+                          " TYPE timestamp;"))
+}
+pgInsert(conn,c("traj","iloc_captest"),iloc_df,alter.names = FALSE)
+
+
+#retrieve
+get<-dbGetQuery(conn,"select unnest(info_cols[1:1]) as nms, 
+                      unnest(info_cols[2:2]) as defs,
+                      unnest(info_cols[3:3]) as tzs
+                      from traj.pgtraj
+                      where pgtraj_name = 'captest';") 
+
+getinfo<-dbReadTable(conn,c("traj","iloc_captest"))
+
+# match rownames
+rownames(getinfo)<-rownames(iloc_df)
+# drop unused levels
+iloc_df$Status<-droplevels(iloc_df$Status)
+
+# assign types
+for (i in names(getinfo)) {
+  att<-get[get$nms == i,]
+  if (!is.na(att$tzs)) {
+  getinfo[,i]<-eval(parse(text=paste0("as.",att$defs,
+                                      "(as.character(getinfo[,i]),
+                                      tz='",att$tzs,"')")))
+  } else {
+  getinfo[,i]<-do.call(paste0("as.",att$defs),list(getinfo[,i]))
+  }
+}
+##############
+
+
+all.equal(iloc_df,getinfo) 
+# missing factor levels dropped
+# times that are not in local TZ will be incorrect
+
+
+
+
+
 
 pgTrajDrop(conn,"cap")
 ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
@@ -31,10 +115,9 @@ ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 cap2<-pgtraj2ltraj(conn,pgtraj="cap")
 
 all.equal(cap,cap2)
-#infolocs have attribute differences - new "dummy" column is in all bursts now
+#infolocs have colum name differnces if columns were manually added, or column names match reserved names (they were changed)
 
 #infolocs(cap)[[2]]<-NULL #doesn't work - infolocs cannot be removed except for all bursts (so length will always match)
-
 
 
 ####code below

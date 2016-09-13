@@ -908,42 +908,81 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
     return(invisible())
   }
   
-  burst<-rep(burst(ltraj), sapply(ltraj, nrow))
-  rnms<-unlist(lapply(ltraj, function(x) rownames(x)))
-  
   #table_name
   iloc_nm<-paste0("z_infolocs_",pgtraj)
+  
+  # query-safe identifier names
+  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
+  schemaq<-dbQuoteIdentifier(conn,schema)
+  
+  burst<-rep(burst(ltraj), sapply(ltraj, nrow))
+  rnms<-unlist(lapply(ltraj, function(x) rownames(x)))
   
   # bind infolocs data frames 
   icols <- unlist(lapply(inf,function(x) colnames(x)))
   icols <- unique(icols)
-  iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol = length(icols)))
-  names(iloc_df) <- icols
+  #iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol = length(icols)))
+  #$names(iloc_df) <- icols
   #add missing columns
   for (l in 1:length(inf)) {
     missing<-icols[!icols %in% names(inf[[l]])]
     inf[[l]][missing]<-NA
   }
+  
   #bind data frames
-  for (i in icols) {
-      iloc_df[[i]] <- unlist(lapply(inf, function(x) x[[i]]))
+  iloc_df<-do.call("rbind",inf)
+  
+  # alter names that conflict with pgtraj/ltraj
+  trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
+        "R2n", "abs.angle", "rel.angle", "r_rowname",
+        "step_id", "animal_name", "burst","pgtraj")
+  if (any(names(iloc_df) %in% trajnam)) {
+    message("Found infolocs column names which match reserved ltraj/pgtraj names. Altering with prefix 'info_'.")
+  names(iloc_df)[names(iloc_df) %in% trajnam]<-
+    paste0("info_",names(iloc_df)[names(iloc_df) %in% trajnam])
   }
   
-  #add original ltraj row and burst names  
+  #### infolocs definition section ####
+  types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
+  types<-t(types)
+
+  # handle time types
+  tz2<-lapply(iloc_df[1,],function(x) {attr(x,"tzone")})
+  tz2<-t(tz2)
+  badtz<-unlist(lapply(tz2,function(x) {any(is.null(x),!x %in% OlsonNames())}))
+  tz2[badtz] <- "NULL"
+
+  # make array of columns, types, and time zones
+  info_nm<-paste0("'{{",paste(names(iloc_df),collapse=","),"},{",
+                paste(as.character(types),collapse=","),"},{",
+                paste(as.character(tz2),collapse=","),"}}'")
+
+  # write info_nm to pgtraj.info_cols
+  sql_query<-paste0("UPDATE ",schemaq,".pgtraj SET (info_cols) = (",
+                        info_nm,") WHERE 
+                        pgtraj_name = ",dbQuoteString(conn,pgtraj),";")
+  dbSendQuery(conn,sql_query)
+  
+  #### end definition section ####
+
+  #add original ltraj row and burst names, and step_id 
   iloc_df$r_rowname931<-as.character(rnms)
   iloc_df$burst_931<-as.character(burst)
-  
-  # if "step_id" is already a column, change its name
-  names(iloc_df)[names(iloc_df) == "step_id"]<-"orig.step_id"
+  iloc_df$step_id<-as.integer(1)
   
   # insert into new table
-  suppressMessages(pgInsert(conn,name = c(schema,iloc_nm),
-                            data.obj = iloc_df, alter.names = FALSE,
-                            new.id = "step_id"))
+  dbWriteTable(conn,c(schema,iloc_nm),value = iloc_df[FALSE,],
+                   row.names= FALSE)
   
-  # query-safe identifier names
-  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
-  schemaq<-dbQuoteIdentifier(conn,schema)
+  tztypes<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
+  tz<-tztypes %in% c("POSIXct","POSIXlt","POSIXt")
+  for (n in names(iloc_df)[tz]) {
+  dbSendQuery(conn,paste0("ALTER TABLE ",schemaq,".",iloc_nmq," ALTER COLUMN ",
+                          dbQuoteIdentifier(conn,n),
+                          " TYPE timestamp;"))
+  }
+  suppressMessages(pgInsert(conn,name = c(schema,iloc_nm),
+                            data.obj = iloc_df, alter.names = FALSE))
 
   # update step_id column
   sql_query<-paste0("UPDATE ",schemaq,".",iloc_nmq," a SET
@@ -1045,3 +1084,57 @@ writeInfoFromDB<-function(conn, pgtraj, schema, info_cols, info_table, info_rids
   message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '",iloc_nm,"'."))
   return(TRUE)
 }
+
+getPgtrajWithInfo<-function(conn, pgtraj, schema) {
+  
+  # DB safe names  
+  schemaq<-dbQuoteIdentifier(conn,schema)
+  
+  iloc_nm<-paste0("z_infolocs_",pgtraj)
+  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
+  view <- paste0(pgtraj, "_parameters")
+  viewq <- dbQuoteIdentifier(conn,view)
+  
+  # check if defs exist
+  sql_query<-paste0("SELECT 1 as test FROM ",schemaq,".pgtraj WHERE
+                    pgtraj_name = ",dbQuoteString(conn,pgtraj),
+                    " AND info_cols IS NOT NULL;")
+  check<-dbGetQuery(conn,sql_query)$test
+  
+  if (!is.null(check)) {
+      sql_query<-paste0("SELECT unnest(info_cols[1:1]) as nms, 
+                        unnest(info_cols[2:2]) as defs,
+                        unnest(info_cols[3:3]) as tzs
+                        FROM ",schemaq,".pgtraj
+                        WHERE pgtraj_name = ",
+                        dbQuoteString(conn,pgtraj),";")
+      
+      defs<-dbGetQuery(conn,sql_query) 
+      
+      sql_query<-paste0("SELECT * FROM ",schemaq,".",viewq," JOIN ",
+                        schemaq,".",iloc_nmq," USING (step_id);")
+      getinfo<-dbGetQuery(conn,sql_query)
+      
+      # need to account for if names of infolocs match reserved ltraj names (should not allow on import?)
+      # assign types
+      for (i in names(getinfo)) {
+          att<-defs[defs$nms == i,]
+          if (length(att[,1]) == 0) {next}
+          if (!is.na(att$tzs)) {
+          getinfo[,i]<-eval(parse(text=paste0("as.",att$defs,
+                                              "(as.character(getinfo[,i]),
+                                              tz='",att$tzs,"')")))
+          } else {
+          getinfo[,i]<-do.call(paste0("as.",att$defs),list(getinfo[,i]))
+          }
+      }
+      return(getinfo)
+      
+  } else {
+    sql_query<-paste0("SELECT * FROM ",schemaq,".",viewq," JOIN ",
+                        schemaq,".",iloc_nmq," USING (step_id);")
+    getinfo<-dbGetQuery(conn,sql_query)
+    return(getinfo)
+  }
+}
+  

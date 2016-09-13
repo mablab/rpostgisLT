@@ -4,6 +4,7 @@ CREATE TABLE pgtraj (
     proj4string        text        DEFAULT NULL,
     time_zone          text        DEFAULT NULL,
     note               text        DEFAULT NULL,
+	info_cols		   text[][][]  DEFAULT NULL,
 	insert_timestamp	timestamptz DEFAULT now()
 );
 

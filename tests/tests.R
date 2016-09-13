@@ -229,6 +229,7 @@ as_pgtraj(conn,
         info_rids = "gid"
         )
 
+
 continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
 large2 <- pgtraj2ltraj(conn, "large2" , "traj_db_t1")
@@ -329,9 +330,9 @@ cap <- as.ltraj(xy = capreochiz[,c("x","y")], date = capreochiz$date,
 #split it
 cap <- cutltraj(cap, "dist > 100")
 #add dummy column manually to one burst
-infolocs(cap)[[1]]$dummy<-1
+#infolocs(cap)[[1]]$dummy<-1
 # dumb row names
-row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
+#row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
 
 ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 

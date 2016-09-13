@@ -36,10 +36,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     # check if infolocs exist
    if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj)))) {
-      info_tab<-dbQuoteIdentifier(conn,paste0("z_infolocs_",pgtraj))
-      sql_query<-paste0("SELECT * FROM ",schema_q,".",view_q," JOIN ",
-                        schema_q,".",info_tab," USING (step_id);")
-      DF <- dbGetQuery(conn,sql_query)
+      DF <- getPgtrajWithInfo(conn, pgtraj, schema)
     } else {
       DF <- invisible(dbReadTable(conn, c(schema, view)))
     }
