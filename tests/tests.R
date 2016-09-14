@@ -232,9 +232,24 @@ as_pgtraj(conn,
 
 continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
-large2 <- pgtraj2ltraj(conn, "large2" , "traj_db_t1")
 medium <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
 small <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
+
+ltraj2pgtraj(conn,continental,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+ltraj2pgtraj(conn,large,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+ltraj2pgtraj(conn,large2,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+ltraj2pgtraj(conn,medium,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+ltraj2pgtraj(conn,small,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+
+continental2 <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
+large2 <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
+medium2 <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
+small2 <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
+
+all.equal(continental,continental2)
+all.equal(large,large2)
+all.equal(medium,medium2)
+all.equal(small,small2) #just infolocs row names differences
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 

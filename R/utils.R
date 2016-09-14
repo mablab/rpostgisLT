@@ -944,18 +944,22 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   
   #### infolocs definition section ####
   types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
-  types<-t(types)
 
-  # handle time types
-  tz2<-lapply(iloc_df[1,],function(x) {attr(x,"tzone")})
-  tz2<-t(tz2)
-  badtz<-unlist(lapply(tz2,function(x) {any(is.null(x),!x %in% OlsonNames())}))
-  tz2[badtz] <- "NULL"
+  # handle attribute (time zones)
+  attr2<-lapply(iloc_df[1,],function(x) {attr(x,"tzone")[1]})
+  badtz<-unlist(lapply(attr2,function(x) {any(is.null(x),!x %in% OlsonNames())}))
+  attr2[badtz] <- "NULL"
+  attr2<-unlist(attr2)
+  
+  # handle attribute (factor levels)
+  fact<-unlist(lapply(iloc_df[1,],function(x) {
+    paste0("/*/",paste(attr(x,"levels"),collapse="/*/"),"/*/")}))
+  attr2[!fact == "/*//*/"]<-fact[!fact == "/*//*/"]
 
   # make array of columns, types, and time zones
   info_nm<-paste0("'{{",paste(names(iloc_df),collapse=","),"},{",
                 paste(as.character(types),collapse=","),"},{",
-                paste(as.character(tz2),collapse=","),"}}'")
+                paste(as.character(attr2),collapse=","),"}}'")
 
   # write info_nm to pgtraj.info_cols
   sql_query<-paste0("UPDATE ",schemaq,".pgtraj SET (info_cols) = (",
@@ -975,7 +979,7 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
                    row.names= FALSE)
   
   tztypes<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
-  tz<-tztypes %in% c("POSIXct","POSIXlt","POSIXt")
+  tz<-tztypes %in% c("POSIXct","POSIXt") #POSIXlt is stored as text
   for (n in names(iloc_df)[tz]) {
   dbSendQuery(conn,paste0("ALTER TABLE ",schemaq,".",iloc_nmq," ALTER COLUMN ",
                           dbQuoteIdentifier(conn,n),
@@ -1085,6 +1089,12 @@ writeInfoFromDB<-function(conn, pgtraj, schema, info_cols, info_table, info_rids
   return(TRUE)
 }
 
+# getPgtrajWithInfo
+
+##' Get pgtraj with infolocs (and R class definitions, if they exist)
+##' @keywords internal
+##' 
+
 getPgtrajWithInfo<-function(conn, pgtraj, schema) {
   
   # DB safe names  
@@ -1103,11 +1113,11 @@ getPgtrajWithInfo<-function(conn, pgtraj, schema) {
   
   if (!is.null(check)) {
       sql_query<-paste0("SELECT unnest(info_cols[1:1]) as nms, 
-                        unnest(info_cols[2:2]) as defs,
-                        unnest(info_cols[3:3]) as tzs
-                        FROM ",schemaq,".pgtraj
-                        WHERE pgtraj_name = ",
-                        dbQuoteString(conn,pgtraj),";")
+                          unnest(info_cols[2:2]) as defs,
+                          unnest(info_cols[3:3]) as atts
+                          FROM ",schemaq,".pgtraj
+                          WHERE pgtraj_name = ",
+                          dbQuoteString(conn,pgtraj),";")
       
       defs<-dbGetQuery(conn,sql_query) 
       
@@ -1120,10 +1130,20 @@ getPgtrajWithInfo<-function(conn, pgtraj, schema) {
       for (i in names(getinfo)) {
           att<-defs[defs$nms == i,]
           if (length(att[,1]) == 0) {next}
-          if (!is.na(att$tzs)) {
-          getinfo[,i]<-eval(parse(text=paste0("as.",att$defs,
-                                              "(as.character(getinfo[,i]),
-                                              tz='",att$tzs,"')")))
+          if (!is.na(att$atts)) {
+            # handle factors
+            if (att$defs %in% c("factor","ordered")) {
+              levs<-unlist(strsplit(att$atts,"/*/",fixed=TRUE))
+              ordered<-ifelse(att$defs == "ordered",TRUE,FALSE)
+              getinfo[,i]<-factor(as.character(getinfo[,i]),
+                                              levels= levs[levs != ""],
+                                              ordered = ordered)
+            }
+            if (att$defs %in% c("POSIXct","POSIXlt","POSIXt")) {
+              getinfo[,i]<-list(eval(parse(text=paste0("as.",att$defs,
+                                        "(as.character(getinfo[,i]),
+                                        tz='",att$atts,"')"))))
+            }
           } else {
           getinfo[,i]<-do.call(paste0("as.",att$defs),list(getinfo[,i]))
           }
