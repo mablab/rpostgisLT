@@ -35,7 +35,7 @@
 ##' }
 
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
-    note = NULL, overwrite = FALSE, infolocs = FALSE) {
+    note = NULL, overwrite = FALSE, infolocs = TRUE) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")

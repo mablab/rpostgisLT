@@ -5,7 +5,7 @@
 \title{Export ltraj object from R into database.}
 \usage{
 ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL,
-  overwrite = FALSE, infolocs = FALSE)
+  overwrite = FALSE, infolocs = TRUE)
 }
 \arguments{
 \item{conn}{A connection object.}

@@ -933,16 +933,15 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   iloc_df<-do.call("rbind",inf)
   
   # alter names that conflict with pgtraj/ltraj
-  trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
-        "R2n", "abs.angle", "rel.angle", "r_rowname",
-        "step_id", "animal_name", "burst","pgtraj")
-  if (any(names(iloc_df) %in% trajnam)) {
-    message("Found infolocs column names which match reserved ltraj/pgtraj names. Altering with prefix 'info_'.")
-  names(iloc_df)[names(iloc_df) %in% trajnam]<-
-    paste0("info_",names(iloc_df)[names(iloc_df) %in% trajnam])
-  }
+  resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
+                   dist=NA,dt=NA,R2n=NA,
+                   abs.angle=NA, rel.angle=NA, 
+                   r_rowname=NA,step_id=NA, 
+                   animal_name=NA, burst=NA,pgtraj=NA)
+  resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
+  names(iloc_df)<-names(resv_plus[-c(1:15)])
   
-  #### infolocs definition section ####
+  ##### infolocs definition section #####
   types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
 
   # handle attribute (time zones)
@@ -966,8 +965,7 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
                         info_nm,") WHERE 
                         pgtraj_name = ",dbQuoteString(conn,pgtraj),";")
   dbSendQuery(conn,sql_query)
-  
-  #### end definition section ####
+  ##### end infolocs definition section #####
 
   #add original ltraj row and burst names, and step_id 
   iloc_df$r_rowname931<-as.character(rnms)

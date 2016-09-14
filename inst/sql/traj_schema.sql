@@ -65,6 +65,8 @@ COMMENT ON COLUMN pgtraj.pgtraj_name IS 'Name or identifier of trajectory group,
 COMMENT ON COLUMN pgtraj.proj4string IS 'A PROJ.4 projection string of the ltraj, imported from R.';
 COMMENT ON COLUMN pgtraj.time_zone IS 'Time zone of the imported trajectory.';
 COMMENT ON COLUMN pgtraj.note IS 'User comment.';
+COMMENT ON COLUMN pgtraj.info_cols IS 'Array holding R data type definitions for infolocs columns. Do not edit.';
+COMMENT ON COLUMN pgtraj.insert_timestamp IS 'Time when pgtraj was created.';
 
 COMMENT ON TABLE animal_burst IS 'Contains animal and burst information and their relation to pgtrajs.';
 COMMENT ON COLUMN animal_burst.id IS 'Auto-generated numeric ID.';
@@ -84,6 +86,7 @@ COMMENT ON TABLE relocation IS 'Relocation geometry and time stamp.';
 COMMENT ON COLUMN relocation.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';
 COMMENT ON COLUMN relocation.relocation_time IS 'Time stamp of the relocation.';
+COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations table in the database.';
 
 COMMENT ON TABLE infoloc IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
 COMMENT ON COLUMN infoloc.id IS 'Auto-generated numeric ID of infoloc.';

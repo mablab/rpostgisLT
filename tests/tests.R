@@ -237,7 +237,6 @@ small <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
 
 ltraj2pgtraj(conn,continental,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,large,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
-ltraj2pgtraj(conn,large2,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,medium,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,small,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 
@@ -249,7 +248,7 @@ small2 <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
 all.equal(continental,continental2)
 all.equal(large,large2)
 all.equal(medium,medium2)
-all.equal(small,small2) #just infolocs row names differences
+all.equal(small,small2) #just infolocs row names differences (because initial is numeric, due to automatic numbering?)
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 
@@ -353,11 +352,7 @@ ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 
 cap2<-pgtraj2ltraj(conn,"cap")
 all.equal(cap,cap2)
-# differences due to "dummy" being included in every burst infolocs, not just the first,
-# and factor vs character of Status column
-
-all.equal(removeinfo(cap),removeinfo(cap2)) #only difference in row.names character/numeric of the "infolocs",
-# cap2 has matching row names for ltraj and infolocs, while cap doesn't (due to manual setting)
+# differences due to "dummy" being included in every burst infolocs, not just the first (unless not created above)
 
 
 # Clean up
