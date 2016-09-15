@@ -109,12 +109,16 @@ all.equal(ibex, ibexTest)
 summary(ld(ibex)$dist)
 (ibex <- redisltraj(ibex, 400,type="space"))         # Note that 'redisltraj'
                                         # creates an 'infolocs'
-                                        # attribute
+                                        # attribute, which is 
+                                        # a factor (but should be probably be a character)
 #ibex <- removeinfo(ibex)
 
 ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest) # not TRUE...infolocs$pkey isn't a factor, date rounding
+# factors levels were made at burst level in redisltraj
+# they are made at data frame level prior to export so number of levels differ.
+
 
 for (i in 1:10) {
  print(i)
@@ -229,7 +233,6 @@ as_pgtraj(conn,
         info_rids = "gid"
         )
 
-
 continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
 medium <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
@@ -248,7 +251,7 @@ small2 <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
 all.equal(continental,continental2)
 all.equal(large,large2)
 all.equal(medium,medium2)
-all.equal(small,small2) #just infolocs row names differences (because initial is numeric, due to automatic numbering?)
+all.equal(small,small2)
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 
@@ -353,6 +356,69 @@ ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 cap2<-pgtraj2ltraj(conn,"cap")
 all.equal(cap,cap2)
 # differences due to "dummy" being included in every burst infolocs, not just the first (unless not created above)
+
+
+## additional infolocs test with other column types
+data(capreochiz)
+head(capreochiz)
+str(capreochiz)
+
+drv <- dbDriver("PostgreSQL")
+conn <- dbConnect(drv, user="rpostgis", password="gsoc", dbname="rpostgis",
+          host="basille-flrec.ad.ufl.edu")
+
+## POSIXt
+library(lubridate)
+attributes(capreochiz$date)
+
+## Messing with timezone: timez
+capreochiz$timez <- with_tz(capreochiz$date, tz = "America/Chicago")
+attributes(capreochiz$timez)
+
+## Messing with data class (and time zones!): posixlt
+capreochiz$posixlt <- as.POSIXlt(capreochiz$date)
+attributes(capreochiz$posixlt)
+
+# this should be not allowed (step_id column is reserved for DB join)
+# capreochiz$step_id <- 1
+
+
+## Factors
+library(forcats)
+
+## Factor with an empty level: Status
+table(capreochiz$Status)
+levels(capreochiz$Status)               # Note that the levels have
+                                        # extra space (both at the
+                                        # beginning and end)
+
+## Factor with NAs: facNA
+capreochiz$facNA <- fct_recode(capreochiz$Status, NULL = " 3DF  ")
+table(capreochiz$facNA, useNA = c("ifany"))
+
+## Ordered factor (and empty level!): facOrd
+capreochiz$facOrd <- fct_recode(capreochiz$Status, OK = " 2D   ", bad = " 2DDi ", good = " 3DDif", NULL = " 3DF  ", unknown = " Aqu  ")
+capreochiz$facOrd <- factor(capreochiz$facOrd, levels = c("unknown", "bad", "OK", "good"), ordered = TRUE)
+table(capreochiz$facOrd)
+class(capreochiz$facOrd)                # Note that it's "ordered"
+                                        # first, not "factor"!
+
+## Build the ltraj
+cap <- as.ltraj(xy = capreochiz[, c("x", "y")], date = capreochiz$date,
+                id = "Roe.Deer", typeII = TRUE, infolocs = capreochiz[, 3:ncol(capreochiz)])
+                                        # Note that I keep "date" in
+                                        # infolocs as a reference; but
+                                        # that also makes two date
+                                        # fields! (ld converts the
+                                        # second one to 'date.1')
+str(infolocs(cap))
+
+# send to database
+ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
+cap2<-pgtraj2ltraj(conn,pgtraj="cap")
+
+all.equal(cap,cap2) 
+
 
 
 # Clean up

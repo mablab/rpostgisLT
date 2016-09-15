@@ -66,6 +66,9 @@ dl_opt <- function(x, rnames = TRUE) {
                 "r.row.names")), drop = FALSE], x$burst)
             names(inf) <- NULL
             for (i in (1:length(traj))) {
+                # remove "info." prefix if exists 
+                # (attached in getPgtrajWithInfo())
+                names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
                 # Add row names to infolocs list
                 rownames(inf[[i]]) <- traj_rname[[i]]
                 attr(traj[[i]], "id") <- as.character(idd[i])
@@ -90,9 +93,14 @@ dl_opt <- function(x, rnames = TRUE) {
             inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst")),
                             drop = FALSE], x$burst)
             for (i in (1:length(traj))) {
+                # remove "info." prefix if exists 
+                # (attached in getPgtrajWithInfo())
+                names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
                 attr(traj[[i]], "id") <- as.character(idd[i])
                 attr(traj[[i]], "burst") <- names(idd[i])
                 attr(traj[[i]], "infolocs") <- inf[[i]]
+                # change infolocs and ltraj row names
+                attr(infolocs(traj)[[i]],"row.names") <- rownames(traj[[i]])
                 attr(traj[[i]], "row.names") <- rownames(traj[[i]])
             }
         } else for (i in (1:length(traj))) {
@@ -905,7 +913,7 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   inf<-infolocs(ltraj)
   if (is.null(inf)) {
     message("No Infolocs data in ltraj.")
-    return(invisible())
+    return(FALSE)
   }
   
   #table_name
@@ -933,13 +941,23 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   iloc_df<-do.call("rbind",inf)
   
   # alter names that conflict with pgtraj/ltraj
-  resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
-                   dist=NA,dt=NA,R2n=NA,
-                   abs.angle=NA, rel.angle=NA, 
-                   r_rowname=NA,step_id=NA, 
-                   animal_name=NA, burst=NA,pgtraj=NA)
-  resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
-  names(iloc_df)<-names(resv_plus[-c(1:15)])
+  # below is all reserved names (not needed anymore)
+  # resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
+  #                  dist=NA,dt=NA,R2n=NA,
+  #                  abs.angle=NA, rel.angle=NA, 
+  #                  r_rowname=NA,step_id=NA, 
+  #                  animal_name=NA, burst=NA,pgtraj=NA)
+  # resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
+  # names(iloc_df)<-names(resv_plus[-c(1:15)])
+  
+  # only reserved name is "step_id"
+  if ("step_id" %in% names(iloc_df)) {
+    fix_df<-data.frame(iloc_df[1,],step_id=1)
+    fix_nm<-names(fix_df)[length(names(fix_df))]
+    names(iloc_df)[names(iloc_df) == "step_id"]<-fix_nm
+    message("Reserved column name 'step_id' found in infolocs and changed to '",
+            fix_nm,"'.")
+  }
   
   ##### infolocs definition section #####
   types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
@@ -967,9 +985,10 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   dbSendQuery(conn,sql_query)
   ##### end infolocs definition section #####
 
-  #add original ltraj row and burst names, and step_id 
-  iloc_df$r_rowname931<-as.character(rnms)
-  iloc_df$burst_931<-as.character(burst)
+  # add original ltraj row and burst names, and step_id
+  # rowname and burst are just for join, discarded later
+  iloc_df$r_rowname931bqvz<-as.character(rnms)
+  iloc_df$burst_931bqvz<-as.character(burst)
   iloc_df$step_id<-as.integer(1)
   
   # insert into new table
@@ -990,8 +1009,8 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
   sql_query<-paste0("UPDATE ",schemaq,".",iloc_nmq," a SET
                     step_id = b.step_id FROM 
                         (SELECT s_i_b_rel.step_id as step_id,
-                          step.r_rowname as r_rowname931,
-                          animal_burst.burst_name as burst_931
+                          step.r_rowname as r_rowname931bqvz,
+                          animal_burst.burst_name as burst_931bqvz
                         FROM ",
                           schemaq,".pgtraj, ",
                           schemaq,".animal_burst, ",
@@ -1003,13 +1022,13 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
                           s_i_b_rel.step_id = step.id AND
                           pgtraj_name = ",dbQuoteString(conn,pgtraj),"
                         ORDER BY step_id) b WHERE
-                    a.r_rowname931 = b.r_rowname931 AND
-                    a.burst_931 = b.burst_931;")
+                    a.r_rowname931bqvz = b.r_rowname931bqvz AND
+                    a.burst_931bqvz = b.burst_931bqvz;")
   dbSendQuery(conn,sql_query)
   
   # drop r_rowname and burst columns
-  dbColumn(conn,c(schema,iloc_nm),colname="burst_931",action = "drop", display = FALSE)
-  dbColumn(conn,c(schema,iloc_nm),colname="r_rowname931",action = "drop", display = FALSE)
+  dbColumn(conn,c(schema,iloc_nm),colname="burst_931bqvz",action = "drop", display = FALSE)
+  dbColumn(conn,c(schema,iloc_nm),colname="r_rowname931bqvz",action = "drop", display = FALSE)
   
   # add primary key to step_id
   dbAddKey(conn,c(schema,iloc_nm),type = "primary","step_id", display = FALSE)
@@ -1123,9 +1142,12 @@ getPgtrajWithInfo<-function(conn, pgtraj, schema) {
                         schemaq,".",iloc_nmq," USING (step_id);")
       getinfo<-dbGetQuery(conn,sql_query)
       
-      # need to account for if names of infolocs match reserved ltraj names (should not allow on import?)
+      # split into ltraj and infolocs
+      ltraj<-getinfo[1:15]
+      justinfo<-getinfo[16:length(names(getinfo))]
+      
       # assign types
-      for (i in names(getinfo)) {
+      for (i in names(justinfo)) {
           att<-defs[defs$nms == i,]
           if (length(att[,1]) == 0) {next}
           if (!is.na(att$atts)) {
@@ -1133,25 +1155,33 @@ getPgtrajWithInfo<-function(conn, pgtraj, schema) {
             if (att$defs %in% c("factor","ordered")) {
               levs<-unlist(strsplit(att$atts,"/*/",fixed=TRUE))
               ordered<-ifelse(att$defs == "ordered",TRUE,FALSE)
-              getinfo[,i]<-factor(as.character(getinfo[,i]),
+              justinfo[,i]<-factor(as.character(justinfo[,i]),
                                               levels= levs[levs != ""],
                                               ordered = ordered)
             }
             if (att$defs %in% c("POSIXct","POSIXlt","POSIXt")) {
-              getinfo[,i]<-list(eval(parse(text=paste0("as.",att$defs,
-                                        "(as.character(getinfo[,i]),
+              justinfo[,i]<-list(eval(parse(text=paste0("as.",att$defs,
+                                        "(as.character(justinfo[,i]),
                                         tz='",att$atts,"')"))))
             }
           } else {
-          getinfo[,i]<-do.call(paste0("as.",att$defs),list(getinfo[,i]))
+          justinfo[,i]<-do.call(paste0("as.",att$defs),list(justinfo[,i]))
           }
       }
+      # add ".info." prefix to infolocs column names
+      names(justinfo)<-paste(".info.",names(justinfo), sep="")
+      getinfo<-cbind(ltraj,justinfo)
       return(getinfo)
       
   } else {
     sql_query<-paste0("SELECT * FROM ",schemaq,".",viewq," JOIN ",
                         schemaq,".",iloc_nmq," USING (step_id);")
     getinfo<-dbGetQuery(conn,sql_query)
+    # split and add "info." prefix to infolocs column names
+    ltraj<-getinfo[1:15]
+    justinfo<-getinfo[16:length(names(getinfo))]
+    names(justinfo)<-paste(".info.",names(justinfo), sep="")
+    getinfo<-cbind(ltraj,justinfo)
     return(getinfo)
   }
 }
