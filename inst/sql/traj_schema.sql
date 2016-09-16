@@ -4,7 +4,6 @@ CREATE TABLE pgtraj (
     proj4string        text        DEFAULT NULL,
     time_zone          text        DEFAULT NULL,
     note               text        DEFAULT NULL,
-	info_cols		   text[][][]  DEFAULT NULL,
 	insert_timestamp	timestamptz DEFAULT now()
 );
 
@@ -15,6 +14,7 @@ CREATE TABLE animal_burst (
     animal_name      text        NOT NULL,
     pgtraj_id        integer     NOT NULL REFERENCES pgtraj (id)
                                  ON DELETE CASCADE,
+	info_cols		   text[][][]  DEFAULT NULL,
     CONSTRAINT burst_pgtraj_unique UNIQUE (burst_name, pgtraj_id)
 );
 
@@ -65,7 +65,6 @@ COMMENT ON COLUMN pgtraj.pgtraj_name IS 'Name or identifier of trajectory group,
 COMMENT ON COLUMN pgtraj.proj4string IS 'A PROJ.4 projection string of the ltraj, imported from R.';
 COMMENT ON COLUMN pgtraj.time_zone IS 'Time zone of the imported trajectory.';
 COMMENT ON COLUMN pgtraj.note IS 'User comment.';
-COMMENT ON COLUMN pgtraj.info_cols IS 'Array holding R data type definitions for infolocs columns. Do not edit.';
 COMMENT ON COLUMN pgtraj.insert_timestamp IS 'Time when pgtraj was created.';
 
 COMMENT ON TABLE animal_burst IS 'Contains animal and burst information and their relation to pgtrajs.';
@@ -73,6 +72,8 @@ COMMENT ON COLUMN animal_burst.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN animal_burst.burst_name IS 'Name of burst.';
 COMMENT ON COLUMN animal_burst.animal_name IS 'Name of animal.';
 COMMENT ON COLUMN animal_burst.pgtraj_id IS 'Foreign key to pgtraj records.';
+COMMENT ON COLUMN animal_burst.info_cols IS 'Array holding R data type definitions for infolocs columns. Do not edit.';
+
 
 COMMENT ON TABLE step IS 'Steps derived from relocations.';
 COMMENT ON COLUMN step.id IS 'Auto-generated numeric ID.';

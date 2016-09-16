@@ -14,13 +14,13 @@ cap.alt<-capreochiz
 #cap.alt$dist<-10
 #cap.alt$Status<-droplevels(cap.alt$Status)  # if not, unused levels cause all.equal != TRUE
 cap.alt$date2<-cap.alt$date
-cap.alt$date3<-cap.alt$date
-cap.alt$stat2<-cap.alt$Status
+#cap.alt$date3<-cap.alt$date
+#cap.alt$stat2<-cap.alt$Status
 
 #mess with tz
-attr(cap.alt$date3,"tzone")<-"America/New_York"
+attr(cap.alt$date2,"tzone")<-"America/New_York"
 #attr(cap.alt$date2,"tzone")<-"bla" #this still causes errors
-attr(cap.alt$date2,"tzone")<-"Europe/Paris" #this works
+#attr(cap.alt$date3,"tzone")<-"Europe/Paris" #this works
 
 
 #head(capreochiz)
@@ -33,7 +33,7 @@ attr(cap.alt$date2,"tzone")<-"Europe/Paris" #this works
 ## Create an object of class "ltraj"
 cap <- as.ltraj(xy = cap.alt[,c("x","y")], date = cap.alt$date,
                 id = "Roe.Deer", typeII = TRUE,
-                infolocs = cap.alt[,4:11])
+                infolocs = cap.alt[,4:length(names(cap.alt))])
 
 #split it
 cap <- cutltraj(cap, "dist > 100")

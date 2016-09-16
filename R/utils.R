@@ -61,23 +61,25 @@ dl_opt <- function(x, rnames = TRUE) {
         attr(traj, "typeII") <- TRUE
         attr(traj, "regular") <- is.regular(traj)
         ## + Add r.row.names
-        if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
-            inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst",
-                "r.row.names")), drop = FALSE], x$burst)
-            names(inf) <- NULL
-            for (i in (1:length(traj))) {
-                # remove "info." prefix if exists 
-                # (attached in getPgtrajWithInfo())
-                names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
-                # Add row names to infolocs list
-                rownames(inf[[i]]) <- traj_rname[[i]]
-                attr(traj[[i]], "id") <- as.character(idd[i])
-                attr(traj[[i]], "burst") <- names(idd[i])
-                attr(traj[[i]], "infolocs") <- inf[[i]]
-                ## + Add r.row.names to infolocs and ltraj
-                rownames(traj[[i]]) <- traj_rname[[i]]
-            }
-        } else for (i in (1:length(traj))) {
+        ## INFOLOCS HANDLED SEPERATELY
+        # if (any(!(names(x) %in% c(trajnam, "id", "burst", "r.row.names")))) {
+        #     inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst",
+        #         "r.row.names")), drop = FALSE], x$burst)
+        #     names(inf) <- NULL
+        #     for (i in (1:length(traj))) {
+        #         # remove "info." prefix if exists 
+        #         # (attached in getPgtrajWithInfo())
+        #         names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
+        #         # Add row names to infolocs list
+        #         rownames(inf[[i]]) <- traj_rname[[i]]
+        #         attr(traj[[i]], "id") <- as.character(idd[i])
+        #         attr(traj[[i]], "burst") <- names(idd[i])
+        #         attr(traj[[i]], "infolocs") <- inf[[i]]
+        #         ## + Add r.row.names to infolocs and ltraj
+        #         rownames(traj[[i]]) <- traj_rname[[i]]
+        #     }
+        # } else 
+          for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
             ## + Add r.row.names
@@ -89,21 +91,23 @@ dl_opt <- function(x, rnames = TRUE) {
         class(traj) <- c("ltraj", "list")
         attr(traj, "typeII") <- TRUE
         attr(traj, "regular") <- is.regular(traj)
-        if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
-            inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst")),
-                            drop = FALSE], x$burst)
-            for (i in (1:length(traj))) {
-                # remove "info." prefix if exists 
-                # (attached in getPgtrajWithInfo())
-                names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
-                attr(traj[[i]], "id") <- as.character(idd[i])
-                attr(traj[[i]], "burst") <- names(idd[i])
-                attr(traj[[i]], "infolocs") <- inf[[i]]
-                # change infolocs and ltraj row names
-                attr(infolocs(traj)[[i]],"row.names") <- rownames(traj[[i]])
-                attr(traj[[i]], "row.names") <- rownames(traj[[i]])
-            }
-        } else for (i in (1:length(traj))) {
+        # INFOLOCS HANDLED SEPERATELY
+        # if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
+        #     inf <- split(x[, !(names(x) %in% c(trajnam, "id", "burst")),
+        #                     drop = FALSE], x$burst)
+        #     for (i in (1:length(traj))) {
+        #         # remove "info." prefix if exists 
+        #         # (attached in getPgtrajWithInfo())
+        #         names(inf[[i]]) <- sub("^.info.","",names(inf[[i]]))
+        #         attr(traj[[i]], "id") <- as.character(idd[i])
+        #         attr(traj[[i]], "burst") <- names(idd[i])
+        #         attr(traj[[i]], "infolocs") <- inf[[i]]
+        #         # change infolocs and ltraj row names
+        #         attr(infolocs(traj)[[i]],"row.names") <- rownames(traj[[i]])
+        #         attr(traj[[i]], "row.names") <- rownames(traj[[i]])
+        #     }
+        # } else 
+          for (i in (1:length(traj))) {
             attr(traj[[i]], "id") <- as.character(idd[i])
             attr(traj[[i]], "burst") <- names(idd[i])
             attr(traj[[i]], "row.names") <- rownames(traj[[i]])
@@ -908,138 +912,167 @@ is_blank <- function(x, false_triggers=FALSE){
 ##' @keywords internal
 ##' @author David Bucklin \email{david.bucklin@@gmail.com}
 
-writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
+writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
+    
+    inf <- infolocs(ltraj)
+    if (is.null(inf)) {
+        message("No Infolocs data in ltraj.")
+        return(FALSE)
+    }
+    
+    # table_name
+    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    
+    # query-safe identifier names
+    iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
+    schemaq <- dbQuoteIdentifier(conn, schema)
+    
+    burst <- rep(burst(ltraj), sapply(ltraj, nrow))
+    rnms <- unlist(lapply(ltraj, function(x) rownames(x)))
+    
+    # bind infolocs data frames
+    icols <- unlist(lapply(inf, function(x) colnames(x)))
+    icols <- unique(icols)
+    # iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol =
+    # length(icols))) $names(iloc_df) <- icols add missing
+    # columns
+    for (l in 1:length(inf)) {
+        missing <- icols[!icols %in% names(inf[[l]])]
+        inf[[l]][missing] <- NA
+    }
+    
+    # bind data frames
+    # iloc_df <- do.call("rbind", inf) #now storing attributes by burst
+    iloc_df<-as.data.frame(inf[[1]][FALSE,])
+    
+    # alter names that conflict with pgtraj/ltraj; below is all
+    # reserved names (not used anymore)
+    # resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
+    # dist=NA,dt=NA,R2n=NA, abs.angle=NA, rel.angle=NA,
+    # r_rowname=NA,step_id=NA, animal_name=NA,
+    # burst=NA,pgtraj=NA)
+    # resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
+    # names(iloc_df)<-names(resv_plus[-c(1:15)])
+    
+    # assuming burst order always matches infolocs order
+    bursts<-burst(ltraj)
+    for (b in 1:length(inf)) {
+      b_nm<-bursts[b]
+      
+      # get burst dataframe
+      b_df<-inf[[b]]
+      
+      # only reserved name is 'step_id'
+      if ("step_id" %in% names(b_df)) {
+          fix_df <- data.frame(b_df[1, ], step_id = 1)
+          fix_nm <- names(fix_df)[length(names(fix_df))]
+          names(b_df)[names(b_df) == "step_id"] <- fix_nm
+          #message("Reserved column name 'step_id' found in infolocs and changed to '", 
+          #    fix_nm, "'.")
+      }
+      
+      ##### infolocs definition section #####
+      types <- unlist(lapply(b_df, function(x) {
+          class(x)[1]
+      }))
+      
+      # handle attribute (time zones)
+      attr2 <- lapply(b_df[1, ], function(x) {
+          attr(x, "tzone")[1]
+      })
+      badtz <- unlist(lapply(attr2, function(x) {
+          any(is.null(x), !x %in% OlsonNames())
+      }))
+      attr2[badtz] <- "NULL"
+      attr2 <- unlist(attr2)
+      
+      # handle attribute (factor levels)
+      fact <- unlist(lapply(b_df[1, ], function(x) {
+          paste0("/*/", paste(attr(x, "levels"), collapse = "/*/"), 
+              "/*/")
+      }))
+      attr2[!fact == "/*//*/"] <- fact[!fact == "/*//*/"]
+      
+      # make array of columns, types, and time zones
+      info_nm <- paste0("'{{", paste(names(b_df), collapse = ","), 
+          "},{", paste(as.character(types), collapse = ","), "},{", 
+          paste(as.character(attr2), collapse = ","), "}}'")
+      
+      # write info_nm to animal_burst.info_cols
+      sql_query <- paste0("UPDATE ", schemaq, ".animal_burst 
+                          SET (info_cols) = (",info_nm, ")
+                          FROM ", schemaq, ".pgtraj
+                          WHERE pgtraj.id = animal_burst.pgtraj_id
+                          AND pgtraj.pgtraj_name = ",dbQuoteString(conn, pgtraj),
+                          " AND animal_burst.burst_name = ",dbQuoteString(conn,b_nm),";")
+      dbSendQuery(conn, sql_query)
+      
+      # add to final data frame
+      iloc_df<-rbind(iloc_df,b_df)
+    }
+    ##### end infolocs definition section #####
+    
+    # add original ltraj row and burst names, and step_id rowname
+    # and burst are just for join, discarded later
+    iloc_df$r_rowname931bqvz <- as.character(rnms)
+    iloc_df$burst_931bqvz <- as.character(burst)
+    iloc_df$step_id <- as.integer(1)
+    
+    # insert into new table
+    dbWriteTable(conn, c(schema, iloc_nm), value = iloc_df[FALSE, 
+        ], row.names = FALSE)
+    
+    tztypes <- unlist(lapply(iloc_df, function(x) {
+        class(x)[1]
+    }))
+    tz <- tztypes %in% c("POSIXct", "POSIXt")  #POSIXlt is stored as text
+    for (n in names(iloc_df)[tz]) {
+        dbSendQuery(conn, paste0("ALTER TABLE ", schemaq, ".", 
+            iloc_nmq, " ALTER COLUMN ", dbQuoteIdentifier(conn, 
+                n), " TYPE timestamp;"))
+    }
+    suppressMessages(pgInsert(conn, name = c(schema, iloc_nm), 
+        data.obj = iloc_df, alter.names = FALSE))
+    
+    # update step_id column
+    sql_query<-paste0("UPDATE ",schemaq,".",iloc_nmq," a SET
+                      step_id = b.step_id FROM 
+                          (SELECT s_i_b_rel.step_id as step_id,
+                            step.r_rowname as r_rowname931bqvz,
+                            animal_burst.burst_name as burst_931bqvz
+                          FROM ",
+                            schemaq,".pgtraj, ",
+                            schemaq,".animal_burst, ",
+                            schemaq,".s_i_b_rel, ",
+                            schemaq,".step 
+                          WHERE
+                            pgtraj.id = animal_burst.pgtraj_id AND
+                            animal_burst.id = s_i_b_rel.animal_burst_id AND
+                            s_i_b_rel.step_id = step.id AND
+                            pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+                          ORDER BY step_id) b WHERE
+                      a.r_rowname931bqvz = b.r_rowname931bqvz AND
+                      a.burst_931bqvz = b.burst_931bqvz;")
+    dbSendQuery(conn,sql_query)
   
-  inf<-infolocs(ltraj)
-  if (is.null(inf)) {
-    message("No Infolocs data in ltraj.")
-    return(FALSE)
-  }
-  
-  #table_name
-  iloc_nm<-paste0("z_infolocs_",pgtraj)
-  
-  # query-safe identifier names
-  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
-  schemaq<-dbQuoteIdentifier(conn,schema)
-  
-  burst<-rep(burst(ltraj), sapply(ltraj, nrow))
-  rnms<-unlist(lapply(ltraj, function(x) rownames(x)))
-  
-  # bind infolocs data frames 
-  icols <- unlist(lapply(inf,function(x) colnames(x)))
-  icols <- unique(icols)
-  #iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol = length(icols)))
-  #$names(iloc_df) <- icols
-  #add missing columns
-  for (l in 1:length(inf)) {
-    missing<-icols[!icols %in% names(inf[[l]])]
-    inf[[l]][missing]<-NA
-  }
-  
-  #bind data frames
-  iloc_df<-do.call("rbind",inf)
-  
-  # alter names that conflict with pgtraj/ltraj
-  # below is all reserved names (not needed anymore)
-  # resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
-  #                  dist=NA,dt=NA,R2n=NA,
-  #                  abs.angle=NA, rel.angle=NA, 
-  #                  r_rowname=NA,step_id=NA, 
-  #                  animal_name=NA, burst=NA,pgtraj=NA)
-  # resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
-  # names(iloc_df)<-names(resv_plus[-c(1:15)])
-  
-  # only reserved name is "step_id"
-  if ("step_id" %in% names(iloc_df)) {
-    fix_df<-data.frame(iloc_df[1,],step_id=1)
-    fix_nm<-names(fix_df)[length(names(fix_df))]
-    names(iloc_df)[names(iloc_df) == "step_id"]<-fix_nm
-    message("Reserved column name 'step_id' found in infolocs and changed to '",
-            fix_nm,"'.")
-  }
-  
-  ##### infolocs definition section #####
-  types<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
-
-  # handle attribute (time zones)
-  attr2<-lapply(iloc_df[1,],function(x) {attr(x,"tzone")[1]})
-  badtz<-unlist(lapply(attr2,function(x) {any(is.null(x),!x %in% OlsonNames())}))
-  attr2[badtz] <- "NULL"
-  attr2<-unlist(attr2)
-  
-  # handle attribute (factor levels)
-  fact<-unlist(lapply(iloc_df[1,],function(x) {
-    paste0("/*/",paste(attr(x,"levels"),collapse="/*/"),"/*/")}))
-  attr2[!fact == "/*//*/"]<-fact[!fact == "/*//*/"]
-
-  # make array of columns, types, and time zones
-  info_nm<-paste0("'{{",paste(names(iloc_df),collapse=","),"},{",
-                paste(as.character(types),collapse=","),"},{",
-                paste(as.character(attr2),collapse=","),"}}'")
-
-  # write info_nm to pgtraj.info_cols
-  sql_query<-paste0("UPDATE ",schemaq,".pgtraj SET (info_cols) = (",
-                        info_nm,") WHERE 
-                        pgtraj_name = ",dbQuoteString(conn,pgtraj),";")
-  dbSendQuery(conn,sql_query)
-  ##### end infolocs definition section #####
-
-  # add original ltraj row and burst names, and step_id
-  # rowname and burst are just for join, discarded later
-  iloc_df$r_rowname931bqvz<-as.character(rnms)
-  iloc_df$burst_931bqvz<-as.character(burst)
-  iloc_df$step_id<-as.integer(1)
-  
-  # insert into new table
-  dbWriteTable(conn,c(schema,iloc_nm),value = iloc_df[FALSE,],
-                   row.names= FALSE)
-  
-  tztypes<-unlist(lapply(iloc_df,function(x) {class(x)[1]}))
-  tz<-tztypes %in% c("POSIXct","POSIXt") #POSIXlt is stored as text
-  for (n in names(iloc_df)[tz]) {
-  dbSendQuery(conn,paste0("ALTER TABLE ",schemaq,".",iloc_nmq," ALTER COLUMN ",
-                          dbQuoteIdentifier(conn,n),
-                          " TYPE timestamp;"))
-  }
-  suppressMessages(pgInsert(conn,name = c(schema,iloc_nm),
-                            data.obj = iloc_df, alter.names = FALSE))
-
-  # update step_id column
-  sql_query<-paste0("UPDATE ",schemaq,".",iloc_nmq," a SET
-                    step_id = b.step_id FROM 
-                        (SELECT s_i_b_rel.step_id as step_id,
-                          step.r_rowname as r_rowname931bqvz,
-                          animal_burst.burst_name as burst_931bqvz
-                        FROM ",
-                          schemaq,".pgtraj, ",
-                          schemaq,".animal_burst, ",
-                          schemaq,".s_i_b_rel, ",
-                          schemaq,".step 
-                        WHERE
-                          pgtraj.id = animal_burst.pgtraj_id AND
-                          animal_burst.id = s_i_b_rel.animal_burst_id AND
-                          s_i_b_rel.step_id = step.id AND
-                          pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-                        ORDER BY step_id) b WHERE
-                    a.r_rowname931bqvz = b.r_rowname931bqvz AND
-                    a.burst_931bqvz = b.burst_931bqvz;")
-  dbSendQuery(conn,sql_query)
-  
-  # drop r_rowname and burst columns
-  dbColumn(conn,c(schema,iloc_nm),colname="burst_931bqvz",action = "drop", display = FALSE)
-  dbColumn(conn,c(schema,iloc_nm),colname="r_rowname931bqvz",action = "drop", display = FALSE)
-  
-  # add primary key to step_id
-  dbAddKey(conn,c(schema,iloc_nm),type = "primary","step_id", display = FALSE)
-  
-  # add foreign key to step_id
-  sql_query<-paste0("ALTER TABLE ",schemaq,".",iloc_nmq, 
-                    " ADD FOREIGN KEY (step_id) REFERENCES ",schemaq,".step (id)
+    # drop r_rowname and burst columns
+    dbColumn(conn, c(schema, iloc_nm), colname = "burst_931bqvz", 
+        action = "drop", display = FALSE)
+    dbColumn(conn, c(schema, iloc_nm), colname = "r_rowname931bqvz", 
+        action = "drop", display = FALSE)
+    
+    # add primary key to step_id
+    dbAddKey(conn, c(schema, iloc_nm), type = "primary", "step_id", 
+        display = FALSE)
+    
+    # add foreign key to step_id
+    sql_query <- paste0("ALTER TABLE ", schemaq, ".", iloc_nmq, 
+        " ADD FOREIGN KEY (step_id) REFERENCES ", schemaq, ".step (id)
                     ON UPDATE NO ACTION ON DELETE CASCADE;")
-  dbSendQuery(conn,sql_query)
-  message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '",iloc_nm,"'."))
-  return(TRUE)
+    dbSendQuery(conn, sql_query)
+    message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '", 
+        iloc_nm, "'."))
+    return(TRUE)
 }
 
 # writeInfoFromDB
@@ -1059,130 +1092,161 @@ writeInfoFromLtraj<-function(conn, ltraj, pgtraj, schema) {
 ##' @keywords internal
 ##' @author David Bucklin \email{david.bucklin@@gmail.com}
 
-writeInfoFromDB<-function(conn, pgtraj, schema, info_cols, info_table, info_rids) {
+writeInfoFromDB <- function(conn, pgtraj, schema, info_cols, 
+    info_table, info_rids) {
+    
+    # data goes with rids to zqaqtsn_temp as id send this id as
+    # original relocation ids (orig_id) to relocation table
+    # select orig_id using join step.relocation_id_1 =
+    # relocation.id where steps in current pgtraj
+    
+    # query-safe identifier names
+    info_tableq <- dbQuoteIdentifier(conn, info_table)
+    info_colsq <- dbQuoteIdentifier(conn, info_cols)
+    schemaq <- dbQuoteIdentifier(conn, schema)
+    
+    ins_cols <- paste("info_tab.", info_colsq, sep = "")
+    info_ridsq <- dbQuoteIdentifier(conn, info_rids)
+    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
   
-  # data goes with rids to zqaqtsn_temp as id
-  # send this id as original relocation ids (orig_id) to relocation table
-  # select orig_id using join step.relocation_id_1 = relocation.id where steps in current pgtraj
+    # create and populate table
+    sql_query<-paste0("SELECT step.id as step_id,",
+                paste(ins_cols,collapse = ",")," 
+              INTO TABLE ",schemaq,".",iloc_nmq," FROM ",
+                paste(info_tableq,collapse=".")," as info_tab, ",
+                schemaq,".relocation, ",
+                schemaq,".pgtraj, ",
+                schemaq,".animal_burst, ",
+                schemaq,".s_i_b_rel, ",
+                schemaq,".step
+              WHERE
+                pgtraj.id = animal_burst.pgtraj_id AND
+                animal_burst.id = s_i_b_rel.animal_burst_id AND
+                s_i_b_rel.step_id = step.id AND
+                step.relocation_id_1 = relocation.id AND
+                relocation.orig_id = info_tab.",info_ridsq," AND
+                pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+              ORDER BY step_id;")
+    dbSendQuery(conn,sql_query)
   
-  # query-safe identifier names
-  info_tableq<-dbQuoteIdentifier(conn,info_table)
-  info_colsq<-dbQuoteIdentifier(conn,info_cols)
-  schemaq<-dbQuoteIdentifier(conn,schema)
-  
-  ins_cols<-paste("info_tab.",info_colsq,sep = "")
-  info_ridsq<-dbQuoteIdentifier(conn,info_rids)
-  iloc_nm<-paste0("z_infolocs_",pgtraj)
-  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
-  
-  # create and populate table
-  sql_query<-paste0("SELECT step.id as step_id,",
-              paste(ins_cols,collapse = ",")," 
-            INTO TABLE ",schemaq,".",iloc_nmq," FROM ",
-              paste(info_tableq,collapse=".")," as info_tab, ",
-              schemaq,".relocation, ",
-              schemaq,".pgtraj, ",
-              schemaq,".animal_burst, ",
-              schemaq,".s_i_b_rel, ",
-              schemaq,".step
-            WHERE
-              pgtraj.id = animal_burst.pgtraj_id AND
-              animal_burst.id = s_i_b_rel.animal_burst_id AND
-              s_i_b_rel.step_id = step.id AND
-              step.relocation_id_1 = relocation.id AND
-              relocation.orig_id = info_tab.",info_ridsq," AND
-              pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-            ORDER BY step_id;")
-  dbSendQuery(conn,sql_query)
-  
-  # add primary key to step_id
-  dbAddKey(conn,name = c(schema,iloc_nm),type = "primary","step_id", display = FALSE)
-  # add foreign key to step_id
-  sql_query<-paste0("ALTER TABLE ",schemaq,".",iloc_nmq, 
-                    " ADD FOREIGN KEY (step_id) REFERENCES ",schemaq,".step (id)
+    # add primary key to step_id
+    dbAddKey(conn, name = c(schema, iloc_nm), type = "primary", 
+        "step_id", display = FALSE)
+    # add foreign key to step_id
+    sql_query <- paste0("ALTER TABLE ", schemaq, ".", iloc_nmq, 
+        " ADD FOREIGN KEY (step_id) REFERENCES ", schemaq, ".step (id)
                     ON UPDATE NO ACTION ON DELETE CASCADE;")
-  dbSendQuery(conn,sql_query)
-  message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '",iloc_nm,"'."))
-  return(TRUE)
+    dbSendQuery(conn, sql_query)
+    message(paste0("Infolocs for pgtraj '", pgtraj, "' written to table '", 
+        iloc_nm, "'."))
+    return(TRUE)
 }
 
 # getPgtrajWithInfo
 
-##' Get pgtraj with infolocs (and R class definitions, if they exist)
+##' Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
+##' @param conn A PostgreSQL connection object.
+##' @param pgtraj String, name of the pgtraj
+##' @param schema String, name of the schema holding the pgtraj
 ##' @keywords internal
-##' 
+##' @author David Bucklin \email{david.bucklin@@gmail.com}
 
-getPgtrajWithInfo<-function(conn, pgtraj, schema) {
-  
-  # DB safe names  
-  schemaq<-dbQuoteIdentifier(conn,schema)
-  
-  iloc_nm<-paste0("z_infolocs_",pgtraj)
-  iloc_nmq<-dbQuoteIdentifier(conn,iloc_nm)
-  view <- paste0(pgtraj, "_parameters")
-  viewq <- dbQuoteIdentifier(conn,view)
-  
-  # check if defs exist
-  sql_query<-paste0("SELECT 1 as test FROM ",schemaq,".pgtraj WHERE
-                    pgtraj_name = ",dbQuoteString(conn,pgtraj),
-                    " AND info_cols IS NOT NULL;")
-  check<-dbGetQuery(conn,sql_query)$test
-  
-  if (!is.null(check)) {
-      sql_query<-paste0("SELECT unnest(info_cols[1:1]) as nms, 
-                          unnest(info_cols[2:2]) as defs,
-                          unnest(info_cols[3:3]) as atts
-                          FROM ",schemaq,".pgtraj
-                          WHERE pgtraj_name = ",
-                          dbQuoteString(conn,pgtraj),";")
-      
-      defs<-dbGetQuery(conn,sql_query) 
-      
-      sql_query<-paste0("SELECT * FROM ",schemaq,".",viewq," JOIN ",
-                        schemaq,".",iloc_nmq," USING (step_id);")
-      getinfo<-dbGetQuery(conn,sql_query)
-      
-      # split into ltraj and infolocs
-      ltraj<-getinfo[1:15]
-      justinfo<-getinfo[16:length(names(getinfo))]
-      
-      # assign types
-      for (i in names(justinfo)) {
-          att<-defs[defs$nms == i,]
-          if (length(att[,1]) == 0) {next}
-          if (!is.na(att$atts)) {
-            # handle factors
-            if (att$defs %in% c("factor","ordered")) {
-              levs<-unlist(strsplit(att$atts,"/*/",fixed=TRUE))
-              ordered<-ifelse(att$defs == "ordered",TRUE,FALSE)
-              justinfo[,i]<-factor(as.character(justinfo[,i]),
-                                              levels= levs[levs != ""],
-                                              ordered = ordered)
-            }
-            if (att$defs %in% c("POSIXct","POSIXlt","POSIXt")) {
-              justinfo[,i]<-list(eval(parse(text=paste0("as.",att$defs,
-                                        "(as.character(justinfo[,i]),
-                                        tz='",att$atts,"')"))))
-            }
-          } else {
-          justinfo[,i]<-do.call(paste0("as.",att$defs),list(justinfo[,i]))
+getPgtrajWithInfo <- function(conn, pgtraj, schema) {
+    
+    # DB safe names
+    schemaq <- dbQuoteIdentifier(conn, schema)
+    
+    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
+    view <- paste0(pgtraj, "_parameters")
+    viewq <- dbQuoteIdentifier(conn, view)
+    
+    # get list of bursts (order by step_id - does this always match ltraj orig. order?)
+    sql_query <- paste0("SELECT burst, min(step_id) as m FROM
+                          ", schemaq, ".", viewq, " WHERE pgtraj = ",
+                          dbQuoteString(conn,pgtraj),"
+                          GROUP BY burst
+                          ORDER BY m;")
+    bursts <- dbGetQuery(conn, sql_query)$burst
+    
+    getinfo<-list()
+    for (b in 1:length(bursts)) {
+      b_nm<-bursts[b]
+    # check if defs exist
+    sql_query <- paste0("SELECT 1 as test FROM ",schemaq,".animal_burst a, ",schemaq,".pgtraj b 
+			                  WHERE a.pgtraj_id = b.id
+                        AND pgtraj_name = ",dbQuoteString(conn,pgtraj), 
+                        " AND burst_name = ",dbQuoteString(conn,b_nm), 
+                        " AND a.info_cols IS NOT NULL;")
+    check <- dbGetQuery(conn, sql_query)$test
+    
+      if (!is.null(check)) {
+          sql_query <- paste0("SELECT unnest(info_cols[1:1]) as nms, 
+                            unnest(info_cols[2:2]) as defs,
+                            unnest(info_cols[3:3]) as atts FROM "
+                            ,schemaq,".animal_burst a, ",schemaq,".pgtraj b WHERE a.pgtraj_id = b.id
+                            AND pgtraj_name = ",dbQuoteString(conn,pgtraj), 
+                            " AND burst_name = ",dbQuoteString(conn,b_nm),";")
+          
+          defs <- dbGetQuery(conn, sql_query)
+          
+          sql_query <- paste0("SELECT * FROM ", schemaq, ".", viewq, 
+              " JOIN ", schemaq, ".", iloc_nmq, " USING (step_id) WHERE burst = ",
+              dbQuoteString(conn,b_nm)," ORDER BY step_id;")
+          allinfo <- dbGetQuery(conn, sql_query)
+          
+          # split into ltraj and infolocs
+          #ltraj <- allinfo[1:15]
+          justinfo <- allinfo[16:length(names(allinfo))]
+          
+          # assign types
+          for (i in names(justinfo)) {
+              att <- defs[defs$nms == i, ]
+              if (length(att[, 1]) == 0) {
+                  next
+              }
+              if (!is.na(att$atts)) {
+                  # handle factors
+                  if (att$defs %in% c("factor", "ordered")) {
+                    levs <- unlist(strsplit(att$atts, "/*/", fixed = TRUE))
+                    ordered <- ifelse(att$defs == "ordered", TRUE, 
+                      FALSE)
+                    justinfo[, i] <- factor(as.character(justinfo[, 
+                      i]), levels = levs[levs != ""], ordered = ordered)
+                  }
+                  if (att$defs %in% c("POSIXct", "POSIXlt", "POSIXt")) {
+                    justinfo[, i] <- list(eval(parse(text = paste0("as.", 
+                      att$defs, "(as.character(justinfo[,i]),
+                                          tz='", 
+                      att$atts, "')"))))
+                  }
+              } else {
+                  justinfo[, i] <- do.call(paste0("as.", att$defs), 
+                    list(justinfo[, i]))
+              }
           }
+          # add '.info.' prefix to infolocs column names
+          #names(justinfo) <- paste(".info.", names(justinfo), sep = "")
+          #getinfo <- cbind(ltraj, justinfo)
+          #return(justinfo)
+          #row.names(justinfo)<-ltraj$r_rowname #set these in pgtraj2ltraj
+          getinfo[[b]]<-justinfo
+          
+      } else {
+          sql_query <- paste0("SELECT * FROM ", schemaq, ".", viewq, 
+              " JOIN ", schemaq, ".", iloc_nmq, " USING (step_id) WHERE burst = ",
+              dbQuoteString(conn,b_nm)," ORDER BY step_id;")
+          allinfo <- dbGetQuery(conn, sql_query)
+          # split and add 'info.' prefix to infolocs column names
+          #ltraj <- allinfo[1:15]
+          justinfo <- allinfo[16:length(names(allinfo))]
+          #names(justinfo) <- paste(".info.", names(justinfo), sep = "")
+          #getinfo <- cbind(ltraj, justinfo)
+          #return(getinfo)
+          
+          getinfo[[b]]<-justinfo
       }
-      # add ".info." prefix to infolocs column names
-      names(justinfo)<-paste(".info.",names(justinfo), sep="")
-      getinfo<-cbind(ltraj,justinfo)
-      return(getinfo)
-      
-  } else {
-    sql_query<-paste0("SELECT * FROM ",schemaq,".",viewq," JOIN ",
-                        schemaq,".",iloc_nmq," USING (step_id);")
-    getinfo<-dbGetQuery(conn,sql_query)
-    # split and add "info." prefix to infolocs column names
-    ltraj<-getinfo[1:15]
-    justinfo<-getinfo[16:length(names(getinfo))]
-    names(justinfo)<-paste(".info.",names(justinfo), sep="")
-    getinfo<-cbind(ltraj,justinfo)
-    return(getinfo)
-  }
+    }
+return(getinfo)
 }
-  

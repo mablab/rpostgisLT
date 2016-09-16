@@ -2,12 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{getPgtrajWithInfo}
 \alias{getPgtrajWithInfo}
-\title{Get pgtraj with infolocs (and R class definitions, if they exist)}
+\title{Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)}
 \usage{
 getPgtrajWithInfo(conn, pgtraj, schema)
 }
+\arguments{
+\item{conn}{A PostgreSQL connection object.}
+
+\item{pgtraj}{String, name of the pgtraj}
+
+\item{schema}{String, name of the schema holding the pgtraj}
+}
 \description{
-Get pgtraj with infolocs (and R class definitions, if they exist)
+Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
 }
 \keyword{internal}
 

@@ -35,18 +35,17 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     view_q <- dbQuoteIdentifier(conn,view)
     
     # check if infolocs exist
-   if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj)))) {
+    info<-NULL
+    if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj)))) {
        # check for column names
        info_info<-dbTableInfo(conn,c(schema,
                               paste0("z_infolocs_",pgtraj)))$column_name
        if (length(info_info) > 1 && "step_id" %in% info_info) {
-        DF <- getPgtrajWithInfo(conn, pgtraj, schema)
-        } else {
-         DF <- invisible(dbReadTable(conn, c(schema, view)))
-        }
-    } else {
-      DF <- invisible(dbReadTable(conn, c(schema, view)))
+        info <- getPgtrajWithInfo(conn, pgtraj, schema)
+       }
     }
+      
+    DF <- invisible(dbReadTable(conn, c(schema, view)))
     #remove step_id column
     DF$step_id<- NULL
     
@@ -80,6 +79,15 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     # Cast into ltraj
     ltraj <- dl_opt(DF, rnames)
     
+    # attach infolocs if exist
+    if (!is.null(info)) {
+      for (i in 1:length(ltraj)) {
+        # match infolocs rownames to ltraj rownames
+        row.names(info[[i]]) <- row.names(ltraj[[i]])
+      }
+      infolocs(ltraj) <- info
+    }
+    
     if (proj4string %in% c("NA", "NULL", "NaN")) {
         attr(ltraj, "proj4string") <- sp::CRS()
     } else {
@@ -90,4 +98,3 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     return(ltraj)
 }
-
