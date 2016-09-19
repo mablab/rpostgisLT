@@ -16,5 +16,8 @@ getPgtrajWithInfo(conn, pgtraj, schema)
 \description{
 Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
 }
+\author{
+David Bucklin \email{david.bucklin@gmail.com}
+}
 \keyword{internal}
 

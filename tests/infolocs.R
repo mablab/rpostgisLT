@@ -11,16 +11,16 @@ conn<-dbConnect("PostgreSQL",dbname="rpostgis",user="postgres",password="pgis",h
 ## example of an object with an attribute "infolocs"
 data(capreochiz)
 cap.alt<-capreochiz
-#cap.alt$dist<-10
-#cap.alt$Status<-droplevels(cap.alt$Status)  # if not, unused levels cause all.equal != TRUE
+cap.alt$dist<-10
+cap.alt$Status<-droplevels(cap.alt$Status)  # if not, unused levels cause all.equal != TRUE
 cap.alt$date2<-cap.alt$date
-#cap.alt$date3<-cap.alt$date
-#cap.alt$stat2<-cap.alt$Status
+cap.alt$date3<-cap.alt$date
+cap.alt$stat2<-cap.alt$Status
 
 #mess with tz
 attr(cap.alt$date2,"tzone")<-"America/New_York"
-#attr(cap.alt$date2,"tzone")<-"bla" #this still causes errors
-#attr(cap.alt$date3,"tzone")<-"Europe/Paris" #this works
+#attr(cap.alt$date2,"tzone")<-NULL #this still causes errors
+attr(cap.alt$date3,"tzone")<-"Europe/Paris" #this works
 
 
 #head(capreochiz)
@@ -43,8 +43,6 @@ cap <- cutltraj(cap, "dist > 100")
 # dumb row names
 #row.names(cap[[1]])<-11111:(11111+length(cap[[1]]$x)-1)
 
-# storing column types with info
-#info<-infolocs(cap)
 
 ###############################################################
 #make iloc_df from infolocs fn()
@@ -113,9 +111,9 @@ all.equal(iloc_df,getinfo)
 
 
 
+dbDrop(conn,"traj",type = "schema", cascade = TRUE)
 
-
-pgTrajDrop(conn,"cap")
+#pgTrajDrop(conn,"cap")
 ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 
 cap2<-pgtraj2ltraj(conn,pgtraj="cap")

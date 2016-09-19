@@ -19,6 +19,7 @@ WITH r_output AS (
         "rel.angle" AS rel_angle,
         id AS animal_name,
         burst AS burst_name,
+		".burst_order"::integer AS burst_order,
         "r.row.names"::integer AS r_rowname,
         ".time_zone" AS time_zone,
         ".srid"::integer AS srid,
@@ -26,7 +27,7 @@ WITH r_output AS (
         ".pgtraj" AS pgtraj_name,
         ".note" AS note
     FROM zgaqtsn_temp
-    ORDER BY burst_name, relocation_time
+    ORDER BY burst_order, relocation_time
     ),
 /*calculates relocation coordinates from x+dx etc. for obainting the 2nd 
  * relocation of a step and unites the computed values with the provided values*/
@@ -114,9 +115,10 @@ insert_pgtraj AS (
     ),
 insert_animal_burst AS (
     INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
-    SELECT DISTINCT a.burst_name, a.animal_name, b.id
-    FROM r_output AS a
+    SELECT a.burst_name, a.animal_name, b.id
+    FROM (SELECT DISTINCT pgtraj_name, burst_name, animal_name, burst_order from r_output) AS a
     JOIN insert_pgtraj AS b ON b.pgtraj_name = a.pgtraj_name
+	ORDER BY b.id, a.burst_order 
     RETURNING id, burst_name
 )
 INSERT INTO s_i_b_rel (step_id, animal_burst_id)

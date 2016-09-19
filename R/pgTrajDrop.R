@@ -75,8 +75,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
             );
         DELETE FROM pgtraj WHERE pgtraj_name = ",
-                        dbQuoteString(conn,pgtraj),";
-        DROP TABLE IF EXISTS ", dbQuoteIdentifier(conn,paste0("z_infolocs_",pgtraj)),";")
+                        dbQuoteString(conn,pgtraj),";")
     sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     # Begin transaction block
@@ -84,6 +83,11 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     
     tryCatch({
         invisible(dbSendQuery(conn, sql_query))
+        if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj))))
+        { 
+          dbDrop(conn,c(schema,paste0("z_infolocs_",pgtraj)),
+                 type = "table",display = FALSE)
+        }
         dbCommit(conn)
     }, warning = function(x) {
         message(x)

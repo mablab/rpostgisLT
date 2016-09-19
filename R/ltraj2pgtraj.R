@@ -99,6 +99,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     dframe$.proj4string <- srs
     dframe$.pgtraj <- pgtraj
     dframe$.note <- note
+    dframe$.burst_order <- as.integer(ordered(dframe$burst,burst(ltraj)))
     ## Format date to include time zone that Postgres recognizes
     dframe$date <- sapply(dframe$date, function(x) strftime(x,
         format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE))

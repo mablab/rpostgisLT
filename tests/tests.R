@@ -23,7 +23,7 @@ ib_min <- dl(ld(ibexraw[1])[1:10, ]) # note that step parameters are recomputed 
 ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min, pgtraj = "ib_min")
 ib_min_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
 all.equal(ib_min, ib_min_re)
-Sys.sleep(5)
+Sys.sleep(2)
 identical(ib_min, ib_min_re)
 
 dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
@@ -35,7 +35,7 @@ ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs) # note that step
 ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min_srs, pgtraj = "ib_min_3395")
 ib_min_srs_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min_3395")
 all.equal(ib_min_srs, ib_min_srs_re)
-Sys.sleep(5)
+Sys.sleep(2)
 
 dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
 rm(ib_min_srs, ib_min_srs_re)
@@ -53,7 +53,7 @@ ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
                                         # 'traj' schema.
 all.equal(ibex, ibexTest)
 # TRUE
-Sys.sleep(5)
+Sys.sleep(2)
 
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibexTest)
@@ -79,7 +79,7 @@ all.equal(ibexraw, ibexraw_re)
 all.equal(puechcirc, puechcirc_re)
 all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
-Sys.sleep(5)
+Sys.sleep(2)
 
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re)
@@ -91,7 +91,7 @@ refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 # TRUE
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
@@ -106,7 +106,7 @@ ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
 ## TRUE
-Sys.sleep(5)
+Sys.sleep(2)
 
 
 ## Interpolation
@@ -122,24 +122,22 @@ summary(ld(ibex)$dist)
 
 ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-all.equal(ibex, ibexTest) # not TRUE...infolocs$pkey isn't a factor, date rounding
-# factors levels were made at burst level in redisltraj
-# they are made at data frame level prior to export so number of levels differ.
-Sys.sleep(5)
+all.equal(ibex, ibexTest) # not TRUE... date rounding
+Sys.sleep(2)
 
 
 for (i in 1:10) {
  print(i)
   print(all.equal(ibex[[1]][,i],ibexTest[[1]][,i]))
 }
-Sys.sleep(5)
+Sys.sleep(2)
 
 #time rounding causing all.equal == FALSE
 ibexTest[[1]]$date == ibex[[1]]$date
 all.equal(as.integer(ibex[[1]]$date),as.integer(ibexTest[[1]]$date))
 
 all.equal(ibex[[1]][,3],ibexTest[[1]][,3])
-Sys.sleep(5)
+Sys.sleep(2)
 
 head(ibex[[1]])
 head(ibexTest[[1]])
@@ -153,8 +151,8 @@ ibex <- ibex.ref
 ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-## TRUE (except infolocs factor)
-Sys.sleep(5)
+## TRUE
+Sys.sleep(2)
 
 
 ## Subset
@@ -172,7 +170,7 @@ head(ibex[[1]])
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 ## 2. Subsample on the temporal sequence
 ibex <- ibex.ref
@@ -180,7 +178,7 @@ ibex <- ibex.ref
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 
 ## Cut, bind bursts
@@ -191,7 +189,7 @@ ibex <- ibex.ref
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 ## 2. Bind back by individual:
 (ibex <- bindltraj(ibex))
@@ -199,7 +197,7 @@ ibex <- removeinfo(ibex)
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 
 ## Combine trajectories
@@ -211,7 +209,7 @@ attr(ibex,"proj4string") <- CRS() # proj4string attributes needs to be added
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
-Sys.sleep(5)
+Sys.sleep(2)
 
 #############################################################################
 ## Test database import
@@ -267,7 +265,7 @@ all.equal(continental,continental2)
 all.equal(large,large2)
 all.equal(medium,medium2)
 all.equal(small,small2)
-Sys.sleep(5)
+Sys.sleep(2)
 
 # relocations are provided as X,Y coordinates
 as_pgtraj(conn, 
@@ -328,7 +326,7 @@ as_pgtraj(conn,
 ibex_re <- pgtraj2ltraj(conn, "ibex")
 all.equal(ibex, ibex_re)
 # gives warning of inconsistent time zone attribute but that is expected
-Sys.sleep(5)
+Sys.sleep(2)
 
 albatross_dl <- ld(albatross)
 dbDrop(conn, name = c("example_data", "albatross"), type = "table", ifexists = TRUE)
@@ -345,7 +343,15 @@ as_pgtraj(conn,
         rid = "gid")
 albatross_re <- pgtraj2ltraj(conn, "albatross")
 all.equal(albatross, albatross_re)
-Sys.sleep(5)
+# reorders the bursts during as_pgtraj
+
+#ltraj2pgtraj(conn,albatross_re)
+#albatross_re2<-pgtraj2ltraj(conn,"albatross_re")
+
+#now equal
+#all.equal(albatross_re,albatross_re2)
+
+Sys.sleep(2)
 
 # gives warning of inconsistent time zone attribute but that is expected
 # furthermore gives a high number of 'Mean absoloute difference'
@@ -375,7 +381,7 @@ ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 cap2<-pgtraj2ltraj(conn,"cap")
 all.equal(cap,cap2)
 # differences due to "dummy" being included in every burst infolocs, not just the first (unless not created above)
-Sys.sleep(5)
+Sys.sleep(2)
 
 
 ## additional infolocs test with other column types
@@ -438,12 +444,9 @@ ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
 cap2<-pgtraj2ltraj(conn,pgtraj="cap")
 
 all.equal(cap,cap2) 
-Sys.sleep(5)
-
-
+Sys.sleep(2)
 
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibex, ibex_re, albatross, albatross_re, albatross_dl, ibex_dl, refda,
         porpoise)
-
