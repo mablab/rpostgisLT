@@ -3,13 +3,13 @@ Title: Managing Animal Movement Data with 'PostGIS' and R
 Version: 0.4.0  
 Date: 2016-09-06
 Authors@R: c(
-    person("Bal·zs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut"),
+    person("Bal√°zs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut"),
           comment =  "Package creator during Google Summer of Code 2016"),
     person("Mathieu", "Basille", email = "basille@ufl.edu", role =
            c("aut")),
     person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
            c("aut", "cre")),
-    person("ClÈment", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
+    person("Cl√©ment", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
           role = c("aut")) )
 Description: The 'rpostgisLT' package develops the integration of R
     and 'PostGIS' for managing movement trajectories. The focus is on
