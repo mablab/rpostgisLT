@@ -1,6 +1,6 @@
 ## Establish connection with rpostgisLT database
-source("C:/David/git/rpostgisLT/utility/utility_functions.R")
-cs() # creates globals conn and drv
+#source("C:/David/git/rpostgisLT/utility/utility_functions.R")
+#cs("") # creates globals conn and drv
 #library(rpostgisLT)
 
 ## Get test datasets
@@ -317,12 +317,12 @@ pgInsert(conn, name = c("example_data", "ibex"), data.obj = ibex_dl, new.id = "g
 as_pgtraj(conn, 
         schema = "traj",
         relocations_table = c("example_data","ibex"),
-        pgtraj = "ibex",
+        pgtrajs = "ibex",
         animals = "id",
         bursts = "burst",
         relocations = c("x", "y"),
         timestamps = "date",
-        rid = "gid")
+        rids = "gid")
 ibex_re <- pgtraj2ltraj(conn, "ibex")
 all.equal(ibex, ibex_re)
 # gives warning of inconsistent time zone attribute but that is expected
@@ -343,13 +343,6 @@ as_pgtraj(conn,
         rid = "gid")
 albatross_re <- pgtraj2ltraj(conn, "albatross")
 all.equal(albatross, albatross_re)
-# reorders the bursts during as_pgtraj
-
-#ltraj2pgtraj(conn,albatross_re)
-#albatross_re2<-pgtraj2ltraj(conn,"albatross_re")
-
-#now equal
-#all.equal(albatross_re,albatross_re2)
 
 Sys.sleep(2)
 

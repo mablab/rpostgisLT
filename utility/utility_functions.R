@@ -11,19 +11,19 @@ library(rpostgisLT)
 
 
 # Connect server
-cs <- function() {
+cs <- function(pw) {
     drv <<- dbDriver("PostgreSQL")
-    conn <<- dbConnect(drv, user="rpostgis", password="gsoc", dbname="rpostgis",
+    conn <<- dbConnect(drv, user="rpostgis", password=pw, dbname="rpostgis",
             host="basille-flrec.ad.ufl.edu")
     message("Connection established successfully")
 }
 # Reconnect server
-rcs <- function() {
+rcs <- function(pw) {
     dbDisconnect(conn)
     postgresqlCloseDriver(drv)
     dbUnloadDriver(drv)
     drv <<- dbDriver("PostgreSQL")
-    conn <<- dbConnect(drv, user="rpostgis", password="gsoc", dbname="rpostgis",
+    conn <<- dbConnect(drv, user="rpostgis", password=pw, dbname="rpostgis",
             host="basille-flrec.ad.ufl.edu")
     message("Reconnected successfully")
 }

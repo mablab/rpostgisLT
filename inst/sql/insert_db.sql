@@ -54,6 +54,7 @@ insert_animal_burst AS (
     SELECT DISTINCT a.burst_name, a.animal_name, b.id
     FROM relocation_input AS a
     JOIN insert_pgtraj AS b ON b.pgtraj_name = a.pgtraj_name
+	ORDER BY b.id, a.burst_name  --matches automatic sorting in ltraj by burst name
     RETURNING id, burst_name
 )
 INSERT INTO s_i_b_rel (step_id, animal_burst_id)
