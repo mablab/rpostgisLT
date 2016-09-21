@@ -106,7 +106,8 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     ##### Test inputs
     # Test connection, table, field and values
     sql_query <- paste0("SELECT ", relocations_q[1], " FROM ",
-            relocations_table_q," LIMIT 1;")  # should this include where is not null?
+            relocations_table_q," WHERE ", relocations_q[1],
+            " IS NOT NULL LIMIT 1;") 
     a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
     if (is.null(a)) {
         print(paste("Field", relocations ,"does not contain values."))
@@ -115,7 +116,8 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     # Check if the relocation geometry is projected
     if (length(relocations) == 1) {
         sql_query <- paste0("SELECT ST_SRID(", relocations_q,
-        ") FROM ", relocations_table_q," LIMIT 1;")  # should this include where is not null?
+        ") FROM ", relocations_table_q," WHERE ", relocations_q[1],
+            " IS NOT NULL LIMIT 1;")
         srid <- dbGetQuery(conn, sql_query)[1,1]
         if (srid == 0) {
             acr <- NA
