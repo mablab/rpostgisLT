@@ -645,7 +645,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                 })
     } else {
         sql_query <- paste0(
-        "CREATE OR REPLACE VIEW ",pgtraj,"_parameters AS
+        "CREATE OR REPLACE VIEW ",view," AS
         WITH step_geom AS (
             SELECT
                 s.id AS step_id,
