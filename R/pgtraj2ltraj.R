@@ -31,7 +31,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     # sanitize schema name
     schema_q <- dbQuoteIdentifier(conn,schema)
   
-    view <- paste0(pgtraj, "_parameters")
+    view <- paste0("parameters_",pgtraj)
     view_q <- dbQuoteIdentifier(conn,view)
     
     # check if infolocs exist

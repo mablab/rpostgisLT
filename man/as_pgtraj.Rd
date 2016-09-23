@@ -54,9 +54,9 @@ TRUE on success
 \description{
 \code{as_pgtraj} populates a \code{traj} schema from the data provided
 in \code{relocations_table}. If the provided schema doesn't exist, it will be 
-created. On successful data input, \code{as_pgtraj} creates three database views for
-each pgtraj. These views are named <pgtraj_name>_parameters, 
-<pgtraj_name>_step_geometry and <pgtraj_name>_summary and described more in
+created. On successful data input, \code{as_pgtraj} creates two database views for
+each pgtraj. These views are named parameters_<pgtraj_name>, 
+step_geometry_<pgtraj_name> and described more in
 detail in the package vignette.
 
 The time zone of the pgtraj is set to the local time zone of the user.

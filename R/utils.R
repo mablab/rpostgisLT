@@ -450,7 +450,7 @@ pgTrajTempT <- function(conn, schema) {
 # pgTrajViewParams
 
 #' Computes the trajectory parameters (as in ltraj) for a pgtraj and creates a 
-#' view for the pgtraj. The views are always named as '<pgtraj_name>_parameters'.
+#' view for the pgtraj. The views are always named as 'parameters_<pgtraj_name>'.
 #' 
 #' @author Balázs Dukai
 #' 
@@ -476,7 +476,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbGetQuery(conn, sql_query))
     
-    view <- dbQuoteIdentifier(conn,paste0(pgtraj, "_parameters"))
+    view <- dbQuoteIdentifier(conn,paste0("parameters_",pgtraj))
     
     if (db) {
         sql_query <- paste0(
@@ -623,22 +623,19 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
         res <- tryCatch({
                     
                     invisible(dbSendQuery(conn, create_sql_query))
-                    message(paste0("View '", pgtraj,
-                                    "_parameters' created in schema '",
+                    message(paste0("View 'parameters_",pgtraj,"' created in schema '",
                                     schema, "'."))
                     return(TRUE)
                     
                 }, warning = function(war) {
                     
-                    message(paste0("WARNING in creating view '",
-                                    pgtraj,"_parameters' :"))
+                    message(paste0("WARNING in creating view 'parameters_",pgtraj,"' :"))
                     message(war)
                     return(war)
                     
                 }, error = function(err) {
                     
-                    message(paste0("ERROR in creating view '",
-                                    pgtraj,"_parameters' :"))
+                    message(paste0("ERROR in creating view 'parameters_",pgtraj,"' :"))
                     message(err)
                     return(err)
                     
@@ -713,22 +710,19 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
         res <- tryCatch({
                     
                     invisible(dbSendQuery(conn, create_sql_query))
-                    message(paste0("View '", pgtraj,
-                                    "_parameters' created in schema '",
+                    message(paste0("View 'parameters_",pgtraj,"' created in schema '",
                                     schema, "'."))
                     return(TRUE)
                     
                 }, warning = function(war) {
                     
-                    message(paste0("WARNING in creating view '",
-                                    pgtraj,"_parameters' :"))
+                    message(paste0("WARNING in creating view 'parameters_",pgtraj,"' :"))
                     message(war)
                     return(war)
                     
                 }, error = function(err) {
                     
-                    message(paste0("ERROR in creating view '",
-                                    pgtraj,"_parameters' :"))
+                    message(paste0("ERROR in creating view 'parameters_",pgtraj,"' :"))
                     message(err)
                     return(err)
                     
@@ -764,7 +758,7 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbGetQuery(conn, sql_query))
     
-    view <- dbQuoteIdentifier(conn,paste0(pgtraj, "_step_geometry"))
+    view <- dbQuoteIdentifier(conn,paste0("step_geometry_",pgtraj))
     
     sql_query <- paste0(
     "CREATE OR REPLACE VIEW ",view," AS
@@ -794,18 +788,18 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     res <- tryCatch({
                 
                 invisible(dbSendQuery(conn, create_sql_query))
-                message(paste0("View '",pgtraj,"_step_geometry' created in schema '", schema, "'."))
+                message(paste0("View 'step_geometry_",pgtraj,"' created in schema '", schema, "'."))
                 return(TRUE)
                 
             }, warning = function(war) {
                 
-                message(paste0("WARNING in creating view '",pgtraj,"_step_geometry' :"))
+                message(paste0("WARNING in creating view 'step_geometry_",pgtraj,"' :"))
                 message(war)
                 return(war)
                 
             }, error = function(err) {
                 
-                message(paste0("ERROR in creating view '",pgtraj,"_step_geometry' :"))
+                message(paste0("ERROR in creating view 'step_geometry_",pgtraj,"' :"))
                 message(err)
                 return(err)
                 
@@ -1176,7 +1170,7 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     
     iloc_nm <- paste0("infolocs_", pgtraj)
     iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
-    view <- paste0(pgtraj, "_parameters")
+    view <- paste0("parameters_",pgtraj)
     viewq <- dbQuoteIdentifier(conn, view)
     
     # get list of bursts (order by id (from animal_burst)

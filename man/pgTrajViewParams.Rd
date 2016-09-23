@@ -3,7 +3,7 @@
 \name{pgTrajViewParams}
 \alias{pgTrajViewParams}
 \title{Computes the trajectory parameters (as in ltraj) for a pgtraj and creates a 
-view for the pgtraj. The views are always named as '<pgtraj_name>_parameters'.}
+view for the pgtraj. The views are always named as 'parameters_<pgtraj_name>'.}
 \usage{
 pgTrajViewParams(conn, schema, pgtraj, epsg, db = TRUE)
 }
@@ -28,7 +28,7 @@ TRUE on success, otherwise warning/error
 }
 \description{
 Computes the trajectory parameters (as in ltraj) for a pgtraj and creates a 
-view for the pgtraj. The views are always named as '<pgtraj_name>_parameters'.
+view for the pgtraj. The views are always named as 'parameters_<pgtraj_name>'.
 }
 \author{
 Balázs Dukai
