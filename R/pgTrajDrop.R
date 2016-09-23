@@ -44,22 +44,13 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     
     # Drop query
     sql_query <- paste0("
-        DELETE FROM infoloc WHERE id IN (
-            SELECT
-                i.id AS infoloc_id
-            FROM infoloc i
-            JOIN s_i_b_rel rel ON rel.infoloc_id = i.id
-            JOIN animal_burst ab ON ab.id = rel.animal_burst_id
-            JOIN pgtraj p ON p.id = ab.pgtraj_id
-            WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-            );
         DELETE FROM relocation WHERE id IN (
             SELECT
                 r1.id AS relocation_id
             FROM step s
             JOIN relocation r1 ON s.relocation_id_1 = r1.id
             LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_i_b_rel rel ON rel.step_id = s.id
+            JOIN s_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
@@ -69,7 +60,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
             FROM step s
             JOIN relocation r1 ON s.relocation_id_1 = r1.id
             LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_i_b_rel rel ON rel.step_id = s.id
+            JOIN s_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
@@ -83,9 +74,9 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     
     tryCatch({
         invisible(dbSendQuery(conn, sql_query))
-        if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj))))
+        if (dbExistsTable(conn,c(schema,paste0("infolocs_",pgtraj))))
         { 
-          dbDrop(conn,c(schema,paste0("z_infolocs_",pgtraj)),
+          dbDrop(conn,c(schema,paste0("infolocs_",pgtraj)),
                  type = "table",display = FALSE)
         }
         dbCommit(conn)

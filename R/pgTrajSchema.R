@@ -47,8 +47,8 @@ pgTrajSchema <- function(conn, schema = "traj") {
         dbQuoteString(conn,schema), ";")
     dbtables <- dbGetQuery(conn, tmp.query, stringsAsFactors = FALSE)
     dbtables <- dbtables$tablename
-    traj_tables <- c("animal_burst", "pgtraj", "step", "infoloc",
-        "s_i_b_rel", "relocation")
+    traj_tables <- c("animal_burst", "pgtraj", "step",
+        "s_b_rel", "relocation")
     if (length(dbtables) == 0) {
         ## In case of empty schema, set DB search path for the schema
         current_search_path <- dbGetQuery(conn, "SHOW search_path;")

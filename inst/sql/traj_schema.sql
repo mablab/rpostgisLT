@@ -37,17 +37,17 @@ CREATE TABLE step (
     r2n               float8      DEFAULT NULL,
     rel_angle         float8      DEFAULT NULL
 );
-
+/*
 CREATE TABLE infoloc (
-    id                serial      PRIMARY KEY,
+	id                serial      PRIMARY KEY,
     infoloc           json        DEFAULT NULL
 );
-
-CREATE TABLE s_i_b_rel (
+*/
+CREATE TABLE s_b_rel (
     step_id          integer     NOT NULL REFERENCES step (id)
                                  ON DELETE CASCADE,
-    infoloc_id       integer     REFERENCES infoloc (id)
-                                 ON DELETE SET NULL,
+    --infoloc_id       integer     REFERENCES infoloc (id)
+    --                             ON DELETE SET NULL,
     animal_burst_id  integer     NOT NULL REFERENCES animal_burst (id)
                                  ON DELETE CASCADE,
     PRIMARY KEY (step_id, animal_burst_id)
@@ -89,10 +89,10 @@ COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';
 COMMENT ON COLUMN relocation.relocation_time IS 'Time stamp of the relocation.';
 COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations table in the database.';
 
-COMMENT ON TABLE infoloc IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
-COMMENT ON COLUMN infoloc.id IS 'Auto-generated numeric ID of infoloc.';
-COMMENT ON COLUMN infoloc.infoloc IS 'Contains the additional information encoded in JSON.';
+--COMMENT ON TABLE infoloc IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
+--COMMENT ON COLUMN infoloc.id IS 'Auto-generated numeric ID of infoloc.';
+--COMMENT ON COLUMN infoloc.infoloc IS 'Contains the additional information encoded in JSON.';
 
-COMMENT ON TABLE s_i_b_rel IS 'Relates step, infoloc and burst.';
+COMMENT ON TABLE s_b_rel IS 'Relates step and burst.';
 
 

@@ -36,10 +36,10 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     # check if infolocs exist
     info<-NULL
-    if (dbExistsTable(conn,c(schema,paste0("z_infolocs_",pgtraj)))) {
+    if (dbExistsTable(conn,c(schema,paste0("infolocs_",pgtraj)))) {
        # check for column names
        info_info<-dbTableInfo(conn,c(schema,
-                              paste0("z_infolocs_",pgtraj)))$column_name
+                              paste0("infolocs_",pgtraj)))$column_name
        if (length(info_info) > 1 && "step_id" %in% info_info) {
         info <- getPgtrajWithInfo(conn, pgtraj, schema)
        }

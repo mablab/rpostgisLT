@@ -1,7 +1,7 @@
 ## Establish connection with rpostgisLT database
 #source("C:/David/git/rpostgisLT/utility/utility_functions.R")
 #cs("") # creates globals conn and drv
-#library(rpostgisLT)
+library(rpostgisLT)
 
 ## Get test datasets
 data(ibex)
@@ -225,8 +225,8 @@ as_pgtraj(conn,
         bursts = "burst",
         relocations = "geom",
         timestamps = "time",
-        rid = "gid"
-        ,info_cols = c("info_day","dummy")
+        rids = "gid",
+        info_cols = c("info_day","dummy")
         )
 
 dbDrop(conn,name = "traj_db_t1",type = "schema",cascade = TRUE)
@@ -382,10 +382,6 @@ data(capreochiz)
 head(capreochiz)
 str(capreochiz)
 
-drv <- dbDriver("PostgreSQL")
-conn <- dbConnect(drv, user="rpostgis", password="gsoc", dbname="rpostgis",
-          host="basille-flrec.ad.ufl.edu")
-
 ## POSIXt
 library(lubridate)
 attributes(capreochiz$date)
@@ -432,14 +428,15 @@ cap <- as.ltraj(xy = capreochiz[, c("x", "y")], date = capreochiz$date,
                                         # second one to 'date.1')
 str(infolocs(cap))
 
+cap.test<-cap
 # send to database
-ltraj2pgtraj(conn,cap,infolocs = TRUE, overwrite=TRUE)
-cap2<-pgtraj2ltraj(conn,pgtraj="cap")
+ltraj2pgtraj(conn,cap.test,infolocs = TRUE, overwrite=TRUE)
+cap2<-pgtraj2ltraj(conn,pgtraj="cap.test")
 
-all.equal(cap,cap2) 
+all.equal(cap.test,cap2) 
 Sys.sleep(2)
 
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-rm(ibex, ibex_re, albatross, albatross_re, albatross_dl, ibex_dl, refda,
-        porpoise)
+rm(ibex, capreochiz, ibex_re, albatross, albatross_re, albatross_dl, ibex_dl, refda,
+        porpoise, cap, cap.test, cap2)

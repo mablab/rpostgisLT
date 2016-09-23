@@ -498,7 +498,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             FROM step s
             JOIN relocation r1 ON s.relocation_id_1 = r1.id
             LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_i_b_rel rel ON rel.step_id = s.id
+            JOIN s_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
@@ -665,7 +665,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
             FROM step s
             JOIN relocation r1 ON s.relocation_id_1 = r1.id
             LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_i_b_rel rel ON rel.step_id = s.id
+            JOIN s_b_rel rel ON rel.step_id = s.id
             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
             JOIN pgtraj p ON p.id = ab.pgtraj_id
             WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
@@ -783,7 +783,7 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     FROM step s
     JOIN relocation r1 ON s.relocation_id_1 = r1.id
     JOIN relocation r2 ON s.relocation_id_2 = r2.id
-    JOIN s_i_b_rel rel ON rel.step_id = s.id
+    JOIN s_b_rel rel ON rel.step_id = s.id
     JOIN animal_burst ab ON ab.id = rel.animal_burst_id
     JOIN pgtraj p ON p.id = ab.pgtraj_id
     WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
@@ -930,7 +930,7 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     }
     
     # table_name
-    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    iloc_nm <- paste0("infolocs_", pgtraj)
     
     # query-safe identifier names
     iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
@@ -1043,21 +1043,25 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     suppressMessages(pgInsert(conn, name = c(schema, iloc_nm), 
         data.obj = iloc_df, alter.names = FALSE))
     
+    dbComment(conn,name = c(schema, iloc_nm),type = "table",
+              comment = paste0("Infolocs (additional information on locations/steps) for the pgtraj ",
+                               dbQuoteIdentifier(conn,pgtraj),"."), display = FALSE)
+    
     # update step_id column
     sql_query<-paste0("UPDATE ",schemaq,".",iloc_nmq," a SET
                       step_id = b.step_id FROM 
-                          (SELECT s_i_b_rel.step_id as step_id,
+                          (SELECT s_b_rel.step_id as step_id,
                             step.r_rowname as r_rowname931bqvz,
                             animal_burst.burst_name as burst_931bqvz
                           FROM ",
                             schemaq,".pgtraj, ",
                             schemaq,".animal_burst, ",
-                            schemaq,".s_i_b_rel, ",
+                            schemaq,".s_b_rel, ",
                             schemaq,".step 
                           WHERE
                             pgtraj.id = animal_burst.pgtraj_id AND
-                            animal_burst.id = s_i_b_rel.animal_burst_id AND
-                            s_i_b_rel.step_id = step.id AND
+                            animal_burst.id = s_b_rel.animal_burst_id AND
+                            s_b_rel.step_id = step.id AND
                             pgtraj_name = ",dbQuoteString(conn,pgtraj),"
                           ORDER BY step_id) b WHERE
                       a.r_rowname931bqvz = b.r_rowname931bqvz AND
@@ -1116,7 +1120,7 @@ writeInfoFromDB <- function(conn, pgtraj, schema, info_cols,
     
     ins_cols <- paste("info_tab.", info_colsq, sep = "")
     info_ridsq <- dbQuoteIdentifier(conn, info_rids)
-    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    iloc_nm <- paste0("infolocs_", pgtraj)
     iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
   
     # create and populate table
@@ -1127,17 +1131,21 @@ writeInfoFromDB <- function(conn, pgtraj, schema, info_cols,
                 schemaq,".relocation, ",
                 schemaq,".pgtraj, ",
                 schemaq,".animal_burst, ",
-                schemaq,".s_i_b_rel, ",
+                schemaq,".s_b_rel, ",
                 schemaq,".step
               WHERE
                 pgtraj.id = animal_burst.pgtraj_id AND
-                animal_burst.id = s_i_b_rel.animal_burst_id AND
-                s_i_b_rel.step_id = step.id AND
+                animal_burst.id = s_b_rel.animal_burst_id AND
+                s_b_rel.step_id = step.id AND
                 step.relocation_id_1 = relocation.id AND
                 relocation.orig_id = info_tab.",info_ridsq," AND
                 pgtraj_name = ",dbQuoteString(conn,pgtraj),"
               ORDER BY step_id;")
     dbSendQuery(conn,sql_query)
+    
+    dbComment(conn,name = c(schema, iloc_nm),type = "table",
+              comment = paste0("Infolocs (additional information on locations/steps) for the pgtraj ",
+                               dbQuoteIdentifier(conn,pgtraj),"."), display = FALSE)
   
     # add primary key to step_id
     dbAddKey(conn, name = c(schema, iloc_nm), type = "primary", 
@@ -1166,7 +1174,7 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     # DB safe names
     schemaq <- dbQuoteIdentifier(conn, schema)
     
-    iloc_nm <- paste0("z_infolocs_", pgtraj)
+    iloc_nm <- paste0("infolocs_", pgtraj)
     iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)
     view <- paste0(pgtraj, "_parameters")
     viewq <- dbQuoteIdentifier(conn, view)

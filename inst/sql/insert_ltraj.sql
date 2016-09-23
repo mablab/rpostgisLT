@@ -121,7 +121,7 @@ insert_animal_burst AS (
 	ORDER BY b.id, a.burst_order 
     RETURNING id, burst_name
 )
-INSERT INTO s_i_b_rel (step_id, animal_burst_id)
+INSERT INTO s_b_rel (step_id, animal_burst_id)
 SELECT a.id, b.id
 FROM step_input AS a
 JOIN insert_animal_burst AS b ON a.burst_name = b.burst_name;

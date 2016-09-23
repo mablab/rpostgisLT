@@ -39,7 +39,7 @@ pgTrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
     tables <- dbGetQuery(conn, sql_query)
     
     #just list main tables
-    #pgtraj_tlist<-c("animal_burst","pgtraj","relocation","s_i_b_rel","step")
+    #pgtraj_tlist<-c("animal_burst","pgtraj","relocation","s_b_rel","step")
     #for (tbl in pgtraj_tlist) {
     
     for (tbl in tables$tablename) {
