@@ -59,6 +59,8 @@ pgTrajSchema <- function(conn, schema = "traj") {
             "/sql/traj_schema.sql")
         tmp.query <- paste(readLines(pgtraj_schema_file), collapse = "\n")
         invisible(dbGetQuery(conn, tmp.query))
+        ## create summary views
+        trajSummaryViews(conn,schema)
         ## Reset DB search path to the public schema
         tmp.query <- paste0("SET search_path TO ", current_search_path,
             ";")
@@ -71,8 +73,8 @@ pgTrajSchema <- function(conn, schema = "traj") {
     } else if (all(traj_tables %in% dbtables)) {
         # All required tables are present in the schema
         invisible(dbCommit(conn))
-        message(paste0("The schema '", schema,
-            "' already exists in the database, and is a valid pgtraj schema."))
+        #message(paste0("The schema '", schema,
+        #    "' already exists in the database, and is a valid pgtraj schema."))
         return(TRUE)
     } else {
         invisible(dbRollback(conn))

@@ -1268,3 +1268,65 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     }
 return(getinfo)
 }
+
+# trajSummaryViews
+
+trajSummaryViews<- function(conn, schema) {
+  #pgtraj summary
+  sql_query<-paste0("CREATE OR REPLACE VIEW all_pgtraj_summary AS 
+                       WITH p AS (
+                               SELECT p_1.id,
+                                  p_1.pgtraj_name,
+                                  p_1.proj4string,
+                                  p_1.time_zone,
+                                  p_1.note,
+                                  p_1.insert_timestamp,
+                                  a.table_name
+                                 FROM pgtraj p_1
+                                   LEFT JOIN ( SELECT tables.table_name
+                                         FROM information_schema.tables
+                                        WHERE tables.table_schema::text = ",dbQuoteString(conn,schema),
+                                        " AND tables.table_name::text ~~ 'infolocs_%'::text) a ON p_1.pgtraj_name = substring(a.table_name::text, 10)
+                              )
+                       SELECT p.id AS pgtraj_id,
+                          p.pgtraj_name,
+                          p.insert_timestamp AS last_update,
+                          count(DISTINCT ab.burst_name) AS num_bursts,
+                          count(r.id) AS num_relocations,
+                          min(r.relocation_time) AS earliest_date,
+                          max(r.relocation_time) AS latest_date,
+                          p.table_name::text AS infolocs_table
+                         FROM p,
+                          animal_burst ab,
+                          relocation r,
+                          s_b_rel sb,
+                          step s
+                        WHERE p.id = ab.pgtraj_id AND ab.id = sb.animal_burst_id AND sb.step_id = s.id AND s.relocation_id_1 = r.id
+                        GROUP BY p.id, p.pgtraj_name, p.insert_timestamp, p.table_name
+                        ORDER BY p.id;")
+  dbSendQuery(conn, sql_query)
+  
+  # burst summary
+  sql_query<-"CREATE OR REPLACE VIEW all_burst_summary AS 
+                 SELECT p.id AS pgtraj_id,
+                    p.pgtraj_name,
+                    ab.animal_name,
+                    ab.burst_name,
+                    count(r.id) AS num_relocations,
+                    count(r.id) - count(r.geom) AS num_na,
+                    min(r.relocation_time) AS date_begin,
+                    max(r.relocation_time) AS date_end
+                   FROM pgtraj p,
+                    animal_burst ab,
+                    relocation r,
+                    s_b_rel sb,
+                    step s
+                  WHERE p.id = ab.pgtraj_id AND 
+                  ab.id = sb.animal_burst_id AND 
+                  sb.step_id = s.id AND 
+                  s.relocation_id_1 = r.id
+                  GROUP BY p.id, p.pgtraj_name, ab.id, ab.animal_name, ab.burst_name
+                  ORDER BY p.id, ab.id;"
+  dbSendQuery(conn, sql_query)
+  return(invisible())
+}
