@@ -13,7 +13,6 @@
 #' @details
 #' Opening and closing connections have to be done manually by the user. 
 #' However, the function checks if the provided connection is still valid. 
-#' Not tested with capital letters for PostgreSQL field names.
 #' 
 #' @seealso Section on traj data model in the package vignette. 
 #' 
@@ -23,10 +22,11 @@
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param relocations_table String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param schema String. Name of the schema that stores or will store the pgtraj data model (Default = "traj").
 #' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
 #' @param animals String. Name of the animal or name of the field that stores the animal names.
-#' @param bursts String. Name of the burst or name of the field that stores the burst names.
+#' @param bursts String. (Optional) name of the burst or name of the field that stores the burst names. If not given,
+#' each animal will have one burst.
 #' @param relocations String. Name of the field that contains the relocations 
 #' in relocations_table. Relocations can be provided either as X,Y coordinates
 #' or PostGIS geometry. In both cases all relocations in the 'relocations_table'
@@ -38,6 +38,8 @@
 #' Ignored if relocations is a geometry type.
 #' @param note String. Comment on the pgtraj. The comment is only used in
 #' the database and not transferred into an ltraj.
+#' @param clauses character, additional SQL to append to modify data selected from relocations_table.
+#' Must begin with \code{WHERE ...}, and cannot contain ORDER BY or LIMIT clauses.
 #' @param info_cols String. Optional character vector of column names of 
 #' additional information on relocations (replicating "infolocs" from the
 #' \code{adehabitatLT} object \code{ltraj}).
@@ -76,15 +78,11 @@
 #' @export 
 #' 
 #' 
-# TODO subset raw data 
-# line end comment
-## below line comment
-### standalone
-###############################################################################
+
 as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
         relocations, timestamps = NULL, rids = "rid", srid = NULL,
-        note = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
+        note = NULL, clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
@@ -103,10 +101,18 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")
     # sanitize column name strings used in queries
     relocations_q <- dbQuoteIdentifier(conn,relocations)
+    
+    # adjust for additional SQL in clauses
+    if (!is.null(clauses)) {
+        w_a <- " AND "
+        } else {
+        w_a <-" WHERE "
+        }
+    
     ##### Test inputs
     # Test connection, table, field and values
     sql_query <- paste0("SELECT ", relocations_q[1], " FROM ",
-            relocations_table_q," WHERE ", relocations_q[1],
+            relocations_table_q, " ", clauses, w_a , relocations_q[1],
             " IS NOT NULL LIMIT 1;") 
     a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
     if (is.null(a)) {
@@ -116,7 +122,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     # Check if the relocation geometry is projected
     if (length(relocations) == 1) {
         sql_query <- paste0("SELECT ST_SRID(", relocations_q,
-        ") FROM ", relocations_table_q," WHERE ", relocations_q[1],
+        ") FROM ", relocations_table_q, " ", clauses, w_a , relocations_q[1],
             " IS NOT NULL LIMIT 1;")
         srid <- dbGetQuery(conn, sql_query)[1,1]
         if (srid == 0) {
@@ -181,7 +187,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
                 pgTrajDB2TempT(conn, schema, 
                                 relocations_table, pgtrajs, animals,
                                 bursts, relocations, timestamps, rids, 
-                                srid, proj4string, note, time_zone)
+                                srid, proj4string, note, clauses, time_zone)
                 
             }, warning = function(x) {
                 

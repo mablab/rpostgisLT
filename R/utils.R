@@ -142,15 +142,16 @@ dl_opt <- function(x, rnames = TRUE) {
 #' and referenced accordingly.
 #' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
 #' @param proj4string String. The PROJ4 string to be inserted into \code{pgtraj} table.
-#' @param note Sting. Comment on the pgtraj. The comment is only used in
+#' @param note String. Comment on the pgtraj. The comment is only used in
 #' the database and not transferred into an ltraj.
+#' @param clauses String. Additional SQL to modify select query from relocations_table
 #' @param time_zone String. Time zone to be inserted into \code{pgtraj} table.
 #' 
 #' @keywords internal
 ###############################################################################
 pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
-        note, time_zone) {
+        note, clauses, time_zone) {
     # check table name
     relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")  
     # sanitize schema, rids, relocations 
@@ -175,8 +176,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom)
                             SELECT ",rids_q,",",relocations_q,"::geometry
-                            FROM ",relocations_table_q,"
-                            ORDER BY ",rids_q,";")
+                            FROM ",relocations_table_q," ",
+                            clauses,
+                            " ORDER BY ",rids_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             t <- c(t, dbSendQuery(conn, sql_query))
             
@@ -187,8 +189,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             y <- relocations_q[2]
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom)
                             SELECT ",rids_q,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,")
-                            FROM ",relocations_table_q,"
-                            ORDER BY ",rids_q,";")
+                            FROM ",relocations_table_q," ",
+                            clauses,
+                            " ORDER BY ",rids_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
             
@@ -203,8 +206,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             # Relocations provided as point geometry
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom, relocation_time)
                             SELECT ",rids_q,",",relocations_q,"::geometry, ",timestamps_q,"
-                             FROM ",relocations_table_q,"
-                             ORDER BY ",timestamps_q,";")
+                             FROM ",relocations_table_q," ",
+                             clauses,
+                             " ORDER BY ",timestamps_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
             
@@ -215,8 +219,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             y <- relocations_q[2]
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom, relocation_time)
                             SELECT ",rids_q,", ST_SetSRID(ST_MakePoint(",x,", ",y,"), ",srid,"), ",timestamps_q,"
-                            FROM ",relocations_table_q,"
-                            ORDER BY ",timestamps_q,";")
+                            FROM ",relocations_table_q," ",
+                            clauses,
+                            " ORDER BY ",timestamps_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
         }
@@ -235,7 +240,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         SET pgtraj_name = a.",pgtrajs_q,"
                         FROM (
                         SELECT ",rids_q,", ",pgtrajs_q,"
-                        FROM ",relocations_table_q,"
+                        FROM ",relocations_table_q," ", clauses,"
                         ) a
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
@@ -263,7 +268,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         SET animal_name = a.",animals_q,"
                         FROM (
                         SELECT ",rids_q,", ",animals_q,"
-                        FROM ",relocations_table_q,"
+                        FROM ",relocations_table_q," ", clauses,"
                         ) a
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
@@ -285,7 +290,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         SET burst_name = a.",animals_q,"
                         FROM (
                         SELECT ",rids_q,", ",animals_q,"
-                        FROM ",relocations_table_q,"
+                        FROM ",relocations_table_q," ", clauses,"
                         ) a
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
@@ -305,7 +310,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         SET burst_name = a.",bursts_q,"
                         FROM (
                         SELECT ",rids_q,", ",bursts_q,"
-                        FROM ",relocations_table_q,"
+                        FROM ",relocations_table_q," ", clauses,"
                         ) a
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
@@ -333,7 +338,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         SET note = a.",note_q,"
                         FROM (
                         SELECT ",rids_q,", ",note_q,"
-                        FROM ",relocations_table_q,"
+                        FROM ",relocations_table_q," ", clauses,"
                         ) a
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)

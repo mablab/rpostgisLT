@@ -226,6 +226,7 @@ as_pgtraj(conn,
         relocations = "geom",
         timestamps = "time",
         rids = "gid",
+        clauses = "where id = 'continental'",
         info_cols = c("info_day","dummy")
         )
 
@@ -241,6 +242,7 @@ as_pgtraj(conn,
         relocations = "geom",
         timestamps = "time",
         rid = "gid",
+        #clauses = "where id = 'continental'",
         info_cols = c("info_day","dummy"),
         info_table = c("infoloc_test"),
         info_rids = "gid"

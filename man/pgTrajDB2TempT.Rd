@@ -6,7 +6,7 @@
 \usage{
 pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, animals,
   bursts = NULL, relocations, timestamps, rids, srid, proj4string, note,
-  time_zone)
+  clauses, time_zone)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -34,8 +34,10 @@ and referenced accordingly.}
 
 \item{proj4string}{String. The PROJ4 string to be inserted into \code{pgtraj} table.}
 
-\item{note}{Sting. Comment on the pgtraj. The comment is only used in
+\item{note}{String. Comment on the pgtraj. The comment is only used in
 the database and not transferred into an ltraj.}
+
+\item{clauses}{String. Additional SQL to modify select query from relocations_table}
 
 \item{time_zone}{String. Time zone to be inserted into \code{pgtraj} table.}
 }

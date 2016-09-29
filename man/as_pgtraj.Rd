@@ -6,21 +6,22 @@
 \usage{
 as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
   animals = "animal", bursts = NULL, relocations, timestamps = NULL,
-  rids = "rid", srid = NULL, note = NULL, info_cols = NULL,
-  info_table = NULL, info_rids = NULL)
+  rids = "rid", srid = NULL, note = NULL, clauses = NULL,
+  info_cols = NULL, info_table = NULL, info_rids = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
 \item{relocations_table}{String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{String. Name of the schema that stores or will store the pgtraj data model (Default = "traj").}
 
 \item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
 
 \item{animals}{String. Name of the animal or name of the field that stores the animal names.}
 
-\item{bursts}{String. Name of the burst or name of the field that stores the burst names.}
+\item{bursts}{String. (Optional) name of the burst or name of the field that stores the burst names. If not given,
+each animal will have one burst.}
 
 \item{relocations}{String. Name of the field that contains the relocations 
 in relocations_table. Relocations can be provided either as X,Y coordinates
@@ -37,6 +38,9 @@ Ignored if relocations is a geometry type.}
 
 \item{note}{String. Comment on the pgtraj. The comment is only used in
 the database and not transferred into an ltraj.}
+
+\item{clauses}{character, additional SQL to append to modify data selected from relocations_table.
+Must begin with \code{WHERE ...}, and cannot contain ORDER BY or LIMIT clauses.}
 
 \item{info_cols}{String. Optional character vector of column names of 
 additional information on relocations (replicating "infolocs" from the
@@ -63,8 +67,7 @@ The time zone of the pgtraj is set to the local time zone of the user.
 }
 \details{
 Opening and closing connections have to be done manually by the user. 
-However, the function checks if the provided connection is still valid. 
-Not tested with capital letters for PostgreSQL field names.
+However, the function checks if the provided connection is still valid.
 }
 \examples{
 \dontrun{
