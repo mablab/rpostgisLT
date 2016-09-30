@@ -47,10 +47,9 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (is_blank(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
     } 
-    ## only allow pgtraj names that are also valid R object names
-    if (!grepl("^[A-Za-z]",pgtraj) || make.names(pgtraj) != pgtraj) {
-         stop("Invalid pgtraj name. Valid pgtraj names can contain letters, numbers, '.', and '_',
-             and must begin with a letter.")
+    ## only allow pgtraj names that begin with letters or numbers
+    if (!grepl("^[0-9A-Za-z]",pgtraj)) {
+         stop("Invalid pgtraj name. Valid pgtraj names must begin with a letter or number.")
     }
     ## Check/create pgtraj schema ('pgTrajSchema' has its own
     ## transaction control)
@@ -65,7 +64,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (pgtraj %in% pgt$pgtraj_name) {
         ## If 'overwrite', drop 'pgtraj', else stop
         if (overwrite) {
-            pgTrajDrop(conn, pgtraj, schema)
+            pgTrajDrop(conn, pgtraj, schema, full_clean = FALSE)
         } else {
             stop(paste0("The pgtraj '", pgtraj, "' already exists in the schema '",
                 schema, "'"))
@@ -82,8 +81,8 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         srid <- 0
         srs<-NA    # not sure this is necessary with updated adehabitatLT (0.3.21)
     } else {
-        srid <- pgSRID(conn = conn, crs = srs, create.srid = TRUE,
-            new.srid = NULL)
+        srid <- suppressMessages(pgSRID(conn = conn, crs = srs, create.srid = TRUE,
+            new.srid = NULL))
         srs <- srs@projargs
     }
     ## Get time zone

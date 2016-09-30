@@ -8,6 +8,9 @@
 ##' @param conn Connection object created with RPostgreSQL
 ##' @param pgtraj String. A vector containing the names of the pgtrajs.
 ##' @param schema String. Name of the schema that stores the traj data model.
+##' @param full_clean String. Whether to delete all stale rows in all tables
+##' associated with the pgtraj (and any other old pgtrajs). Recommended, 
+##' but may take a long time to run in schemas with many large pgtraj's.
 ##' 
 ##' @return TRUE on success
 ##' 
@@ -23,7 +26,7 @@
 
 ## need to add views to drop query
 
-pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
+pgTrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection"))
@@ -43,31 +46,8 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
     }
     
     # Drop query
-    sql_query <- paste0("
-        DELETE FROM relocation WHERE id IN (
-            SELECT
-                r1.id AS relocation_id
-            FROM step s
-            JOIN relocation r1 ON s.relocation_id_1 = r1.id
-            LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_b_rel rel ON rel.step_id = s.id
-            JOIN animal_burst ab ON ab.id = rel.animal_burst_id
-            JOIN pgtraj p ON p.id = ab.pgtraj_id
-            WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-            UNION
-            SELECT
-                r2.id AS relocation_id
-            FROM step s
-            JOIN relocation r1 ON s.relocation_id_1 = r1.id
-            LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
-            JOIN s_b_rel rel ON rel.step_id = s.id
-            JOIN animal_burst ab ON ab.id = rel.animal_burst_id
-            JOIN pgtraj p ON p.id = ab.pgtraj_id
-            WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-            );
-        DELETE FROM pgtraj WHERE pgtraj_name = ",
+    sql_query <- paste0("DELETE FROM pgtraj WHERE pgtraj_name = ",
                         dbQuoteString(conn,pgtraj),";")
-    sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     # Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
@@ -78,6 +58,32 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj") {
         { 
           dbDrop(conn,c(schema,paste0("infolocs_",pgtraj)),
                  type = "table",display = FALSE)
+        }
+        if (full_clean) {
+          message("Deleting stale rows from pgtraj schema tables, please be patient...")
+          sql_query<-"DELETE FROM relocation WHERE id NOT IN (
+  	              SELECT
+                    r1.id AS relocation_id
+                  FROM step s
+                  JOIN relocation r1 ON s.relocation_id_1 = r1.id
+                  LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
+                  JOIN s_b_rel rel ON rel.step_id = s.id
+                  JOIN animal_burst ab ON ab.id = rel.animal_burst_id
+                  JOIN pgtraj p ON p.id = ab.pgtraj_id
+                  WHERE p.pgtraj_name IN (SELECT pgtraj_name from pgtraj)
+                  AND r1.id IS NOT NULL
+                  UNION
+                  SELECT
+                    r2.id AS relocation_id
+                  FROM step s
+                  JOIN relocation r1 ON s.relocation_id_1 = r1.id
+                  LEFT JOIN relocation r2 ON s.relocation_id_2 = r2.id
+                  JOIN s_b_rel rel ON rel.step_id = s.id
+                  JOIN animal_burst ab ON ab.id = rel.animal_burst_id
+                  JOIN pgtraj p ON p.id = ab.pgtraj_id
+                  WHERE p.pgtraj_name IN (SELECT pgtraj_name from pgtraj)
+                  AND r2.id IS NOT NULL);"
+          invisible(dbSendQuery(conn, sql_query))
         }
         dbCommit(conn)
     }, warning = function(x) {

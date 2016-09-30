@@ -4,7 +4,7 @@
 \alias{pgTrajDrop}
 \title{Delete one or more pgtrajs from a traj schema.}
 \usage{
-pgTrajDrop(conn, pgtraj, schema = "traj")
+pgTrajDrop(conn, pgtraj, schema = "traj", full_clean = TRUE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -12,6 +12,10 @@ pgTrajDrop(conn, pgtraj, schema = "traj")
 \item{pgtraj}{String. A vector containing the names of the pgtrajs.}
 
 \item{schema}{String. Name of the schema that stores the traj data model.}
+
+\item{full_clean}{String. Whether to delete all stale rows in all tables
+associated with the pgtraj (and any other old pgtrajs). Recommended, 
+but may take a long time to run in schemas with many large pgtraj's.}
 }
 \value{
 TRUE on success

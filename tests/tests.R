@@ -277,6 +277,7 @@ as_pgtraj(conn,
         animals = "animal",
         bursts = "burst",
         relocations = c("x", "y"),
+        clauses = "where id = 'medium'",
         timestamps = "time",
         rid = "gid")
 
