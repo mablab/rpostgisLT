@@ -51,9 +51,9 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (!grepl("^[0-9A-Za-z]",pgtraj)) {
          stop("Invalid pgtraj name. Valid pgtraj names must begin with a letter or number.")
     }
-    ## Check/create pgtraj schema ('pgTrajSchema' has its own
+    ## Check/create pgtraj schema ('pgtrajSchema' has its own
     ## transaction control)
-    x <- pgTrajSchema(conn, schema)
+    x <- pgtrajSchema(conn, schema)
     ## If schema creation unsuccessful
     if (!isTRUE(x)) {
         stop("Traj schema couldn't be created, returning from function.")
@@ -64,7 +64,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     if (pgtraj %in% pgt$pgtraj_name) {
         ## If 'overwrite', drop 'pgtraj', else stop
         if (overwrite) {
-            pgTrajDrop(conn, pgtraj, schema, full_clean = FALSE)
+            pgtrajDrop(conn, pgtraj, schema, full_clean = FALSE)
         } else {
             stop(paste0("The pgtraj '", pgtraj, "' already exists in the schema '",
                 schema, "'"))
@@ -172,7 +172,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             message(paste0("The ltraj '", pgtraj, "' has been successfully inserted into the database schema '",
                 schema, "'."))
             ## Vacuum the tables
-            suppressMessages(pgTrajVacuum(conn, schema))
+            suppressMessages(pgtrajVacuum(conn, schema))
             ## infolocs writing
             if (infolocs) {
               info<-NULL

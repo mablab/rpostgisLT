@@ -1,15 +1,15 @@
-##' Delete one or more pgtrajs from a traj schema.
+##' Delete a pgtraj from a traj schema.
 ##' 
 ##' @description 
-##' \code{pgTrajDrop} deletes one or more pgtrajs from a traj schema.
+##' \code{pgtrajDrop} deletes a pgtraj from a traj schema.
 ##' 
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 ##' 
 ##' @param conn Connection object created with RPostgreSQL
-##' @param pgtraj String. A vector containing the names of the pgtrajs.
+##' @param pgtraj String. Name of the pgtraj.
 ##' @param schema String. Name of the schema that stores the traj data model.
-##' @param full_clean String. Whether to delete all stale rows in all tables
-##' associated with the pgtraj (and any other old pgtrajs). Recommended, 
+##' @param full_clean String. Whether to delete all unused rows in all tables
+##' associated with the pgtraj (and any other previously deleted pgtrajs). Recommended, 
 ##' but may take a long time to run in schemas with many large pgtraj's.
 ##' 
 ##' @return TRUE on success
@@ -17,16 +17,12 @@
 ##' @examples 
 ##' \dontrun{
 ##'   # drop "ibex" pgtraj in schema "traj"
-##'   pgTrajDrop(conn, "ibex")
-##'   # drop "ibex" pgtraj and "puechcirc" pgtraj in schema "traj"
-##'   pgTrajDrop(conn, pgtraj=c("ibex", "puechcirc")
+##'   pgtrajDrop(conn, "ibex")
 ##' }
 ##' @export 
-##' 
+##'
 
-## need to add views to drop query
-
-pgTrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
+pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection"))
@@ -47,8 +43,10 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     
     # Drop query
     sql_query <- paste0("DELETE FROM pgtraj WHERE pgtraj_name = ",
-                        dbQuoteString(conn,pgtraj),";")
-    
+                        dbQuoteString(conn,pgtraj),";
+                        DROP VIEW ",dbQuoteIdentifier(conn,paste0("parameters_",pgtraj)),";
+                        DROP VIEW ",dbQuoteIdentifier(conn,paste0("step_geometry_",pgtraj)),";")
+
     # Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     
@@ -60,7 +58,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
                  type = "table",display = FALSE)
         }
         if (full_clean) {
-          message("Deleting stale rows from pgtraj schema tables, please be patient...")
+          message("Deleting all unused rows from pgtraj schema tables, please be patient...")
           sql_query<-"DELETE FROM relocation WHERE id NOT IN (
   	              SELECT
                     r1.id AS relocation_id
@@ -103,7 +101,7 @@ pgTrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     invisible(dbSendQuery(conn, sql_query))
     
     # Vacuum the schema
-    suppressMessages(pgTrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE))
+    suppressMessages(pgtrajVacuum(conn, schema, full = FALSE, verbose = FALSE, analyze = TRUE))
     
     message(paste0("The pgtraj '", pgtraj,
                    "' has been deleted from the database schema '",

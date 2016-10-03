@@ -2,10 +2,10 @@
 
 export(as_pgtraj)
 export(ltraj2pgtraj)
-export(pgTrajDrop)
-export(pgTrajSchema)
-export(pgTrajVacuum)
 export(pgtraj2ltraj)
+export(pgtrajDrop)
+export(pgtrajSchema)
+export(pgtrajVacuum)
 import(DBI)
 import(RPostgreSQL)
 import(adehabitatLT)

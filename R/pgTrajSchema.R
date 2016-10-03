@@ -1,4 +1,4 @@
-## pgTrajSchema
+## pgtrajSchema
 
 ##' Check pgtraj schema.
 ##'
@@ -26,10 +26,10 @@
 ##' @examples
 ##' \dontrun{
 ##'   # Check (or create) pgtraj schema with name "traj_1"
-##'   pgTrajSchema(conn,"traj_1")
+##'   pgtrajSchema(conn,"traj_1")
 ##' }
 
-pgTrajSchema <- function(conn, schema = "traj") {
+pgtrajSchema <- function(conn, schema = "traj") {
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")

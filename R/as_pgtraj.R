@@ -150,7 +150,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     time_zone <- Sys.timezone(location = TRUE)
     
     # Create traj database schema if it doesn't exist
-    x <- pgTrajSchema(conn, schema)
+    x <- pgtrajSchema(conn, schema)
     # If schema creation unsuccessful
     if (!isTRUE(x)) {
         stop("Traj schema couldn't be created, returning from function...")
@@ -291,7 +291,7 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         # commit transaction (drops temp table)
         dbCommit(conn)
         # Vacuum the tables
-        suppressMessages(pgTrajVacuum(conn, schema))
+        suppressMessages(pgtrajVacuum(conn, schema))
         #reset search path in the database
         sql_query <- paste0("SET search_path TO ", current_search_path, ";")
         invisible(dbGetQuery(conn, sql_query))

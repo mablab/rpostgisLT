@@ -1,6 +1,6 @@
-##' pgTrajVacuum
+##' pgtrajVacuum
 
-##' VACUUM on a pgrtraj schema.
+##' VACUUM on a pgtraj schema.
 ##' 
 ##' Performs a VACUUM (garbage-collect and optionally analyze) on all
 ##' the tables of a \code{traj} schema.
@@ -22,11 +22,11 @@
 ##' @examples
 ##' \dontrun{
 ##'   # Vacuum analyze all tables in pgtraj schema with default name "traj"
-##'   pgTrajVacuum(conn)
+##'   pgtrajVacuum(conn)
 ##' }
 ## should be modified to only vaccuum the core tables of the pgtraj data model (so not infolocs)
 
-pgTrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
+pgtrajVacuum <- function(conn, schema = "traj", full = FALSE, verbose = FALSE,
         analyze = TRUE) {
     ## check PostgreSQL connection
     if (!inherits(conn, "PostgreSQLConnection")) {
