@@ -34,7 +34,7 @@
 ##'   ltraj2pgtraj(conn, ibex, "traj_t2")
 ##' }
 
-ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
+ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
     note = NULL, overwrite = FALSE, infolocs = TRUE) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
@@ -46,10 +46,10 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     ## 'pgtraj' defaults to the name of ltraj
     if (is_blank(pgtraj)) {
         pgtraj <- deparse(substitute(ltraj))
-    } 
+    }
     ## only allow pgtraj names that begin with letters or numbers
-    if (!grepl("^[0-9A-Za-z]",pgtraj)) {
-         stop("Invalid pgtraj name. Valid pgtraj names must begin with a letter or number.")
+    if (!grepl("^[0-9A-Za-z]", pgtraj)) {
+        stop("Invalid pgtraj name. Valid pgtraj names must begin with a letter or number.")
     }
     ## Check/create pgtraj schema ('pgtrajSchema' has its own
     ## transaction control)
@@ -59,14 +59,15 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         stop("Traj schema couldn't be created, returning from function.")
     }
     ## Checks if 'pgtraj' already exists
-    sql_query <- paste0("SELECT pgtraj_name FROM ", dbQuoteIdentifier(conn,schema), ".pgtraj;")
+    sql_query <- paste0("SELECT pgtraj_name FROM ", dbQuoteIdentifier(conn, 
+        schema), ".pgtraj;")
     pgt <- dbGetQuery(conn, sql_query)
     if (pgtraj %in% pgt$pgtraj_name) {
         ## If 'overwrite', drop 'pgtraj', else stop
         if (overwrite) {
             pgtrajDrop(conn, pgtraj, schema, full_clean = FALSE)
         } else {
-            stop(paste0("The pgtraj '", pgtraj, "' already exists in the schema '",
+            stop(paste0("The pgtraj '", pgtraj, "' already exists in the schema '", 
                 schema, "'"))
         }
     }
@@ -79,16 +80,16 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     srs <- attr(ltraj, "proj4string")
     if (is.null(srs)) {
         srid <- 0
-        srs<-NA    # not sure this is necessary with updated adehabitatLT (0.3.21)
+        srs <- NA  # not sure this is necessary with updated adehabitatLT (0.3.21)
     } else {
-        srid <- suppressMessages(pgSRID(conn = conn, crs = srs, create.srid = TRUE,
-            new.srid = NULL))
+        srid <- suppressMessages(pgSRID(conn = conn, crs = srs, 
+            create.srid = TRUE, new.srid = NULL))
         srs <- srs@projargs
     }
     ## Get time zone
     time_zone <- attr(ltraj[[1]]$date, "tzone")
     if (is_blank(time_zone)) {
-         time_zone <- NA
+        time_zone <- NA
     }
     ## Convert ltraj to data frame
     dframe <- ld_opt(ltraj)
@@ -98,9 +99,9 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     dframe$.proj4string <- srs
     dframe$.pgtraj <- pgtraj
     dframe$.note <- note
-    dframe$.burst_order <- as.integer(ordered(dframe$burst,burst(ltraj)))
+    dframe$.burst_order <- as.integer(ordered(dframe$burst, burst(ltraj)))
     ## Format date to include time zone that Postgres recognizes
-    dframe$date <- sapply(dframe$date, function(x) strftime(x,
+    dframe$date <- sapply(dframe$date, function(x) strftime(x, 
         format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE))
     ## Parameters to exclude on input
     params <- c("dist", "abs.angle")
@@ -108,11 +109,12 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
+        schema), ",public;")
     invisible(dbGetQuery(conn, sql_query))
     ## Import data frame into a temporary table
     res <- tryCatch({
-        invisible(dbWriteTable(conn, name = "zgaqtsn_temp", value = dframe[,
+        invisible(dbWriteTable(conn, name = "zgaqtsn_temp", value = dframe[, 
             -which(names(dframe) %in% params)], row.names = FALSE))
         TRUE
     }, warning = function(x) {
@@ -129,7 +131,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     ## Run the SQL import script to insert the data from the
     ## temporary table into the traj schema
     res2 <- tryCatch({
-        pgtraj_insert_file <- paste0(path.package("rpostgisLT"),
+        pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
             "/sql/insert_ltraj.sql")
         sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
         invisible(dbSendQuery(conn, sql_query))
@@ -169,18 +171,21 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     tryCatch({
         if (all(res)) {
             dbCommit(conn)
-            message(paste0("The ltraj '", pgtraj, "' has been successfully inserted into the database schema '",
+            message(paste0("The ltraj '", pgtraj, "' has been successfully inserted into the database schema '", 
                 schema, "'."))
             ## Vacuum the tables
             suppressMessages(pgtrajVacuum(conn, schema))
             ## infolocs writing
             if (infolocs) {
-              info<-NULL
-              try(info<-writeInfoFromLtraj(conn, ltraj, pgtraj, schema))
-              if (is.null(info)) message("Infolocs writing for pgtraj '",pgtraj,"' failed.")
+                info <- NULL
+                try(info <- writeInfoFromLtraj(conn, ltraj, pgtraj, 
+                  schema))
+                if (is.null(info)) 
+                  message("Infolocs writing for pgtraj '", pgtraj, 
+                    "' failed.")
             }
             ## Restore database search path
-            sql_query <- paste0("SET search_path TO ", current_search_path,
+            sql_query <- paste0("SET search_path TO ", current_search_path, 
                 ";")
             invisible(dbSendQuery(conn, sql_query))
             return(TRUE)

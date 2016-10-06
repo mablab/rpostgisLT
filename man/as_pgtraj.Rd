@@ -93,7 +93,6 @@ as_pgtraj(conn,
         timestamps = "time",
         rids = "gid")
 }
-
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}

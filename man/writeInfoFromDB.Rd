@@ -30,7 +30,7 @@ TRUE on successful infolocs writing
 Write infolocs table to database from database in pgtraj2ltraj()
 }
 \author{
-David Bucklin \email{david.bucklin@gmail.com}
+David Bucklin \email{dbucklin@ufl.edu}
 }
 \keyword{internal}
 

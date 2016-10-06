@@ -24,7 +24,6 @@ an ltraj object
  # create ltraj from pgtraj named "ibex" in schema "traj_t2"
  ibex<-pgtraj2ltraj(conn, "ibex", "traj_t2")
 }
-
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}

@@ -32,8 +32,8 @@ ld_opt <- function(ltraj) {
         rel.angle = unlist(lapply(ltraj, function(x) x$rel.angle)),
         id = rep(id(ltraj), sapply(ltraj, nrow)),
         burst = rep(burst(ltraj), sapply(ltraj, nrow)),
-        ## + Add row names as a column
-        r.row.names = unlist(lapply(ltraj, function(x) rownames(x))))
+        r.row.names = unlist(lapply(ltraj, function(x) rownames(x)))
+        )
     class(df$date) <- c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")
     # no infolocs needed here (done in seperate function)
@@ -126,8 +126,6 @@ dl_opt <- function(x, rnames = TRUE) {
 #' If relocations are given as X,Y coordinates, they are converted into a POINT 
 #' geometry in PostGIS.
 #' 
-#' @author Balázs Dukai
-#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param relocations_table String. Name of the table that stores the relocations, e.g. c("schema","relocations")
@@ -147,8 +145,9 @@ dl_opt <- function(x, rnames = TRUE) {
 #' @param clauses String. Additional SQL to modify select query from relocations_table
 #' @param time_zone String. Time zone to be inserted into \code{pgtraj} table.
 #' 
+#' @author Balázs Dukai
 #' @keywords internal
-###############################################################################
+
 pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
         note, clauses, time_zone) {
@@ -381,13 +380,12 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 #' table which will be populated by these functions. The temporary table's
 #' name is a random string to avoid collation with user generated tables.
 #' 
-#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
 #' 
 #' @examples
@@ -429,26 +427,18 @@ pgTrajTempT <- function(conn, schema) {
     create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     res <- tryCatch({
-        
         invisible(dbSendQuery(conn, create_sql_query))
         return(TRUE)
-        
     }, warning = function(war) {
-        
         message("WARNING in creating the temporary table:")
         message(war)
         return(war)
-        
     }, error = function(err) {
-        
         message("ERROR in creating the temporary table:")
         message(err)
         return(err)
-        
     })
-    
     return(res)
-    
 }
 
 
@@ -746,17 +736,16 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
 
 #' Creates a view of the step geometries for visualization.
 #' 
-#' @author Balázs Dukai
-#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 
+#' @author Balázs Dukai
 #' @keywords internal
 #' 
-###############################################################################
+
 pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
@@ -816,8 +805,6 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     return(res)
 }
 
-
-
 ## test_input
 
 ##' Test inputs for the functions pgTrajDB2TempT()
@@ -836,13 +823,14 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
 ##'     System of the relocation coordinates in the ltraj. Defaults to
 ##'     0.
 ##' @return nothing
-##' @keywords internal
+##' 
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+##' @keywords internal
 
-test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
+test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL, 
     bursts = NULL, rids = NULL, epsg = NULL) {
     test_pa <- function(x) {
-        testthat::test_that("arguments 'pgtrajs', 'animals' and 'rids' have correct inputs",
+        testthat::test_that("arguments 'pgtrajs', 'animals' and 'rids' have correct inputs", 
             {
                 testthat::expect_that(length(x) == 1, testthat::is_true())
                 testthat::expect_that(all(!is.na(x)), testthat::is_true())
@@ -859,26 +847,26 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
         test_pa(rids)
     }
     if (!is.null(bursts)) {
-        testthat::test_that("argument 'bursts' has a correct input",
+        testthat::test_that("argument 'bursts' has a correct input", 
             {
                 testthat::expect_that(length(bursts) == 1, testthat::is_true())
             })
     }
     if (!is.null(relocations)) {
-        testthat::test_that("argument 'relocations' has a correct input",
+        testthat::test_that("argument 'relocations' has a correct input", 
             {
-                testthat::expect_that(all(!is.na(relocations)),
+                testthat::expect_that(all(!is.na(relocations)), 
                   testthat::is_true())
-                testthat::expect_that(length(relocations) >=
+                testthat::expect_that(length(relocations) >= 
                   1, testthat::is_true())
-                testthat::expect_that(length(relocations) <=
+                testthat::expect_that(length(relocations) <= 
                   2, testthat::is_true())
-                testthat::expect_that(all(is.character(relocations)),
+                testthat::expect_that(all(is.character(relocations)), 
                   testthat::is_true())
             })
     }
     if (!is.null(epsg)) {
-        testthat::test_that("argument 'epsg' has a correct input",
+        testthat::test_that("argument 'epsg' has a correct input", 
             {
                 testthat::expect_that(is.numeric(epsg), testthat::is_true())
                 testthat::expect_that(epsg%%1 == 0, testthat::is_true())
@@ -886,15 +874,14 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
     }
 }
 
-
 ## is_blank
 
 ##' Test if an argument is either NA, NULL, NaN or empty string.
 ##'
 ##' @param x Any object.
 ##' @return boolean
-##' @keywords internal
 ##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+##' @keywords internal
 
 is_blank <- function(x, false_triggers=FALSE){
     if(is.function(x)) return(FALSE) 
@@ -917,8 +904,9 @@ is_blank <- function(x, false_triggers=FALSE){
 ##' @param pgtraj String, name of the pgtraj being created
 ##' @param schema String, name of the schema holding the pgtraj
 ##' @return TRUE on successful infolocs writing
+##' 
+##' @author David Bucklin \email{dbucklin@@ufl.edu}
 ##' @keywords internal
-##' @author David Bucklin \email{david.bucklin@@gmail.com}
 
 writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     
@@ -941,26 +929,14 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     # bind infolocs data frames
     icols <- unlist(lapply(inf, function(x) colnames(x)))
     icols <- unique(icols)
-    # iloc_df <- as.data.frame(matrix(nrow = length(rnms), ncol =
-    # length(icols))) $names(iloc_df) <- icols add missing
-    # columns
+
     for (l in 1:length(inf)) {
         missing <- icols[!icols %in% names(inf[[l]])]
         inf[[l]][missing] <- NA
     }
     
     # bind data frames
-    # iloc_df <- do.call("rbind", inf) #now storing attributes by burst
     iloc_df<-as.data.frame(inf[[1]][FALSE,])
-    
-    # alter names that conflict with pgtraj/ltraj; below is all
-    # reserved names (not used anymore)
-    # resv<-data.frame(x=NA,y=NA,date=NA,dx=NA,dy=NA,
-    # dist=NA,dt=NA,R2n=NA, abs.angle=NA, rel.angle=NA,
-    # r_rowname=NA,step_id=NA, animal_name=NA,
-    # burst=NA,pgtraj=NA)
-    # resv_plus<-data.frame(cbind(resv,iloc_df[1,]))
-    # names(iloc_df)<-names(resv_plus[-c(1:15)])
     
     # assuming burst order always matches infolocs order
     bursts<-burst(ltraj)
@@ -1101,8 +1077,9 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
 ##' @param info_rids String. Column name of unique integer ID in \code{info_table} to join with
 ##' \code{rids} of the original relocations.
 ##' @return TRUE on successful infolocs writing
+##' @author David Bucklin \email{dbucklin@@ufl.edu}
 ##' @keywords internal
-##' @author David Bucklin \email{david.bucklin@@gmail.com}
+
 
 writeInfoFromDB <- function(conn, pgtraj, schema, info_cols, 
     info_table, info_rids) {
@@ -1165,8 +1142,8 @@ writeInfoFromDB <- function(conn, pgtraj, schema, info_cols,
 ##' @param conn A PostgreSQL connection object.
 ##' @param pgtraj String, name of the pgtraj
 ##' @param schema String, name of the schema holding the pgtraj
+##' @author David Bucklin \email{dbucklin@@ufl.edu}
 ##' @keywords internal
-##' @author David Bucklin \email{david.bucklin@@gmail.com}
 
 getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     
@@ -1270,6 +1247,12 @@ return(getinfo)
 
 # trajSummaryViews
 
+##' Create views that summarize pgtrajs (and pgtraj bursts) in a schema.
+##' @param conn A PostgreSQL connection object
+##' @param schema String, name of the schema
+##' @author David Bucklin \email{dbucklin@@ufl.edu}
+##' @keywords internal
+
 trajSummaryViews<- function(conn, schema) {
   #pgtraj summary
   sql_query<-paste0("CREATE OR REPLACE VIEW all_pgtraj_summary AS 
@@ -1285,7 +1268,8 @@ trajSummaryViews<- function(conn, schema) {
                                    LEFT JOIN ( SELECT tables.table_name
                                          FROM information_schema.tables
                                         WHERE tables.table_schema::text = ",dbQuoteString(conn,schema),
-                                        " AND tables.table_name::text ~~ 'infolocs_%'::text) a ON p_1.pgtraj_name = substring(a.table_name::text, 10)
+                                        " AND tables.table_name::text ~~ 'infolocs_%'::text) a 
+                                        ON p_1.pgtraj_name = substring(a.table_name::text, 10)
                               )
                        SELECT p.id AS pgtraj_id,
                           p.pgtraj_name,
@@ -1300,7 +1284,10 @@ trajSummaryViews<- function(conn, schema) {
                           relocation r,
                           s_b_rel sb,
                           step s
-                        WHERE p.id = ab.pgtraj_id AND ab.id = sb.animal_burst_id AND sb.step_id = s.id AND s.relocation_id_1 = r.id
+                        WHERE p.id = ab.pgtraj_id 
+                        AND ab.id = sb.animal_burst_id 
+                        AND sb.step_id = s.id 
+                        AND s.relocation_id_1 = r.id
                         GROUP BY p.id, p.pgtraj_name, p.insert_timestamp, p.table_name
                         ORDER BY p.id;")
   dbSendQuery(conn, sql_query)

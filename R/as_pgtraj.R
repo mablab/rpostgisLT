@@ -18,8 +18,6 @@
 #' 
 #' @references \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
 #' 
-#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-#' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param relocations_table String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")
 #' @param schema String. Name of the schema that stores or will store the pgtraj data model (Default = "traj").
@@ -50,6 +48,9 @@
 #' 
 #' @return TRUE on success
 #' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @export 
+#' 
 #' @examples 
 #' \dontrun{
 #' as_pgtraj(conn, 
@@ -74,15 +75,11 @@
 #'         timestamps = "time",
 #'         rids = "gid")
 #' }
-#' 
-#' @export 
-#' 
-#' 
 
-as_pgtraj <- function(conn, relocations_table,  schema = "traj",
-        pgtrajs = "pgtraj", animals = "animal", bursts = NULL, 
-        relocations, timestamps = NULL, rids = "rid", srid = NULL,
-        note = NULL, clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
+as_pgtraj <- function(conn, relocations_table, schema = "traj", 
+    pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations, 
+    timestamps = NULL, rids = "rid", srid = NULL, note = NULL, 
+    clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
     if (!inherits(conn, "PostgreSQLConnection")) {
         stop("'conn' should be a PostgreSQL connection.")
@@ -91,43 +88,46 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         stop("PostGIS is not enabled on this database.")
     }
     
-    # Ensure length-2 table names (search path changes throughout fn)
-    relocations_table<-rpostgis:::dbTableNameFix(conn,relocations_table,as.identifier = FALSE)
+    # Ensure length-2 table names (search path changes throughout
+    # fn)
+    relocations_table <- rpostgis:::dbTableNameFix(conn, relocations_table, 
+        as.identifier = FALSE)
     if (!is.null(info_table)) {
-      info_table<-rpostgis:::dbTableNameFix(conn,info_table,as.identifier = FALSE)
+        info_table <- rpostgis:::dbTableNameFix(conn, info_table, 
+            as.identifier = FALSE)
     }
     
     # sanitize table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn, 
+        relocations_table), collapse = ".")
     # sanitize column name strings used in queries
-    relocations_q <- dbQuoteIdentifier(conn,relocations)
+    relocations_q <- dbQuoteIdentifier(conn, relocations)
     
     # adjust for additional SQL in clauses
     if (!is.null(clauses)) {
         w_a <- " AND "
-        } else {
-        w_a <-" WHERE "
-        }
+    } else {
+        w_a <- " WHERE "
+    }
     
-    ##### Test inputs
-    # Test connection, table, field and values
-    sql_query <- paste0("SELECT ", relocations_q[1], " FROM ",
-            relocations_table_q, " ", clauses, w_a , relocations_q[1],
-            " IS NOT NULL LIMIT 1;") 
-    a <- suppressWarnings(dbGetQuery(conn, sql_query)[1,1])
+    ##### Test inputs Test connection, table, field and values
+    sql_query <- paste0("SELECT ", relocations_q[1], " FROM ", 
+        relocations_table_q, " ", clauses, w_a, relocations_q[1], 
+        " IS NOT NULL LIMIT 1;")
+    a <- suppressWarnings(dbGetQuery(conn, sql_query)[1, 1])
     if (is.null(a)) {
-        print(paste("Field", relocations ,"does not contain values."))
+        print(paste("Field", relocations, "does not contain values."))
     }
     
     # Check if the relocation geometry is projected
     if (length(relocations) == 1) {
-        sql_query <- paste0("SELECT ST_SRID(", relocations_q,
-        ") FROM ", relocations_table_q, " ", clauses, w_a , relocations_q[1],
-            " IS NOT NULL LIMIT 1;")
-        srid <- dbGetQuery(conn, sql_query)[1,1]
+        sql_query <- paste0("SELECT ST_SRID(", relocations_q, 
+            ") FROM ", relocations_table_q, " ", clauses, w_a, 
+            relocations_q[1], " IS NOT NULL LIMIT 1;")
+        srid <- dbGetQuery(conn, sql_query)[1, 1]
         if (srid == 0) {
             acr <- NA
-            while(is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
+            while (is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
                 acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
                 acr <- ifelse(grepl("y|n", acr), acr, as.character(acr))
             }
@@ -139,12 +139,13 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         # if relocations are provided as X,Y coordinates
         srid <- 0
     }
-
+    
     # Select proj4text from 'spatial_ref_sys'
-    sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1,1]
-    sql_query <- paste0("SELECT proj4text FROM ",sch,
-            ".spatial_ref_sys WHERE srid = ",srid,";")
-    proj4string <- dbGetQuery(conn, sql_query)[1,1]
+    sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1, 
+        1]
+    sql_query <- paste0("SELECT proj4text FROM ", sch, ".spatial_ref_sys WHERE srid = ", 
+        srid, ";")
+    proj4string <- dbGetQuery(conn, sql_query)[1, 1]
     
     # Get user local time zone for temporary table
     time_zone <- Sys.timezone(location = TRUE)
@@ -156,56 +157,54 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
         stop("Traj schema couldn't be created, returning from function...")
     }
     
-    ##### Insert data into temporary table
-    # Begin transaction block
+    ##### Insert data into temporary table Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
     
     # Create temporary table 'zgaqtsn_temp'
     res0 <- tryCatch({
-                
-                pgTrajTempT(conn, schema)
-                
-            }, warning = function(x) {
-                
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            }, error = function(x) {
-                
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            })
+        
+        pgTrajTempT(conn, schema)
+        
+    }, warning = function(x) {
+        
+        message(x)
+        message(" . Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    }, error = function(x) {
+        
+        message(x)
+        message(" . Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    })
     
     # Insert values into 'zgaqtsn_temp'
     res1 <- tryCatch({
-                
-                pgTrajDB2TempT(conn, schema, 
-                                relocations_table, pgtrajs, animals,
-                                bursts, relocations, timestamps, rids, 
-                                srid, proj4string, note, clauses, time_zone)
-                
-            }, warning = function(x) {
-                
-                message("WARNING in insert into the temporary table:")
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            }, error = function(x) {
-                
-                message("ERROR in insert into the temporary table:")
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            })
+        
+        pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, 
+            animals, bursts, relocations, timestamps, rids, srid, 
+            proj4string, note, clauses, time_zone)
+        
+    }, warning = function(x) {
+        
+        message("WARNING in insert into the temporary table:")
+        message(x)
+        message(" . Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    }, error = function(x) {
+        
+        message("ERROR in insert into the temporary table:")
+        message(x)
+        message(" . Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    })
     
     res <- c(res0, res1)
     
@@ -213,18 +212,48 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     
     # Set search path in the database
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
+    sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
+        schema), ",public;")
     invisible(dbSendQuery(conn, sql_query))
     
-    # Run the SQL import script to insert the data from the temporary
-    # table into the traj schema
+    # Run the SQL import script to insert the data from the
+    # temporary table into the traj schema
     res2 <- tryCatch({
+        
+        pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
+            "/sql/insert_db.sql")
+        sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
+        invisible(dbSendQuery(conn, sql_query))
+        TRUE
+        
+    }, warning = function(x) {
+        
+        message(x)
+        message(" . Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    }, error = function(x) {
+        
+        message(x)
+        message(". Rolling back transaction")
+        dbRollback(conn)
+        stop("Returning from function")
+        
+    })
+    
+    # Create views FIXME remove suppressWarnings
+    if (suppressWarnings(all(res))) {
+        pgt <- dbGetQuery(conn, "SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[, 
+            1]
+        for (i in pgt) {
+            res3 <- tryCatch({
                 
-                pgtraj_insert_file <- paste0(path.package("rpostgisLT"),
-                    "/sql/insert_db.sql")
-                sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
-                invisible(dbSendQuery(conn, sql_query))
-                TRUE
+                pgTrajViewParams(conn, schema, pgtraj = i, srid, 
+                  db = TRUE)
+                
+                # TODO create view if doesn't exist
+                pgTrajViewStepGeom(conn, schema, pgtraj = i)
                 
             }, warning = function(x) {
                 
@@ -236,39 +265,11 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
             }, error = function(x) {
                 
                 message(x)
-                message(". Rolling back transaction")
+                message(" . Rolling back transaction")
                 dbRollback(conn)
                 stop("Returning from function")
                 
             })
-    
-    # Create views
-    # FIXME remove suppressWarnings
-    if (suppressWarnings(all(res))) {
-        pgt <- dbGetQuery(conn,"SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[,1]
-        for (i in pgt) {
-            res3 <- tryCatch({
-                    
-                    pgTrajViewParams(conn, schema, pgtraj = i, srid, db = TRUE)
-                    
-                    # TODO create view if doesn't exist
-                    pgTrajViewStepGeom(conn, schema, pgtraj = i)
-                    
-                    }, warning = function(x) {
-                        
-                        message(x)
-                        message(" . Rolling back transaction")
-                        dbRollback(conn)
-                        stop("Returning from function")
-                        
-                    }, error = function(x) {
-                        
-                        message(x)
-                        message(" . Rolling back transaction")
-                        dbRollback(conn)
-                        stop("Returning from function")
-                        
-                    })
             res <- c(res, res3)
         }
         
@@ -278,30 +279,37 @@ as_pgtraj <- function(conn, relocations_table,  schema = "traj",
     if (suppressWarnings(all(res))) {
         # infolocs
         if (!is.null(info_cols)) {
-          suppressMessages(dbSendQuery(conn, "ANALYZE zgaqtsn_temp;"))
-          pgtraj_list<-dbGetQuery(conn, "SELECT DISTINCT pgtraj_name as p FROM zgaqtsn_temp;")$p
-          if (is.null(info_rids)) info_rids <-rids
-          if (is.null(info_table)) info_table <- relocations_table
-          for (p in pgtraj_list) {
-          info<-FALSE
-          try(info<-writeInfoFromDB(conn, pgtraj = p, schema, info_cols, info_table, info_rids))
-          if (!info) message("Infolocs writing for pgtraj '",p,"' failed.")
-          }
+            suppressMessages(dbSendQuery(conn, "ANALYZE zgaqtsn_temp;"))
+            pgtraj_list <- dbGetQuery(conn, "SELECT DISTINCT pgtraj_name as p FROM zgaqtsn_temp;")$p
+            if (is.null(info_rids)) 
+                info_rids <- rids
+            if (is.null(info_table)) 
+                info_table <- relocations_table
+            for (p in pgtraj_list) {
+                info <- FALSE
+                try(info <- writeInfoFromDB(conn, pgtraj = p, 
+                  schema, info_cols, info_table, info_rids))
+                if (!info) 
+                  message("Infolocs writing for pgtraj '", p, 
+                    "' failed.")
+            }
         }
         # commit transaction (drops temp table)
         dbCommit(conn)
         # Vacuum the tables
         suppressMessages(pgtrajVacuum(conn, schema))
-        #reset search path in the database
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # reset search path in the database
+        sql_query <- paste0("SET search_path TO ", current_search_path, 
+            ";")
         invisible(dbGetQuery(conn, sql_query))
         # Return TRUE
         return(all(res))
     } else {
         message("Insert faliure, rolling back transaction")
         dbRollback(conn)
-        #reset search path in the database
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # reset search path in the database
+        sql_query <- paste0("SET search_path TO ", current_search_path, 
+            ";")
         invisible(dbGetQuery(conn, sql_query))
     }
 }
