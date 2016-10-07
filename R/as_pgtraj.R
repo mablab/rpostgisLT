@@ -219,11 +219,12 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     # Run the SQL import script to insert the data from the
     # temporary table into the traj schema
     res2 <- tryCatch({
-        
-        pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
-            "/sql/insert_db.sql")
-        sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
-        invisible(dbSendQuery(conn, sql_query))
+        invisible(dbSendQuery(conn,"SELECT insert_pgtraj();"))
+      
+        #pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
+        #    "/sql/insert_db.sql")
+        #sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
+        #invisible(dbSendQuery(conn, sql_query))
         TRUE
         
     }, warning = function(x) {
@@ -305,7 +306,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         # Return TRUE
         return(all(res))
     } else {
-        message("Insert faliure, rolling back transaction")
+        message("Insert failure, rolling back transaction")
         dbRollback(conn)
         # reset search path in the database
         sql_query <- paste0("SET search_path TO ", current_search_path, 
