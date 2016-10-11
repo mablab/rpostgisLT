@@ -51,6 +51,8 @@ dl_opt <- function(x, rnames = TRUE) {
     ## Equivalent of hab::dl(strict = FALSE)
     trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
         "R2n", "abs.angle", "rel.angle")
+    ## Check if type I/II
+    if (all(is.na(x$date))) {type2<-FALSE} else {type2<-TRUE}
     ## Order bursts by table order    
     x$burst<- factor(x$burst, levels=unique(x$burst))
     idd <- tapply(as.character(x$id), x$burst, unique)
@@ -60,7 +62,7 @@ dl_opt <- function(x, rnames = TRUE) {
         traj_rname <- split(x[, "r.row.names"], x$burst)
             names(traj) <- NULL
         class(traj) <- c("ltraj", "list")
-        attr(traj, "typeII") <- TRUE
+        attr(traj, "typeII") <- type2
         attr(traj, "regular") <- is.regular(traj)
         ## + Add r.row.names
         ## INFOLOCS HANDLED SEPERATELY
@@ -91,7 +93,7 @@ dl_opt <- function(x, rnames = TRUE) {
     } else {
         names(traj) <- NULL
         class(traj) <- c("ltraj", "list")
-        attr(traj, "typeII") <- TRUE
+        attr(traj, "typeII") <- type2
         attr(traj, "regular") <- is.regular(traj)
         # INFOLOCS HANDLED SEPERATELY
         # if (any(!(names(x) %in% c(trajnam, "id", "burst")))) {
@@ -610,7 +612,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
         FROM step_parameters AS p
         LEFT OUTER JOIN r_angle
         ON r_angle.step_id = p.step_id
-        ORDER BY p.burst_order, p.date;"
+        ORDER BY p.burst_order, p.step_id;"
         )
         create_sql_query <- gsub(pattern = '\\s', replacement = " ",
                 x = sql_query)
@@ -697,7 +699,7 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                   rel_angle
               FROM step_geom
              ) AS t
-        ORDER BY t.burst_order, t.relocation_time;")
+        ORDER BY t.burst_order, t.step_id;")
     
         create_sql_query <- gsub(pattern = '\\s', replacement = " ",
                 x = sql_query)
@@ -775,7 +777,7 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     JOIN animal_burst ab ON ab.id = rel.animal_burst_id
     JOIN pgtraj p ON p.id = ab.pgtraj_id
     WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
-    ORDER BY ab.id, r1.relocation_time;"
+    ORDER BY ab.id, s.id;"
     )
     create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
@@ -1155,12 +1157,11 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     view <- paste0("parameters_",pgtraj)
     viewq <- dbQuoteIdentifier(conn, view)
     
-    # get list of bursts (order by id (from animal_burst)
+    # get list of bursts (order by id from animal_burst)
     sql_query <- paste0("SELECT burst_name as burst FROM
                           ", schemaq, ".animal_burst a, ", schemaq, ".pgtraj b
                           WHERE a.pgtraj_id = b.id
-                          AND b.pgtraj_name = ",
-                          dbQuoteString(conn,pgtraj)," 
+                          AND b.pgtraj_name = ",dbQuoteString(conn,pgtraj)," 
                           ORDER BY a.id;")
     bursts <- dbGetQuery(conn, sql_query)$burst
     
@@ -1185,20 +1186,20 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
           
           defs <- dbGetQuery(conn, sql_query)
           
-          sql_query <- paste0("SELECT * FROM ", schemaq, ".", viewq, 
-              " a JOIN ", schemaq, ".", iloc_nmq, " b USING (step_id) 
-              WHERE a.burst = ",dbQuoteString(conn,b_nm),
-              " ORDER BY a.date;")
-          # what if date is NULL? ideally should use step_id 
-          # (need to make sure these are sequential by date)
-          # or generate new row_number in view
+          sql_query <- paste0("SELECT * FROM ", schemaq, ".", iloc_nmq, " WHERE step_id IN
+                              	(SELECT s.step_id FROM 
+                                  ", schemaq, ".s_b_rel s, ", schemaq, ".animal_burst, ", schemaq, ".pgtraj
+                              	  WHERE pgtraj.id = animal_burst.pgtraj_id AND
+                              	  animal_burst.id = s.animal_burst_id AND
+                              	  pgtraj.pgtraj_name = ",dbQuoteString(conn,pgtraj), " AND 
+                                  animal_burst.burst_name = ",dbQuoteString(conn,b_nm),")
+                              ORDER BY step_id;")
           # also change same query below in else{}
           
           allinfo <- dbGetQuery(conn, sql_query)
           
-          # split into ltraj and infolocs
-          #ltraj <- allinfo[1:15]
-          justinfo <- allinfo[16:length(names(allinfo))]
+          # remove step_id
+          justinfo <- allinfo[!names(allinfo) == "step_id"]
           
           # assign types
           for (i in names(justinfo)) {
@@ -1230,14 +1231,18 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
           getinfo[[b]]<-justinfo
           
       } else {
-          sql_query <- paste0("SELECT * FROM ", schemaq, ".", viewq, 
-              " a JOIN ", schemaq, ".", iloc_nmq, " b USING (step_id) 
-              WHERE a.burst = ",dbQuoteString(conn,b_nm),
-              " ORDER BY a.date;")
+          sql_query <- paste0("SELECT * FROM ", schemaq, ".", iloc_nmq, " WHERE step_id IN
+                              	(SELECT s.step_id FROM 
+                                  ", schemaq, ".s_b_rel s, ", schemaq, ".animal_burst, ", schemaq, ".pgtraj
+                              	  WHERE pgtraj.id = animal_burst.pgtraj_id AND
+                              	  animal_burst.id = s.animal_burst_id AND
+                              	  pgtraj.pgtraj_name = ",dbQuoteString(conn,pgtraj), " AND 
+                                  animal_burst.burst_name = ",dbQuoteString(conn,b_nm),")
+                              ORDER BY step_id;")
           allinfo <- dbGetQuery(conn, sql_query)
           
-          #ltraj <- allinfo[1:15]
-          justinfo <- allinfo[16:length(names(allinfo))]
+          # remove step_id
+          justinfo <- allinfo[!names(allinfo) == "step_id"]
           
           getinfo[[b]]<-justinfo
       }

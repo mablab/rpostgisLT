@@ -96,8 +96,8 @@ COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations
 COMMENT ON TABLE s_b_rel IS 'Relates step and burst.';
 
 -- insert_pgtraj fn
-CREATE OR REPLACE FUNCTION insert_pgtraj()
-  RETURNS BOOLEAN AS
+CREATE OR REPLACE FUNCTION traj.insert_pgtraj(INT)
+  RETURNS boolean AS
 $BODY$
 DECLARE pg record;
 BEGIN
@@ -106,6 +106,8 @@ INSERT INTO pgtraj (pgtraj_name, proj4string, time_zone, note)
 		SELECT DISTINCT pgtraj_name, proj4string, time_zone, note
 		FROM zgaqtsn_temp
 		ORDER BY pgtraj_name;
+
+IF $1 = 2 THEN
 -- loop bursts
 	FOR pg IN 
 	SELECT DISTINCT pgtraj_name, animal_name, burst_name FROM zgaqtsn_temp ORDER BY pgtraj_name, burst_name
@@ -152,13 +154,68 @@ INSERT INTO pgtraj (pgtraj_name, proj4string, time_zone, note)
 			FROM (SELECT step.id as id, pg.burst_name, pgtraj.id as pg_id, animal_burst.id as burst_id 
 				 FROM step, animal_burst, pgtraj
 				 WHERE step.mark = 1
+				 AND pgtraj.id = animal_burst.pgtraj_id
 				 AND pg.pgtraj_name = pgtraj.pgtraj_name
 				 AND pg.burst_name = animal_burst.burst_name) a;
 		-- drop mark columns
 		ALTER TABLE relocation DROP COLUMN mark;
 		ALTER TABLE step DROP COLUMN mark;
 	END LOOP;
-	RETURN TRUE;
+ELSE
+-- loop bursts for type 1 (no time)
+	FOR pg IN 
+	SELECT DISTINCT pgtraj_name, animal_name, burst_name FROM zgaqtsn_temp ORDER BY pgtraj_name, burst_name
+	LOOP
+		ALTER TABLE relocation ADD COLUMN mark integer;
+		ALTER TABLE step ADD COLUMN mark integer;
+		--burst
+		INSERT INTO animal_burst (burst_name, animal_name, pgtraj_id)
+			SELECT pg.burst_name, pg.animal_name, pgtraj.id
+			FROM pgtraj
+			WHERE pg.pgtraj_name = pgtraj.pgtraj_name;
+		-- relocations
+		INSERT INTO relocation (geom, orig_id, mark) --added orig_id for infoloc support
+			SELECT geom ,id, 1	--added orig_id for infoloc support
+			FROM zgaqtsn_temp
+			WHERE pgtraj_name = pg.pgtraj_name
+			AND animal_name = pg.animal_name
+			AND burst_name = pg.burst_name
+			ORDER BY id;
+		-- steps	
+		WITH relos AS (
+			SELECT
+				a.id AS relocation_id_1,
+				b.id AS relocation_id_2,
+				a.mark
+			FROM (SELECT * FROM relocation WHERE mark = 1) a 
+			LEFT OUTER JOIN LATERAL 
+				(SELECT c.id
+				   FROM relocation c
+				   WHERE mark = 1
+				   AND a.id < c.id
+				   ORDER BY c.id ASC
+				   LIMIT 1
+				 ) AS b 
+			ON TRUE
+			)
+		INSERT INTO step (relocation_id_1, relocation_id_2, mark)
+			SELECT relocation_id_1, relocation_id_2, 1
+			FROM relos;
+		-- step-burst rel
+		INSERT INTO s_b_rel (step_id, animal_burst_id)
+			SELECT a.id, a.burst_id
+			FROM (SELECT step.id as id, pg.burst_name, pgtraj.id as pg_id, animal_burst.id as burst_id 
+				 FROM step, animal_burst, pgtraj
+				 WHERE step.mark = 1
+				 AND pgtraj.id = animal_burst.pgtraj_id
+				 AND pg.pgtraj_name = pgtraj.pgtraj_name
+				 AND pg.burst_name = animal_burst.burst_name) a;
+		-- drop mark columns
+		ALTER TABLE relocation DROP COLUMN mark;
+		ALTER TABLE step DROP COLUMN mark;
+	END LOOP;
+END IF;
+RETURN TRUE;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE

@@ -219,7 +219,8 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     # Run the SQL import script to insert the data from the
     # temporary table into the traj schema
     res2 <- tryCatch({
-        invisible(dbSendQuery(conn,"SELECT insert_pgtraj();"))
+        if (is.null(timestamps)) {type<-1} else {type<-2}
+        invisible(dbSendQuery(conn,paste0("SELECT insert_pgtraj(",type,");")))
       
         #pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
         #    "/sql/insert_db.sql")
