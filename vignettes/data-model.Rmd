@@ -1,4 +1,4 @@
-﻿---
+---
 title: "rpostgisLT: Database model"
 author: "BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge"
 date: "`r Sys.Date()`"
@@ -27,7 +27,7 @@ the user might want to add a column to store the old burst IDs (e.g. *b_old_id*)
 Note that although the columns with "_id" use auto-incrementing integers, it is
 possible to provide own integer values for these columns. Also note that
 additional information about the data can be provided in the infolocs tables,
-which the the recommended procedure See further at the table description. 
+which is the the recommended procedure. See further at the table description. 
 
 The default schema name is **traj**, and can store as many pgtrajes as needed.
 Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all
@@ -49,16 +49,17 @@ Contains animal and burst names and their relation to pgtrajes.
 |burst_name | text   | Not Null | Name of the burst.                  |
 |animal_name | text   | Not Null | Name of the animal.                  |
 |pgtraj_id | integer   | Not Null, FK | ID of pgtraj.                  |
+|info_cols | text array |       | R data types of infolocs columns, stored to ensure consistency when re-imported into R. |
 
 Table constraint: the combination of *burst_name* and *pgtraj_id* must be unique.
 
-***infoloc* table**\
-Contains additional information on steps. Mirrors the infolocs attribute of an ltraj object.
+***infolocs_<pgtraj_name>* table**\
+Contains additional information on steps for each pgtraj (if applicable).
 
 | Name    | Type   | Constraint | Description                                          |
 |---------|--------|------------|------------------------------------------------------|
-| id    | serial | PK         | Auto-generated numeric ID of infoloc.                |
-| infoloc | json   |            | Contains the additional information encoded in JSON. |
+| step_id    | integer | PK,FK         | ID number of the trajectory step (from step.id)               |
+| <other columns> | any |            | Additional columns as in the infolocs of an ltraj object |
 
 ***pgtraj* table**\
 Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
@@ -70,6 +71,7 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 | proj4string  | text   |                  | Projection string of the ltraj, imported from R. |
 | time_zone    | text   |                  | Time zone of the corresponding ltraj.            |
 | note | text   |                  |                                                  |
+| insert_timestamp | timestamp with time zone |     | Time the pgtraj was inserted (or last updated) |
 
 ***relocation* table**\
 Contains the geometry and time stamp of relocations.
@@ -79,6 +81,7 @@ Contains the geometry and time stamp of relocations.
 | id    | serial | PK         | Auto-generated numeric ID.                |
 | geom | geometry   |            | Geometry of the relocation. |
 | relocation_time | timestamptz   |            | Time stamp of the relocation. |
+| orig_id | integer |         | ID number from the original relocations table in the database |
 
 ***step* table**\
 Steps and their relocations.
@@ -94,12 +97,11 @@ Steps and their relocations.
 | rel_angle      | float8      |             | Rel.angle parameter copied from the ltraj on import from R. |
 
 ***s_i_b_rel* table**\
-Relates step, infoloc and burst. The exact same step (ID) can belong to many bursts, as well as a burst can contain many steps. One step, burst) pair can relate to only one infoloc entry. So (step1, burst-A) relates to infoloc1, but it is possible that (step1, burst-B) relates to infoloc2.
+Relates step and burst, using the PKs of the *step* and *animal_burst* tables, respectively.
 
 | Name | Type    | Constraint       | Description                              |
 |------|---------|------------------|------------------------------------------|
 | step_id | integer | PK, FK, Not Null | Pointing to the entry in step table.    |
-| infoloc_id | integer | FK, Not Null     | Pointing to the entry in infoloc table. |
 | animal_burst_id | integer | PK, FK, Not Null | Pointing to the entry in animal_burst table.   |
 
 ### Storing geometries in PostGIS

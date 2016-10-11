@@ -1,4 +1,4 @@
-﻿---
+---
 title: "rpostgisLT: Use cases"
 author: "BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge"
 date: "`r Sys.Date()`"
@@ -43,7 +43,8 @@ it in R, and aims at providing the tools to transparently benefit from
 the power of the most advanced database and statistical systems
 available for movement data. In particular, `rpostgisLT` provides full
 integration with data type `ltraj` from `adehabitatLT` with
-bi-directionnal conversion between PostGIS and R.**
+bi-directionnal conversion between PostGIS and R, by introducing
+the `pgtraj` data type/structure, the PostGIS equivalent of an `ltraj`.**
 
 Before getting started with `rpostgisLT`, we recommend reading the
 [vignette of *adehabitatLT*](https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf),
@@ -57,9 +58,6 @@ straight line segment that connects two successive relocations forms a
 
 
 ## Use cases for the rpostgisLT package
-
-**NOTE: infolocs of an `ltraj` are not implemented yet! Although infolocs have their
-place in the database model, the `rpostgisLT` functions will ignore them.**
 
 At the core, we are dealing with trajectories, which are loosely
 defined objects, but essentially a sequence of points built into
@@ -94,12 +92,12 @@ con <- dbConnect("PostgreSQL", dbname = <dbname>, host = <host>, user = <user>, 
 ```
 
 The next step will be to check whether the intended pgtraj schema is
-ready to use with the function `pgTrajSchema` (note that by default,
+ready to use with the function `pgtrajSchema` (note that by default,
 the function checks and/or create the schema "traj", which can be
 changed with the `name` argument):
 
 ```{r eval=FALSE}
-pgTrajSchema(con)
+pgtrajSchema(con)
 ```
 
 If it is successful, the function should return `TRUE`, together with
@@ -138,19 +136,19 @@ is.regular(ibexraw)
 attr(ld(ibexraw)$date, "tzone")
 ## This means that it is assumed to be UTC, and is thus converted to
 ## local time zone on display (EDT2EST for me):
-head(ld(ibexraw)$date)                 # Note that the first timestamp
-                                       # should be '2003-06-01
-                                       # 00:00:56'
+head(ld(ibexraw)$date)                    # Note that the first timestamp
+                                          # should be '2003-06-01
+                                          # 00:00:56'
 ## We need to fix that upfront:
 ibex <- ld(ibexraw)
 attr(ibex$date, "tzone") <- "Europe/Paris"
 ibex <- dl(ibex)
 
-ltraj2pgtraj(ibex)                       # Default should be in schema
-                                             # 'traj' and use ltraj name
-                                         # ('ibex') as pgtraj name.
-ibexTest <- pgtraj2ltraj(con, "ibex")    # Default should look into
-                                        # 'traj' schema.
+ltraj2pgtraj(con, ibex)                   # Default should be in schema
+                                          # 'traj' and use ltraj name
+                                          # ('ibex') as pgtraj name.
+ibexTest <- pgtraj2ltraj(con, "ibex")     # Default should look into
+                                          # 'traj' schema.
 all.equal(ibex, ibexTest)
 ## TRUE
 ```
@@ -183,7 +181,7 @@ The next logical step is to regularize the trajectory, by "rounding" timestamps 
 
 ```{r eval=FALSE}
 (ibex <- sett0(ibex, refda, 4, units = "hour"))
-ibex.bkp <- ibex                        # At this stage, 'ibex' is our
+ibex.ref <- ibex                        # At this stage, 'ibex' is our
                                         # reference data
 ltraj2pgtraj(con, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(con, "ibex")
@@ -203,7 +201,7 @@ ibex <- removeinfo(ibex)
 ltraj2pgtraj(con, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(con, "ibex")
 all.equal(ibex, ibexTest)
-## TRUE
+## R uses fractional seconds (PostGIS doesn't), so dates are not exactly equal
 
 ## 2. In time
 ibex <- ibex.ref
@@ -245,6 +243,7 @@ dlfast <- function(x) {
 }
 ibex <- dlfast(ibex)
 head(ibex[[1]])
+attr(ibex, "proj4string") <- CRS()
 ltraj2pgtraj(con, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(con, "ibex")
 all.equal(ibex, ibexTest)
@@ -274,8 +273,8 @@ The opposite process is to bind bursts from a unique individual into a single bu
 
 ```{r eval=FALSE}
 ## 2. Bind back by individual:
-(ibex <- bindltraj(ibex))
-ibex <- removeinfo(ibex)
+(ibex <- bindltraj(ibex))   # Note that this adds "infolocs" to the ltraj
+                            # which are also stored in the pgtraj data structure
 ltraj2pgtraj(con, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(con, "ibex")
 all.equal(ibex, ibexTest)
@@ -290,11 +289,11 @@ ibex <- ibex.ref
 ibex2 <- ibex
 burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
 (ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))])
+attr(ibex, "proj4string") <- CRS()
+
 ltraj2pgtraj(con, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(con, "ibex")
 all.equal(ibex, ibexTest)
 ```
-
-
 
  
