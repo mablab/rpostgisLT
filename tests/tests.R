@@ -52,7 +52,6 @@ ltraj2pgtraj(conn, ibex, overwrite = TRUE)                   # Default should be
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
                                         # 'traj' schema.
 all.equal(ibex, ibexTest)
-# TRUE
 Sys.sleep(2)
 
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
@@ -125,24 +124,12 @@ ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest) # not TRUE... date rounding
 Sys.sleep(2)
 
-
-for (i in 1:10) {
- print(i)
-  print(all.equal(ibex[[1]][,i],ibexTest[[1]][,i]))
-}
-Sys.sleep(2)
-
 #time rounding causing all.equal == FALSE
-ibexTest[[1]]$date == ibex[[1]]$date
+#ibexTest[[1]]$date == ibex[[1]]$date
 all.equal(as.integer(ibex[[1]]$date),as.integer(ibexTest[[1]]$date))
 
 all.equal(ibex[[1]][,3],ibexTest[[1]][,3])
 Sys.sleep(2)
-
-head(ibex[[1]])
-head(ibexTest[[1]])
-attributes(ibex[[1]]$date)
-attributes(ibexTest[[1]]$date)
 
 ## 2. In time
 ibex <- ibex.ref
@@ -442,4 +429,4 @@ Sys.sleep(2)
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibex, capreochiz, ibex_re, albatross, albatross_re, albatross_dl, ibex_dl, refda,
-        porpoise, cap, cap.test, cap2)
+        porpoise, cap, cap.test, cap2, continental2, medium2, small2)

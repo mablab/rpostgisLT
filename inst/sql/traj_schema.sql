@@ -96,7 +96,7 @@ COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations
 COMMENT ON TABLE s_b_rel IS 'Relates step and burst.';
 
 -- insert_pgtraj fn
-CREATE OR REPLACE FUNCTION traj.insert_pgtraj(INT)
+CREATE OR REPLACE FUNCTION insert_pgtraj(INT)
   RETURNS boolean AS
 $BODY$
 DECLARE pg record;

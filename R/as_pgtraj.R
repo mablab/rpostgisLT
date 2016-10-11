@@ -32,6 +32,7 @@
 #' @param timestamps String. Name of the field in relocations_table that contains the timestamps.
 #' If NULL, Type I trajectory is assumed.
 #' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
+#' If \code{timestamps = NULL}, relocations will be sorted by the ascending numeric IDs in this field.
 #' @param srid Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
 #' Ignored if relocations is a geometry type.
 #' @param note String. Comment on the pgtraj. The comment is only used in

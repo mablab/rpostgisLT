@@ -31,7 +31,8 @@ have to have the same projection.}
 \item{timestamps}{String. Name of the field in relocations_table that contains the timestamps.
 If NULL, Type I trajectory is assumed.}
 
-\item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.}
+\item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.
+If \code{timestamps = NULL}, relocations will be sorted by the ascending numeric IDs in this field.}
 
 \item{srid}{Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
 Ignored if relocations is a geometry type.}
