@@ -1,12 +1,14 @@
-#' Imports location data from a database table into a 'traj' schema.
+# as_pgtraj
+
+#' Imports location data from a database table into the pgtraj database model
 #' 
 #' @description
-#' \code{as_pgtraj} populates a \code{traj} schema from the data provided
-#' in \code{relocations_table}. If the provided schema doesn't exist, it will be 
-#' created. On successful data input, \code{as_pgtraj} creates two database views for
-#' each pgtraj. These views are named parameters_<pgtraj_name>, 
-#' step_geometry_<pgtraj_name> and described more in
-#' detail in the package vignette.
+#' \code{as_pgtraj} populates a \code{pgtraj} schema from the data provided
+#' in \code{relocations_table}. If the provided schema doesn't exist, it will 
+#' be created. On successful data input, \code{as_pgtraj} creates two database 
+#' views for each new pgtraj. These views are named parameters_<pgtraj_name>, 
+#' step_geometry_<pgtraj_name> and described in more detail in the package 
+#' vignette.
 #' 
 #' The time zone of the pgtraj is set to the local time zone of the user.
 #' 
@@ -14,42 +16,54 @@
 #' Opening and closing connections have to be done manually by the user. 
 #' However, the function checks if the provided connection is still valid. 
 #' 
-#' @seealso Section on traj data model in the package vignette. 
+#' @seealso Section on pgtraj data model in the package vignette. 
 #' 
 #' @references \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param relocations_table String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model (Default = "traj").
-#' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
-#' @param animals String. Name of the animal or name of the field that stores the animal names.
-#' @param bursts String. (Optional) name of the burst or name of the field that stores the burst names. If not given,
-#' each animal will have one burst.
+#' @param relocations_table String. Name of the schema and table that stores 
+#'    the relocations, e.g. c("schema","relocations")
+#' @param schema String. Name of the schema that stores or will store the 
+#'    pgtraj data model (Default = "traj").
+#' @param pgtrajs String. Name of the pgtraj or name of the field that 
+#'    stores the pgtraj names.
+#' @param animals String. Name of the animal or name of the field that 
+#'    stores the animal names.
+#' @param bursts String. (Optional) name of the burst or name of the field
+#'    that stores the burst names. If not given, each animal will have one 
+#'    burst.
 #' @param relocations String. Name of the field that contains the relocations 
-#' in relocations_table. Relocations can be provided either as X,Y coordinates
-#' or PostGIS geometry. In both cases all relocations in the 'relocations_table'
-#' have to have the same projection.
-#' @param timestamps String. Name of the field in relocations_table that contains the timestamps.
-#' If NULL, Type I trajectory is assumed.
-#' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
-#' If \code{timestamps = NULL}, relocations will be sorted by the ascending numeric IDs in this field.
-#' @param srid Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
-#' Ignored if relocations is a geometry type.
+#'    in relocations_table. Relocations can be provided either as X,Y 
+#'    coordinates or PostGIS geometry. In both cases all relocations in 
+#'    relocations_table must have the same projection.
+#' @param timestamps String. Name of the field in relocations_table that 
+#'    contains the timestamps. If NULL, Type I trajectory is assumed.
+#' @param rids String. Name of the field in relocations_table that contains 
+#'    the numeric IDs of relocations. If \code{timestamps = NULL}, relocations 
+#'    will be sorted by the ascending numeric IDs in this field.
+#' @param srid Integer. Optional SRID (spatial reference ID) of (x,y)
+#'    coordinates provided for relocations. Ignored if relocations is a 
+#'    geometry type.
 #' @param note String. Comment on the pgtraj. The comment is only used in
-#' the database and not transferred into an ltraj.
-#' @param clauses character, additional SQL to append to modify data selected from relocations_table.
-#' Must begin with \code{WHERE ...}, and cannot contain ORDER BY or LIMIT clauses.
-#' @param info_cols String. Optional character vector of column names of 
-#' additional information on relocations (replicating "infolocs" from the
-#' \code{adehabitatLT} object \code{ltraj}).
+#'    the database and not transferred into the ltraj.
+#' @param clauses character, additional SQL to append to modify data 
+#'    selected from relocations_table. Must begin with \code{WHERE ...}, 
+#'    and cannot contain \code{ORDER BY} or \code{LIMIT} clauses.
+#' @param info_cols String. Optional character vector of database table 
+#'    column names storing additional information on relocations 
+#'    (replicating "infolocs" from the \code{adehabitatLT} object \code{ltraj}).
 #' @param info_table Character vector of \code{c("schema","table")} holding the 
-#' \code{info_cols}. If \code{info_cols} are in \code{relocations_table}, leave NULL.
-#' @param info_rids String. Column name of unique integer ID in \code{info_table} to join with
-#' \code{rids}. If \code{info_cols} are in \code{relocations_table}, leave NULL.
+#'    \code{info_cols}. If \code{info_cols} are in \code{relocations_table}, 
+#'    leave NULL.
+#' @param info_rids String. Column name of unique integer ID in \code{info_table} 
+#'    to join with \code{rids} from \code{relocations_table}. If \code{info_cols} 
+#'    are in \code{relocations_table}, leave NULL.
 #' 
 #' @return TRUE on success
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @author David Bucklin \email{dbucklin@@ufl.edu}
+#' 
 #' @export 
 #' 
 #' @examples 
@@ -62,7 +76,9 @@
 #'         bursts = "burst",
 #'         relocations = "geom",
 #'         timestamps = "time",
-#'         rids = "gid")
+#'         rids = "gid",
+#'         info_cols = c("dist_to_road","land_cover","error_class")
+#'         )
 #' }
 #' 
 #' \dontrun{
@@ -89,8 +105,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         stop("PostGIS is not enabled on this database.")
     }
     
-    # Ensure length-2 table names (search path changes throughout
-    # fn)
+    # Ensure length-2 table names (search path changes throughout fn)
     relocations_table <- rpostgis:::dbTableNameFix(conn, relocations_table, 
         as.identifier = FALSE)
     if (!is.null(info_table)) {
@@ -111,7 +126,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         w_a <- " WHERE "
     }
     
-    ##### Test inputs Test connection, table, field and values
+    ##### Test inputs (connection, table, field and values)
     sql_query <- paste0("SELECT ", relocations_q[1], " FROM ", 
         relocations_table_q, " ", clauses, w_a, relocations_q[1], 
         " IS NOT NULL LIMIT 1;")
@@ -142,11 +157,10 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     }
     
     # Select proj4text from 'spatial_ref_sys'
-    sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1, 
-        1]
+    sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1,1]
     sql_query <- paste0("SELECT proj4text FROM ", sch, ".spatial_ref_sys WHERE srid = ", 
         srid, ";")
-    proj4string <- dbGetQuery(conn, sql_query)[1, 1]
+    proj4string <- dbGetQuery(conn, sql_query)[1,1]
     
     # Get user local time zone for temporary table
     time_zone <- Sys.timezone(location = TRUE)
@@ -163,48 +177,49 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     
     # Create temporary table 'zgaqtsn_temp'
     res0 <- tryCatch({
-        
-        pgTrajTempT(conn, schema)
-        
+      pgTrajTempT(conn, schema)
     }, warning = function(x) {
-        
-        message(x)
-        message(" . Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message(x)
+      message(" . Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
     }, error = function(x) {
-        
-        message(x)
-        message(" . Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message(x)
+      message(" . Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
     })
     
     # Insert values into 'zgaqtsn_temp'
     res1 <- tryCatch({
-        
-        pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, 
-            animals, bursts, relocations, timestamps, rids, srid, 
-            proj4string, note, clauses, time_zone)
-        
+      pgTrajDB2TempT(
+        conn,
+        schema,
+        relocations_table,
+        pgtrajs,
+        animals,
+        bursts,
+        relocations,
+        timestamps,
+        rids,
+        srid,
+        proj4string,
+        note,
+        clauses,
+        time_zone
+      )
     }, warning = function(x) {
-        
-        message("WARNING in insert into the temporary table:")
-        message(x)
-        message(" . Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message("WARNING in insert into the temporary table:")
+      message(x)
+      message(" . Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
     }, error = function(x) {
-        
-        message("ERROR in insert into the temporary table:")
-        message(x)
-        message(" . Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message("ERROR in insert into the temporary table:")
+      message(x)
+      message(" . Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
     })
     
     res <- c(res0, res1)
@@ -220,62 +235,52 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     # Run the SQL import script to insert the data from the
     # temporary table into the traj schema
     res2 <- tryCatch({
-        if (is.null(timestamps)) {type<-1} else {type<-2}
-        invisible(dbSendQuery(conn,paste0("SELECT insert_pgtraj(",type,");")))
-      
-        #pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
-        #    "/sql/insert_db.sql")
-        #sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
-        #invisible(dbSendQuery(conn, sql_query))
-        TRUE
-        
+      if (is.null(timestamps)) {
+        type <- 1
+      } else {
+        type <- 2
+      }
+      invisible(dbSendQuery(conn, paste0("SELECT insert_pgtraj(", type, ");")))
+      TRUE
     }, warning = function(x) {
-        
-        message(x)
-        message(" . Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message(x)
+      message(" . Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
+      
     }, error = function(x) {
-        
-        message(x)
-        message(". Rolling back transaction")
-        dbRollback(conn)
-        stop("Returning from function")
-        
+      message(x)
+      message(". Rolling back transaction")
+      dbRollback(conn)
+      stop("Returning from function")
     })
     
     # Create views FIXME remove suppressWarnings
     if (suppressWarnings(all(res))) {
-        pgt <- dbGetQuery(conn, "SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[, 
-            1]
-        for (i in pgt) {
-            res3 <- tryCatch({
-                
-                pgTrajViewParams(conn, schema, pgtraj = i, srid, 
-                  db = TRUE)
-                
-                # TODO create view if doesn't exist
-                pgTrajViewStepGeom(conn, schema, pgtraj = i)
-                
-            }, warning = function(x) {
-                
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            }, error = function(x) {
-                
-                message(x)
-                message(" . Rolling back transaction")
-                dbRollback(conn)
-                stop("Returning from function")
-                
-            })
-            res <- c(res, res3)
-        }
-        
+      pgt <-dbGetQuery(conn, "SELECT DISTINCT pgtraj_name FROM zgaqtsn_temp;")[,1]
+      for (i in pgt) {
+        res3 <- tryCatch({
+          pgTrajViewParams(conn, schema, pgtraj = i, srid,
+                           db = TRUE)
+          
+          # TODO create view if doesn't exist
+          pgTrajViewStepGeom(conn, schema, pgtraj = i)
+          
+        }, warning = function(x) {
+          message(x)
+          message(" . Rolling back transaction")
+          dbRollback(conn)
+          stop("Returning from function")
+          
+        }, error = function(x) {
+          message(x)
+          message(" . Rolling back transaction")
+          dbRollback(conn)
+          stop("Returning from function")
+          
+        })
+        res <- c(res, res3)
+      }
     }
     
     # Commit transaction, infolocs if specified

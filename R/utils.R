@@ -1,19 +1,22 @@
-## ld_opt
+# ld_opt
 
-##' Quick Conversion of Objects of Class ltraj from and to Dataframes
-##'
-##' Faster versions of \code{\link[adehabitatLT]{ld}} and
-##' \code{\link[adehabitatLT]{dl}}.
-##'
-##' @param ltraj An object of class \code{ltraj}.
-##' @return \code{ld_opt} returns a data frame with all trajectory
-##'     parameters as columns; \code{dl_opt}
-##'     returns an object of class \code{ltraj}.
-##' @keywords internal
-##' @seealso See \code{\link[adehabitatLT]{ld}} for further details on
-##'     the function and all available arguments.
-##' @author Modified by Mathieu Basille \email{basille@@ufl.edu},
-##'     Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' Quick Conversion of Objects of Class ltraj from and to data frames
+#'
+#' Faster versions of \code{\link[adehabitatLT]{ld}} and
+#' \code{\link[adehabitatLT]{dl}}.
+#'
+#' @param ltraj An object of class \code{ltraj}.
+#' @param x A data frame
+#' @param rnames Whether to preserve row names from the data frame to the 
+#'    ltraj
+#' @return \code{ld_opt} returns a data frame with all trajectory 
+#'    parameters as columns; \code{dl_opt} returns an object of class 
+#'    \code{ltraj}.
+#' @keywords internal
+#' @seealso See \code{\link[adehabitatLT]{ld}} for further details on the 
+#'    function and all available arguments.
+#' @author Modified by Mathieu Basille \email{basille@@ufl.edu},
+#'     Balázs Dukai \email{balazs.dukai@@gmail.com}
 
 ld_opt <- function(ltraj) {
     if (!inherits(ltraj, "ltraj"))
@@ -41,9 +44,9 @@ ld_opt <- function(ltraj) {
 }
 
 
-## dl
+# dl
 
-##' @rdname ld_opt
+#' @rdname ld_opt
 
 dl_opt <- function(x, rnames = TRUE) {
     if (!inherits(x, "data.frame"))
@@ -89,29 +92,40 @@ dl_opt <- function(x, rnames = TRUE) {
 
 # pgTrajDB2TempT
 
-#' Insert relocations from a source table into the table 'zgaqtsn_temp'. 
+#' Insert relocations from a source table into the table 'zgaqtsn_temp', 
+#' used in as_pgtraj 
 #' 
-#' If relocations are given as X,Y coordinates, they are converted into a POINT 
-#' geometry in PostGIS.
+#' If relocations are given as X,Y coordinates, they are converted into 
+#' a POINT geometry in PostGIS.
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
-#' @param relocations_table String. Name of the table that stores the relocations, e.g. c("schema","relocations")
-#' @param pgtrajs String. Name of the pgtraj or name of the field that stores the pgtraj names.
-#' @param animals String. Name of the animal or name of the field that stores the animal names.
-#' @param bursts String. Name of the burst or name of the field that stores the burst names.
-#' @param timestamps String. Name of the field in relocations_table that contains the timestamps.
-#' @param rids String. Name of the field in relocations_table that contains the numeric IDs of relocations.
-#' @param relocations Vector of string(s). Name of the field(s) that contains 
-#' the relocations in relocations_table. If relocations are stored as pairs of (X,Y) or 
-#' (long, lat) coorindates, the coordinates should be separated in two fields 
-#' and referenced accordingly.
+#' @param schema String. Name of the schema that stores or will store 
+#'    the pgtraj data model.
+#' @param relocations_table String. Name of the table that stores the 
+#'    relocations, e.g. c("schema","relocations")
+#' @param pgtrajs String. Name of the pgtraj or name of the field that 
+#'    stores the pgtraj names.
+#' @param animals String. Name of the animal or name of the field that 
+#'    stores the animal names.
+#' @param bursts String. Name of the burst or name of the field that 
+#'    stores the burst names.
+#' @param timestamps String. Name of the field in relocations_table 
+#'    that contains the timestamps.
+#' @param rids String. Name of the field in relocations_table that 
+#'    contains the numeric IDs of relocations.
+#' @param relocations Vector of string(s). Name of the field(s) that 
+#'    contains the relocations in relocations_table. If relocations are 
+#'    stored as pairs of (X,Y) or (long, lat) coorindates, the coordinates 
+#'    should be separated in two fields and referenced accordingly.
 #' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
-#' @param proj4string String. The PROJ4 string to be inserted into \code{pgtraj} table.
-#' @param note String. Comment on the pgtraj. The comment is only used in
-#' the database and not transferred into an ltraj.
-#' @param clauses String. Additional SQL to modify select query from relocations_table
-#' @param time_zone String. Time zone to be inserted into \code{pgtraj} table.
+#' @param proj4string String. The PROJ4 string to be inserted into 
+#'    \code{pgtraj} table.
+#' @param note String. Comment on the pgtraj. The comment is only used 
+#'    in the database and not transferred into an ltraj.
+#' @param clauses String. Additional SQL to modify select query from 
+#'    relocations_table
+#' @param time_zone String. Time zone to be inserted into \code{pgtraj} 
+#'    table.
 #' 
 #' @author Balázs Dukai
 #' @keywords internal
@@ -120,12 +134,12 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
         note, clauses, time_zone) {
     # check table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table), collapse = ".")  
+    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table),
+                                 collapse = ".")
     # sanitize schema, rids, relocations 
     schema_q <- dbQuoteIdentifier(conn,schema)
     rids_q<- dbQuoteIdentifier(conn,rids)
     relocations_q<- dbQuoteIdentifier(conn,relocations)
-    
 
     # Test for correct inputs
     test_input(pgtrajs, animals, relocations, bursts)
@@ -140,7 +154,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     if (is.null(timestamps)) {
         # Relocations provided as point geometry
         if (length(relocations) == 1) {
-            
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom)
                             SELECT ",rids_q,",",relocations_q,"::geometry
                             FROM ",relocations_table_q," ",
@@ -150,7 +163,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             t <- c(t, dbSendQuery(conn, sql_query))
             
         } else if (length(relocations) == 2) {
-            
             # Relocations provided as a coordinate pair
             x <- relocations_q[1]
             y <- relocations_q[2]
@@ -161,7 +173,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                             " ORDER BY ",rids_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
-            
         }
     # If trajectory Type II
     } else {
@@ -169,7 +180,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         timestamps_q<-dbQuoteIdentifier(conn,timestamps)
         
         if (length(relocations) == 1) {
-            
             # Relocations provided as point geometry
             sql_query <- paste0("INSERT INTO zgaqtsn_temp (id, geom, relocation_time)
                             SELECT ",rids_q,",",relocations_q,"::geometry, ",timestamps_q,"
@@ -178,9 +188,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                              " ORDER BY ",timestamps_q,";")
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
-            
         } else if (length(relocations) == 2) {
-            
             # relocations provided as a coordinate pair
             x <- relocations_q[1]
             y <- relocations_q[2]
@@ -192,7 +200,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
             sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
             invisible(dbSendQuery(conn, sql_query))
         }
-        
     }
     # maybe analyze table here (to speed up updates)
     fields <- dbListFields(conn, relocations_table)
@@ -201,7 +208,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     pgtrajs_q<-dbQuoteIdentifier(conn, pgtrajs)
     
     if (pgtrajs %in% fields) {
-        
         # use the field values for pgtraj
         sql_query <- paste0("UPDATE zgaqtsn_temp
                         SET pgtraj_name = a.",pgtrajs_q,"
@@ -212,7 +218,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
-        
     } else {
         # use the string
         # check for valid pgtraj names
@@ -222,14 +227,12 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         }
         sql_query <- paste0("UPDATE zgaqtsn_temp SET pgtraj_name = ", dbQuoteString(conn,pgtrajs), ";")
         invisible(dbSendQuery(conn, sql_query))
-        
     }
     
     # Insert animal
     # sanitizes animals
     animals_q<-dbQuoteIdentifier(conn,animals)
     if (animals %in% fields) {
-        
         # Use the field values for animal
         sql_query <- paste0("UPDATE zgaqtsn_temp
                         SET animal_name = a.",animals_q,"
@@ -240,18 +243,14 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
-        
     } else {
-        
         # Use the string
         sql_query <- paste("UPDATE zgaqtsn_temp SET animal_name = ",dbQuoteString(conn,animals), ";")
         invisible(dbSendQuery(conn, sql_query))
-        
     }
     
     # Insert burst
      if (is_blank(bursts) & (animals %in% fields)) {
-        
         # Use animal name as default burst name
         sql_query <- paste0("UPDATE zgaqtsn_temp
                         SET burst_name = a.",animals_q,"
@@ -262,12 +261,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
-        
     } else if (is_blank(bursts) & length(animals) == 1) {
-        
         sql_query <- paste0("UPDATE zgaqtsn_temp SET burst_name = ",dbQuoteString(conn,animals),";")
         invisible(dbSendQuery(conn, sql_query))
-        
     } else if (bursts %in% fields) {
         # sanitize bursts
         bursts_q<-dbQuoteIdentifier(conn,bursts)
@@ -282,22 +278,17 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
-        
     } else {
-        
         # Use the string
         sql_query <- paste("UPDATE zgaqtsn_temp SET burst_name = ", dbQuoteString(conn,bursts), ";")
         invisible(dbSendQuery(conn, sql_query))
-        
     }
     
     # Insert note
     if (is_blank(note)) {
-        
         # Set to NULL
         sql_query <- paste0("UPDATE zgaqtsn_temp SET note = NULL;")
         invisible(dbSendQuery(conn, sql_query))
-        
     } else if (note %in% fields) {
         note_q<-dbQuoteIdentifier(conn,note)
         # use the values for note
@@ -310,13 +301,10 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
                         WHERE zgaqtsn_temp.id = a.",rids_q,";")
         sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
         invisible(dbSendQuery(conn, sql_query))
-        
     } else {
-        
         # Use the string
         sql_query <- paste0("UPDATE zgaqtsn_temp SET note = ",dbQuoteString(conn,note),";")
         invisible(dbSendQuery(conn, sql_query))
-        
     }
     
     # Insert proj4string and time zone
@@ -344,12 +332,14 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 #' Creates a temporary table in the 'traj' schema.
 #' 
 #' @description
-#' Used by \code{pgTrajDB2TempT} and \code{pgTrajR2TempT} to create a temporary
-#' table which will be populated by these functions. The temporary table's
-#' name is a random string to avoid collation with user generated tables.
+#' Used by \code{pgTrajDB2TempT} and \code{pgTrajR2TempT} to create a 
+#' temporary table which will be populated by these functions. The 
+#' temporary table's name is a random string to avoid collation with 
+#' user generated tables.
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param schema String. Name of the schema that stores or will store 
+#'    the pgtraj data model
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 
@@ -412,21 +402,23 @@ pgTrajTempT <- function(conn, schema) {
 
 # pgTrajViewParams
 
-#' Computes the trajectory parameters (as in ltraj) for a pgtraj and creates a 
-#' view for the pgtraj. The views are always named as 'parameters_<pgtraj_name>'.
+#' Computes the trajectory parameters (as in ltraj) for a pgtraj and 
+#' creates a view for the pgtraj. The views are always named as 
+#' 'parameters_<pgtraj_name>'.
 #' 
 #' @author Balázs Dukai
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param schema String. Name of the schema that stores or will store the 
+#'    pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' @param epsg Numeric. EPSG code of the relocation geometry.
 #' @param db Boolean. A switch that controls the parameters view creation 
-#' depending on source of data (R or PostgreSQL). If TRUE, raw data input from
-#' a database table is assumed. In this case all parameters will be computed.
-#' If FALSE, it is assumed that an ltraj was input from R with already computed
-#' parameters. In this case R2n and rel.angle will not be recomputed, but
-#' reused from the ltraj.
+#'    depending on source of data (R or PostgreSQL). If TRUE, raw data input 
+#'    from a database table is assumed. In this case all parameters will be 
+#'    computed. If FALSE, it is assumed that an ltraj was input from R with 
+#'    already computed parameters. In this case R2n and rel.angle will not 
+#'    be recomputed, but reused from the ltraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
 #' 
@@ -584,24 +576,18 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                 x = sql_query)
         
         res <- tryCatch({
-                    
                     invisible(dbSendQuery(conn, create_sql_query))
                     message(paste0("View 'parameters_",pgtraj,"' created in schema '",
                                     schema, "'."))
                     return(TRUE)
-                    
                 }, warning = function(war) {
-                    
                     message(paste0("WARNING in creating view 'parameters_",pgtraj,"' :"))
                     message(war)
                     return(war)
-                    
                 }, error = function(err) {
-                    
                     message(paste0("ERROR in creating view 'parameters_",pgtraj,"' :"))
                     message(err)
                     return(err)
-                    
                 })
     } else {
         sql_query <- paste0(
@@ -671,24 +657,18 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
                 x = sql_query)
         
         res <- tryCatch({
-                    
                     invisible(dbSendQuery(conn, create_sql_query))
                     message(paste0("View 'parameters_",pgtraj,"' created in schema '",
                                     schema, "'."))
                     return(TRUE)
-                    
                 }, warning = function(war) {
-                    
                     message(paste0("WARNING in creating view 'parameters_",pgtraj,"' :"))
                     message(war)
                     return(war)
-                    
                 }, error = function(err) {
-                    
                     message(paste0("ERROR in creating view 'parameters_",pgtraj,"' :"))
                     message(err)
                     return(err)
-                    
                 })
     }
     
@@ -696,7 +676,6 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     invisible(dbSendQuery(conn, sql_query))
     
     return(res)
-    
 }
 
 
@@ -705,7 +684,8 @@ pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
 #' Creates a view of the step geometries for visualization.
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param schema String. Name of the schema that stores or will store the 
+#'    pgtraj data model.
 #' @param pgtraj String. Name of the pgtraj.
 #' 
 #' @return TRUE on success, otherwise warning/error
@@ -748,23 +728,17 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     create_sql_query <- gsub(pattern = '\\s', replacement = " ", x = sql_query)
     
     res <- tryCatch({
-                
                 invisible(dbSendQuery(conn, create_sql_query))
                 message(paste0("View 'step_geometry_",pgtraj,"' created in schema '", schema, "'."))
                 return(TRUE)
-                
             }, warning = function(war) {
-                
                 message(paste0("WARNING in creating view 'step_geometry_",pgtraj,"' :"))
                 message(war)
                 return(war)
-                
             }, error = function(err) {
-                
                 message(paste0("ERROR in creating view 'step_geometry_",pgtraj,"' :"))
                 message(err)
                 return(err)
-                
             })
     
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
@@ -773,27 +747,26 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     return(res)
 }
 
-## test_input
+# test_input
 
-##' Test inputs for the functions pgTrajDB2TempT()
-##'
-##' @param pgtrajs String. Name of the pgtraj or name of the field that
-##'     stores the pgtraj names.
-##' @param animals String. Name of the animal or name of the field that
-##'     stores the animal names.
-##' @param relocations String. Name of the field that contains the
-##'     relocations in relocations_table.
-##' @param bursts String. Name of the burst or name of the field that
-##'     stores the burst names.
-##' @param rids String. Name of the field in relocations_table that
-##'     contains the numeric IDs of relocations.
-##' @param epsg Numeric. The EPSG code of the Coordinate Reference
-##'     System of the relocation coordinates in the ltraj. Defaults to
-##'     0.
-##' @return nothing
-##' 
-##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-##' @keywords internal
+#' Test inputs for the functions pgTrajDB2TempT()
+#'
+#' @param pgtrajs String. Name of the pgtraj or name of the field that
+#'    stores the pgtraj names.
+#' @param animals String. Name of the animal or name of the field that
+#'    stores the animal names.
+#' @param relocations String. Name of the field that contains the
+#'    relocations in relocations_table.
+#' @param bursts String. Name of the burst or name of the field that
+#'    stores the burst names.
+#' @param rids String. Name of the field in relocations_table that
+#'    contains the numeric IDs of relocations.
+#' @param epsg Numeric. The EPSG code of the Coordinate Reference
+#'    System of the relocation coordinates in the ltraj. Defaults to 0.
+#' @return nothing
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @keywords internal
 
 test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL, 
     bursts = NULL, rids = NULL, epsg = NULL) {
@@ -842,14 +815,14 @@ test_input <- function(pgtrajs = NULL, animals = NULL, relocations = NULL,
     }
 }
 
-## is_blank
+# is_blank
 
-##' Test if an argument is either NA, NULL, NaN or empty string.
-##'
-##' @param x Any object.
-##' @return boolean
-##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-##' @keywords internal
+#' Test if an argument is either NA, NULL, NaN or empty string.
+#'
+#' @param x Any object.
+#' @return boolean
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @keywords internal
 
 is_blank <- function(x, false_triggers=FALSE){
     if(is.function(x)) return(FALSE) 
@@ -863,18 +836,18 @@ is_blank <- function(x, false_triggers=FALSE){
 }
 
 
-## writeInfoFromLtraj
+# writeInfoFromLtraj
 
-##' Write infolocs table to database from ltraj in ltraj2pgtraj()
-##'
-##' @param conn A PostgreSQL connection object.
-##' @param ltraj An adehabitatLT ltraj object
-##' @param pgtraj String, name of the pgtraj being created
-##' @param schema String, name of the schema holding the pgtraj
-##' @return TRUE on successful infolocs writing
-##' 
-##' @author David Bucklin \email{dbucklin@@ufl.edu}
-##' @keywords internal
+#' Write infolocs table to database from ltraj in ltraj2pgtraj()
+#'
+#' @param conn A PostgreSQL connection object.
+#' @param ltraj An adehabitatLT ltraj object
+#' @param pgtraj String, name of the pgtraj being created
+#' @param schema String, name of the schema holding the pgtraj
+#' @return TRUE on successful infolocs writing
+#' 
+#' @author David Bucklin \email{dbucklin@@ufl.edu}
+#' @keywords internal
 
 writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     
@@ -1033,26 +1006,27 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
 
 # writeInfoFromDB
 
-##' Write infolocs table to database from database in pgtraj2ltraj()
-##' @param conn A PostgreSQL connection object.
-##' @param pgtraj String, name of the pgtraj
-##' @param schema String, name of the schema holding the pgtraj
-##' @param info_cols String. Optional character vector of column names of 
-##' additional information on relocations (replicating "infolocs" from the
-##' \code{adehabitatLT} object \code{ltraj}).
-##' @param info_table Character vector of \code{c("schema","table")} holding the 
-##' \code{info_cols}.
-##' @param info_rids String. Column name of unique integer ID in \code{info_table} to join with
-##' \code{rids} of the original relocations.
-##' @return TRUE on successful infolocs writing
-##' @author David Bucklin \email{dbucklin@@ufl.edu}
-##' @keywords internal
+#' Write infolocs table to database from database in pgtraj2ltraj()
+#' 
+#' @param conn A PostgreSQL connection object.
+#' @param pgtraj String, name of the pgtraj
+#' @param schema String, name of the schema holding the pgtraj
+#' @param info_cols String. Optional character vector of column names of 
+#'    additional information on relocations (replicating "infolocs" from the
+#'    \code{adehabitatLT} object \code{ltraj}).
+#' @param info_table Character vector of \code{c("schema","table")} holding the 
+#'    \code{info_cols}.
+#' @param info_rids String. Column name of unique integer ID in \code{info_table} 
+#'    to join with \code{rids} of the original relocations.
+#' @return TRUE on successful infolocs writing
+#' @author David Bucklin \email{dbucklin@@ufl.edu}
+#' @keywords internal
 
 
 writeInfoFromDB <- function(conn, pgtraj, schema, info_cols, 
     info_table, info_rids) {
     
-    # data goes with rids to zqaqtsn_temp as id send this id as
+    # data goes with rids to zqaqtsn_temp as id; send this id as
     # original relocation ids (orig_id) to relocation table
     # select orig_id using join step.relocation_id_1 =
     # relocation.id where steps in current pgtraj
@@ -1106,12 +1080,13 @@ writeInfoFromDB <- function(conn, pgtraj, schema, info_cols,
 
 # getPgtrajWithInfo
 
-##' Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
-##' @param conn A PostgreSQL connection object.
-##' @param pgtraj String, name of the pgtraj
-##' @param schema String, name of the schema holding the pgtraj
-##' @author David Bucklin \email{dbucklin@@ufl.edu}
-##' @keywords internal
+#' Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
+#' 
+#' @param conn A PostgreSQL connection object.
+#' @param pgtraj String, name of the pgtraj
+#' @param schema String, name of the schema holding the pgtraj
+#' @author David Bucklin \email{dbucklin@@ufl.edu}
+#' @keywords internal
 
 getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     
@@ -1134,13 +1109,13 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
     getinfo<-list()
     for (b in 1:length(bursts)) {
       b_nm<-bursts[b]
-    # check if defs exist
-    sql_query <- paste0("SELECT 1 as test FROM ",schemaq,".animal_burst a, ",schemaq,".pgtraj b 
-			                  WHERE a.pgtraj_id = b.id
-                        AND pgtraj_name = ",dbQuoteString(conn,pgtraj), 
-                        " AND burst_name = ",dbQuoteString(conn,b_nm), 
-                        " AND a.info_cols IS NOT NULL;")
-    check <- dbGetQuery(conn, sql_query)$test
+      # check if defs exist
+      sql_query <- paste0("SELECT 1 as test FROM ",schemaq,".animal_burst a, ",schemaq,".pgtraj b 
+  			                  WHERE a.pgtraj_id = b.id
+                          AND pgtraj_name = ",dbQuoteString(conn,pgtraj), 
+                          " AND burst_name = ",dbQuoteString(conn,b_nm), 
+                          " AND a.info_cols IS NOT NULL;")
+      check <- dbGetQuery(conn, sql_query)$test
     
       if (!is.null(check)) {
           sql_query <- paste0("SELECT unnest(info_cols[1:1]) as nms, 
@@ -1149,7 +1124,6 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                             ,schemaq,".animal_burst a, ",schemaq,".pgtraj b WHERE a.pgtraj_id = b.id
                             AND pgtraj_name = ",dbQuoteString(conn,pgtraj), 
                             " AND burst_name = ",dbQuoteString(conn,b_nm),";")
-          
           defs <- dbGetQuery(conn, sql_query)
           
           sql_query <- paste0("SELECT * FROM ", schemaq, ".", iloc_nmq, " WHERE step_id IN
@@ -1160,8 +1134,7 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                               	  pgtraj.pgtraj_name = ",dbQuoteString(conn,pgtraj), " AND 
                                   animal_burst.burst_name = ",dbQuoteString(conn,b_nm),")
                               ORDER BY step_id;")
-          # also change same query below in else{}
-          
+          # also modify same query below in else{}
           allinfo <- dbGetQuery(conn, sql_query)
           
           # remove step_id
@@ -1193,9 +1166,7 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                     list(justinfo[, i]))
               }
           }
-          
           getinfo[[b]]<-justinfo
-          
       } else {
           sql_query <- paste0("SELECT * FROM ", schemaq, ".", iloc_nmq, " WHERE step_id IN
                               	(SELECT s.step_id FROM 
@@ -1218,11 +1189,11 @@ return(getinfo)
 
 # trajSummaryViews
 
-##' Create views that summarize pgtrajs (and pgtraj bursts) in a schema.
-##' @param conn A PostgreSQL connection object
-##' @param schema String, name of the schema
-##' @author David Bucklin \email{dbucklin@@ufl.edu}
-##' @keywords internal
+#' Create views that summarize all pgtrajes (and pgtraj bursts) in a schema.
+#' @param conn A PostgreSQL connection object
+#' @param schema String, name of the schema
+#' @author David Bucklin \email{dbucklin@@ufl.edu}
+#' @keywords internal
 
 trajSummaryViews<- function(conn, schema) {
   #pgtraj summary

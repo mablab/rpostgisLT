@@ -10,9 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="BalÃƒÂ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃƒÂ©ment Calenge" />
+<meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-10-11" />
+<meta name="date" content="2016-10-12" />
 
 <title>rpostgisLT: Use cases</title>
 
@@ -69,8 +69,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">rpostgisLT: Use cases</h1>
-<h4 class="author"><em>BalÃƒÂ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃƒÂ©ment Calenge</em></h4>
-<h4 class="date"><em>2016-10-11</em></h4>
+<h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
+<h4 class="date"><em>2016-10-12</em></h4>
 
 
 <div id="TOC">
@@ -93,7 +93,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2>Motivation for the package and its relation to adehabitatLT</h2>
 <p>Recent technological progress allowed ecologists to obtain a huge amount and diversity of animal movement data sets (usually from wildlife collars/sensors) of increasing spatial and temporal resolution and size, together with complex associated information related to the environmental context, such as habitat types based on remote sensing, population density, or weather. Such data often require the use of an integrated database system, and a solution of choice is the open-source database management system PostgreSQL, with its extension PostGIS, that adds support for spatial data. Storing spatial objects in a PostGIS-enabled database is particularly useful for movement data, which can be very large, regularly updated, and require cleaning and manipulation prior to being used in research.</p>
 <p>On the other end of the process, the advancement of a movement ecology theoretical framework led to an unprecedented development of new analytical tools and methods, mostly available in the R statistical environment. The R package <a href="https://cran.r-project.org/package=adehabitatLT/">adehabitatLT</a> is a collection of tools for the analysis of animal movements. In particular, it builds on a dedicated class for animal movement data (<code>ltraj</code> objects), which abstracts movement to a set of trajectories and its geometrical descriptors.</p>
-<p><strong>The package <code>rpostgisLT</code> focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data. In particular, <code>rpostgisLT</code> provides full integration with data type <code>ltraj</code> from <code>adehabitatLT</code> with bi-directionnal conversion between PostGIS and R, by introducing the <code>pgtraj</code> data type/structure, the PostGIS equivalent of an <code>ltraj</code>.</strong></p>
+<p><strong>The package <code>rpostgisLT</code> focuses on streamlining the workflow for biologists storing/processing movement data in PostGIS and analyzing it in R, and aims at providing the tools to transparently benefit from the power of the most advanced database and statistical systems available for movement data. In particular, <code>rpostgisLT</code> provides full integration with data type <code>ltraj</code> from <code>adehabitatLT</code> with bi-directional conversion between PostGIS and R, by introducing the <code>pgtraj</code> data type/structure, the PostGIS equivalent of an <code>ltraj</code>.</strong></p>
 <p>Before getting started with <code>rpostgisLT</code>, we recommend reading the <a href="https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf">vignette of <em>adehabitatLT</em></a>, which clearly defines a trajectory and its elements. Let us however repeat a few key concepts that are regularly used in this vignette. A <strong>trajectory</strong> is a continuous curve described by an animal, person or object when it moves. If a trajectory is sampled with e.g. a GPS tracker, each measurement represents a <strong>relocation</strong>, while the straight line segment that connects two successive relocations forms a <strong>step</strong>.</p>
 </div>
 <div id="use-cases-for-the-rpostgislt-package" class="section level2">
@@ -142,7 +142,7 @@ ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con,
 ## TRUE</code></pre></div>
 <p>Note that changes were implemented to the <code>ltraj</code> data structure in <code>adehabitatLT</code> v0.3.21: 1) row names are character strings; 2) there is an additional attribute <em>proj4string</em> in an ltraj that stores the projection reference. The adehabitatLT package must be updated to that version in order to install <code>rpostgisLT</code>; however, old <code>ltraj</code>s that were created with a previous version of <code>adehabitatLT</code> should still work with <code>rpostgisLT</code>, and can be manually updated to include a proj4string using a valid <code>CRS</code> object as follows:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">attr</span>(ltraj, <span class="st">&quot;proj4string&quot;</span>) &lt;-<span class="st"> </span><span class="kw">CRS</span>(<span class="st">&quot;+proj=longlat +datum=WGS84&quot;</span>)</code></pre></div>
-<p>Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that <code>all.equal</code> between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns <code>TRUE</code>.</p>
+<p>Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferable at any time to the other side. Each of these modifications should end up with the same test, i.e. that <code>all.equal</code> between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns <code>TRUE</code>.</p>
 </div>
 <div id="missing-steps-seq-t-dt" class="section level3">
 <h3>Missing steps [seq, t, dt]</h3>
@@ -188,7 +188,7 @@ ibexTest &lt;-<span class="st"> </span><span class="kw">pgtraj2ltraj</span>(con,
 </div>
 <div id="subset-the-trajectory-seq-geom-dt" class="section level3">
 <h3>Subset the trajectory [seq, (geom), (dt)]</h3>
-<p>In practice, there are two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.</p>
+<p>In practice, there are two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by sub-sampling the trajectory at regular intervals.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## 1. Subset on given parameters
 ibex &lt;-<span class="st"> </span>ibex.ref
 ## We work on the data frame from the trajectory, which we subset, and

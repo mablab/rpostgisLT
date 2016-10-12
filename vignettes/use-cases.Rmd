@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Use cases"
-author: "BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge"
+author: "Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -43,7 +43,7 @@ it in R, and aims at providing the tools to transparently benefit from
 the power of the most advanced database and statistical systems
 available for movement data. In particular, `rpostgisLT` provides full
 integration with data type `ltraj` from `adehabitatLT` with
-bi-directionnal conversion between PostGIS and R, by introducing
+bi-directional conversion between PostGIS and R, by introducing
 the `pgtraj` data type/structure, the PostGIS equivalent of an `ltraj`.**
 
 Before getting started with `rpostgisLT`, we recommend reading the
@@ -159,7 +159,7 @@ Note that changes were implemented to the `ltraj` data structure in `adehabitatL
 attr(ltraj, "proj4string") <- CRS("+proj=longlat +datum=WGS84")
 ```
 
-Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferrable at any time to the other side. Each of these modifications should end up with the same test, i.e. that `all.equal` between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns `TRUE`.
+Now there are many ways to alter a trajectory (in R or PostgreSQL), but each of them should run smoothly on either side while being transferable at any time to the other side. Each of these modifications should end up with the same test, i.e. that `all.equal` between the original R object and the one that has been stored in PostgreSQL and retrieved in R returns `TRUE`.
 
 
 ### Missing steps [seq, t, dt]
@@ -215,7 +215,7 @@ all.equal(ibex, ibexTest)
 
 ### Subset the trajectory [seq, (geom), (dt)]
 
-In practice, there are two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by subsampling the trajectory at regular intervals.
+In practice, there are two ways to subset a trajectory: by querying its parameters (or infolocs) on a specific condition, or by sub-sampling the trajectory at regular intervals.
 
 ```{r eval=FALSE}
 ## 1. Subset on given parameters

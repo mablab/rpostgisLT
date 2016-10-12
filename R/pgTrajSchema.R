@@ -1,33 +1,34 @@
-## pgtrajSchema
+# pgtrajSchema
 
-##' Check pgtraj schema.
-##'
-##' Checks if the provided schema is a valid pgtraj schema, and
-##' creates one if it does not exist.
-##'
-##' Creates a schema to store \code{pgtraj}s in the database by
-##' calling a SQL script from \code{./sql/traj_schema.sql}. The schema
-##' name defaults to \code{traj}. If a schema with the provided name
-##' already exists in the database, it checks if it contains all the
-##' required tables. The function does not attempt to repair the
-##' schema if all pgtraj tables are not present (e.g. because some
-##' were manually deleted).  In this case, a new pgtraj schema needs
-##' to be created, or the existing schema needs to be deleted and
-##' recreated.
-##'
-##' The function has its own standalone transaction control.
-##' @param conn Connection object created with RPostgreSQL.
-##' @param schema Character string. Name of the schema that stores or
-##'     will store the pgtraj data model.
-##' @return \code{TRUE} if the schema exists (whether it was already
-##'     available or was successfully created).
-##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-##' @export
-##' @examples
-##' \dontrun{
-##'   # Check (or create) pgtraj schema with name "traj_1"
-##'   pgtrajSchema(conn,"traj_1")
-##' }
+#' Check/create pgtraj schema.
+#'
+#' Checks if the provided schema is a valid pgtraj schema, and
+#' creates one if it does not exist.
+#'
+#' Creates a schema to store \code{pgtraj}s in the database by
+#' calling a SQL script from \code{./sql/traj_schema.sql}. The schema
+#' name defaults to \code{traj}. If a schema with the provided name
+#' already exists in the database, it checks if it contains all the
+#' required tables. The function does not attempt to repair the
+#' schema if all pgtraj tables are not present (e.g. because some
+#' were manually deleted).  In this case, a new pgtraj schema needs
+#' to be created, or the existing schema needs to be deleted and
+#' recreated.
+#'
+#' The function has its own standalone transaction control.
+#' 
+#' @param conn Connection object created with RPostgreSQL.
+#' @param schema Character string. Name of the schema that stores or
+#'     will store the pgtraj data model.
+#' @return \code{TRUE} if the schema exists (whether it was already
+#'     available or was successfully created).
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @export
+#' @examples
+#' \dontrun{
+#'   # Check (or create) pgtraj schema with name "traj_1"
+#'   pgtrajSchema(conn,"traj_1")
+#' }
 
 pgtrajSchema <- function(conn, schema = "traj") {
     ## check PostgreSQL connection

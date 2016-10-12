@@ -1,25 +1,26 @@
-##' Delete a pgtraj from a traj schema.
-##' 
-##' @description 
-##' \code{pgtrajDrop} deletes a pgtraj from a traj schema.
-##' 
-##' @param conn Connection object created with RPostgreSQL
-##' @param pgtraj String. Name of the pgtraj.
-##' @param schema String. Name of the schema that stores the traj data model.
-##' @param full_clean String. Whether to delete all unused rows in all tables
-##' associated with the pgtraj (and any other previously deleted pgtrajs). Recommended, 
-##' but may take a long time to run in schemas with many large pgtraj's.
-##' 
-##' @return TRUE on success
-##' 
-##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-##' @export
-##' 
-##' @examples 
-##' \dontrun{
-##'   # drop "ibex" pgtraj in schema "traj"
-##'   pgtrajDrop(conn, "ibex")
-##' }
+#' Delete a pgtraj from a traj schema.
+#' 
+#' @description 
+#' \code{pgtrajDrop} deletes a pgtraj from a traj schema.
+#' 
+#' @param conn Connection object created with RPostgreSQL
+#' @param pgtraj String. Name of the pgtraj
+#' @param schema String. Name of the schema storing the pgtraj
+#' @param full_clean String. Whether to delete all unused rows in all tables
+#'    associated with the pgtraj (and any other previously deleted pgtrajs). 
+#'    Recommended, but may take a long time to run in schemas with many large 
+#'    pgtrajes.
+#' 
+#' @return TRUE on success
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @export
+#' 
+#' @examples 
+#' \dontrun{
+#'   # drop "ibex" pgtraj in schema "traj"
+#'   pgtrajDrop(conn, "ibex")
+#' }
 
 pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     

@@ -1,11 +1,14 @@
+# pgtraj2ltraj
+
 #' Import a pgtraj into an ltraj.
 #' 
 #' @description 
-#' \code{pgtraj2ltraj} imports a single pgtraj from a database into an ltraj object.
+#' \code{pgtraj2ltraj} imports a single pgtraj from a database into an 
+#' ltraj object.
 #' 
 #' @param conn Connection object created with RPostgreSQL
-#' @param pgtraj String. Name of the pgtraj.
-#' @param schema String. Name of the schema that stores or will store the pgtraj data model.
+#' @param pgtraj String. Name of the pgtraj
+#' @param schema String. Name of the schema storing the pgtraj
 #' 
 #' @return an ltraj object
 #' 
@@ -43,6 +46,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
         }
     }
     
+    # get ltraj data from parameters view
     DF <- invisible(dbReadTable(conn, c(schema, view)))
     # remove step_id column
     DF$step_id <- NULL

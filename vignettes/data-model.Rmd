@@ -1,6 +1,6 @@
 ---
 title: "rpostgisLT: Database model"
-author: "BalÃ¡zs Dukai, Mathieu Basille, David Bucklin, and ClÃ©ment Calenge"
+author: "Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -17,28 +17,54 @@ library(knitr)
 opts_chunk$set(fig.path="fig/")
 ```
 
-## The traj database model
+## The pgtraj database model
 
 ### General remarks
-It is possible, but not recommended, to add extra columns to the tables to store
-additional information. For example to preserve the old, non-integer burst IDs
-additionally to the burst names (*b_name*), and also create new burst IDs (*b_id*),
-the user might want to add a column to store the old burst IDs (e.g. *b_old_id*).
-Note that although the columns with "_id" use auto-incrementing integers, it is
-possible to provide own integer values for these columns. Also note that
-additional information about the data can be provided in the infolocs tables,
-which is the the recommended procedure. See further at the table description. 
+This document describes the data model utilized for `pgtraj` as implemented in
+`rpostgisLT`. There are five tables that make up the core data model:
 
-The default schema name is **traj**, and can store as many pgtrajes as needed.
-Also there can be any number of pgtraj schemas to store pgtrajes. Therefore all
-functions default to schema **traj**, but the user can change the target schema.
+- pgtraj
+- animal_burst
+- step
+- relocation
+- s_b_rel
 
-It is possible to modify steps and bursts. The procedure in this case is to
-create a new step or burst and delete the old one.
+The tables **pgtraj**, **animal_burst**, **step**, and **relocation** each
+have a unique auto-incrementing integer identifier (primary key) column (**id**), which 
+is referenced in other tables and views as the table name with an "_id" suffix 
+(e.g., **pgtraj_id**). There are one of each of these tables in every pgtraj schema, 
+which will store the core information that make up the trajectories. 
+These tables are managed completely through `rpostgisLT` functions, and should not be manually altered.
+
+Additional information about `pgtraj` data should be stored 
+in an optional "infolocs" table, which is automatically created in `rpostgisLT`
+functions (one for each pgtraj). See further information in the table description. 
+
+The default schema name in `rpostgisLT` functions is **traj**, and can store as many pgtrajes as needed. For 
+faster processing and retrieval, it is recommended to subdivide large datasets into
+multiple pgtrajes, and to create different pgtraj schemas for different projects.
+All functions default to schema **traj**, but the user can change the target schema, using 
+the `schema` argument in all `rpostgisLT` functions.
+
+There are two views that are created by default in every pgtraj schema:
+
+- all_pgtraj_summary
+- all_burst_summary
+
+which provide important information about all pgtrajes and bursts currently stored in that pgtraj schema.
+
+In addition, two views that are created for every pgtraj stored in the schema:
+
+- parameters_(pgtraj_name)
+- step_geometry_(pgtraj_name)
+
+The first (*parameters_(pgtraj_name)*) calculates geometric parameters of each step in the 
+trajectory, replicating the *adehabitatLT* **ltraj**. The *step_geometry_(pgtraj_name)* view creates (if applicable) 
+PostGIS *geometry* linestring and points for the step and start and end point of the step, respectively.
 
 ### Database model
 
-![ER diagram of the pgtraj database model](fig/database_model.png)
+![Fig 1. Tables and views that make up the pgtraj database model; this example is for a pgtraj schema containing two pgtrajes ("pgtraj1" and "pgtraj2").](fig/database_model.png)
 
 ***animal_burst* table**\
 Contains animal and burst names and their relation to pgtrajes.
@@ -53,14 +79,6 @@ Contains animal and burst names and their relation to pgtrajes.
 
 Table constraint: the combination of *burst_name* and *pgtraj_id* must be unique.
 
-***infolocs_<pgtraj_name>* table**\
-Contains additional information on steps for each pgtraj (if applicable).
-
-| Name    | Type   | Constraint | Description                                          |
-|---------|--------|------------|------------------------------------------------------|
-| step_id    | integer | PK,FK         | ID number of the trajectory step (from step.id)               |
-| <other columns> | any |            | Additional columns as in the infolocs of an ltraj object |
-
 ***pgtraj* table**\
 Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
 
@@ -70,7 +88,7 @@ Groups of trajectories, with unique names. Groups can be defined on any criteria
 | pgtraj_name  | text   | Not Null, unique | Name or other identifier of trajectory group.    |
 | proj4string  | text   |                  | Projection string of the ltraj, imported from R. |
 | time_zone    | text   |                  | Time zone of the corresponding ltraj.            |
-| note | text   |                  |                                                  |
+| note | text   |                  | Additional notes/comments about the ltraj              |
 | insert_timestamp | timestamp with time zone |     | Time the pgtraj was inserted (or last updated) |
 
 ***relocation* table**\
@@ -96,7 +114,7 @@ Steps and their relocations.
 | r2n      | float8      |             | R2n parameter copied from the ltraj on import from R. |
 | rel_angle      | float8      |             | Rel.angle parameter copied from the ltraj on import from R. |
 
-***s_i_b_rel* table**\
+***s_b_rel* table**\
 Relates step and burst, using the PKs of the *step* and *animal_burst* tables, respectively.
 
 | Name | Type    | Constraint       | Description                              |
@@ -104,8 +122,19 @@ Relates step and burst, using the PKs of the *step* and *animal_burst* tables, r
 | step_id | integer | PK, FK, Not Null | Pointing to the entry in step table.    |
 | animal_burst_id | integer | PK, FK, Not Null | Pointing to the entry in animal_burst table.   |
 
+There can also be one "infolocs" table for each pgtraj, if it is desirable to store additional
+information with a pgtraj.
+
+***infolocs_(pgtraj_name)* tables**\
+Contains additional information on steps for each pgtraj (if applicable).
+
+| Name    | Type   | Constraint | Description                                          |
+|---------|--------|------------|------------------------------------------------------|
+| step_id    | integer | PK,FK         | ID number of the trajectory step (from step.id)               |
+| ... | any |            | Additional columns as in the infolocs of an ltraj object |
+
 ### Storing geometries in PostGIS
-PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS)[^1]. In order to accurately calculate parameters in trajectories that span accross large areas and have steps of tens of kilometers long, the earth cannot be considered in two dimensions, and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type[^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
+PostGIS stores spatial data in either *geometry* or *geography* data types. The key difference between the two is that the *geometry* type is based on the Cartesian grid, while the *geography* type is based on the WGS 84 lon/lat SRID 4326 geodetic coordinate reference system (CRS)[^1]. In order to accurately calculate parameters in trajectories that span across large areas and have steps of tens of kilometers long, the earth cannot be considered in two dimensions, and the data must be appropriately projected. Hence the *geography* type seems to be the obvious choice to store the relocation and step geometries in the database. Unfortunately, as of PostGIS 2.2, only a limited selection of functions support the *geography* type[^2], and many of the *geometry-only* functions are used to calculate the step parameters. 
 
 The R object class *ltraj* assumes that the coordinates stored in the object are projected and their projection is known. However, in many cases the projection is not known or ignored, therefore the data should be treated as unprojected. Because the *geography* type stores the data in the WGS 84 lon/lat CRS, this case cannot be handled and assuming the WGS 84 projection for each dataset would be clearly erroneous.
 

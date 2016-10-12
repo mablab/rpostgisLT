@@ -1,38 +1,38 @@
-## ltraj2pgtraj
+# ltraj2pgtraj
 
-##' Export ltraj object from R into database.
-##'
-##' \code{ltraj2pgtraj} creates a new traj schema or uses an existing
-##' one and exports an ltraj to the database. The time zone and
-##' projection information stored in the ltraj is transferred to the
-##' database.
-##'
-##' @param conn A connection object.
-##' @param ltraj An object of class \code{ltraj}.
-##' @param schema Character. Name of the schema that stores or will
-##'     store the pgtraj data model.
-##' @param pgtraj Character. Name of the new \code{pgtraj}. Defaults
-##'     to the name of the provided \code{ltraj}.
-##' @param note Character. A note that will be stored with the
-##'     \code{pgtraj} in the database.
-##' @param overwrite Logical. Use if a \code{pgtraj} with the same
-##'     name as the provided \code{ltraj} already exists in the
-##'     database: If \code{TRUE}, the existing \code{pgtraj} is
-##'     deleted and the provided \code{ltraj} is inserted. If
-##'     \code{FALSE}, the function exits. Note that \code{overwrite}
-##'     requires an exact match among the \code{pgtraj} names
-##'     otherwise it is ignored.
-##' @param infolocs Logical. Whether to write infolocs to database.
-##' @return \code{TRUE} on success.
-##' @seealso \code{\link{as_pgtraj}} to create a \code{pgtraj} with
-##'     data already stored in the database.
-##' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-##' @export
-##' @examples
-##' \dontrun{
-##'   # create pgtraj from ltraj "ibex" in schema "traj_t2"
-##'   ltraj2pgtraj(conn, ibex, "traj_t2")
-##' }
+#' Export ltraj object from R to a PostGIS database.
+#'
+#' \code{ltraj2pgtraj} creates exports an ltraj to the a database pgtraj,
+#' creating a new pgtraj schema if it doesn't exist. The time zone and
+#' projection information stored in the ltraj is transferred to the
+#' database.
+#'
+#' @param conn A connection object.
+#' @param ltraj An object of class \code{ltraj}.
+#' @param schema Character. Name of the schema that stores or will
+#'     store the pgtraj data model.
+#' @param pgtraj Character. Name of the new \code{pgtraj}. Defaults
+#'     to the name of the provided \code{ltraj}.
+#' @param note Character. A note that will be stored with the
+#'     \code{pgtraj} in the database.
+#' @param overwrite Logical. Use if a \code{pgtraj} with the same
+#'     name as the provided \code{ltraj} already exists in the
+#'     database: If \code{TRUE}, the existing \code{pgtraj} is
+#'     deleted and the provided \code{ltraj} is inserted. If
+#'     \code{FALSE}, the function exits. Note that \code{overwrite}
+#'     requires an exact match among the \code{pgtraj} names
+#'     otherwise it is ignored.
+#' @param infolocs Logical. Whether to write infolocs to database.
+#' @return \code{TRUE} on success.
+#' @seealso \code{\link{as_pgtraj}} to create a \code{pgtraj} with
+#'     data already stored in the database.
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @export
+#' @examples
+#' \dontrun{
+#'   # create pgtraj from ltraj "ibex" in schema "traj_t2"
+#'   ltraj2pgtraj(conn, ibex, "traj_t2")
+#' }
 
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
     note = NULL, overwrite = FALSE, infolocs = TRUE) {
