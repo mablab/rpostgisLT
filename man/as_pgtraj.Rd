@@ -2,7 +2,7 @@
 % Please edit documentation in R/as_pgtraj.R
 \name{as_pgtraj}
 \alias{as_pgtraj}
-\title{Imports location data from a database table into a 'traj' schema.}
+\title{Imports location data from a database table into the pgtraj database model}
 \usage{
 as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
   animals = "animal", bursts = NULL, relocations, timestamps = NULL,
@@ -12,57 +12,67 @@ as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{relocations_table}{String. Name of the schema and table that stores the relocations, e.g. c("schema","relocations")}
+\item{relocations_table}{String. Name of the schema and table that stores 
+the relocations, e.g. c("schema","relocations")}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model (Default = "traj").}
+\item{schema}{String. Name of the schema that stores or will store the 
+pgtraj data model (Default = "traj").}
 
-\item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
+\item{pgtrajs}{String. Name of the pgtraj or name of the field that 
+stores the pgtraj names.}
 
-\item{animals}{String. Name of the animal or name of the field that stores the animal names.}
+\item{animals}{String. Name of the animal or name of the field that 
+stores the animal names.}
 
-\item{bursts}{String. (Optional) name of the burst or name of the field that stores the burst names. If not given,
-each animal will have one burst.}
+\item{bursts}{String. (Optional) name of the burst or name of the field
+that stores the burst names. If not given, each animal will have one 
+burst.}
 
 \item{relocations}{String. Name of the field that contains the relocations 
-in relocations_table. Relocations can be provided either as X,Y coordinates
-or PostGIS geometry. In both cases all relocations in the 'relocations_table'
-have to have the same projection.}
+in relocations_table. Relocations can be provided either as X,Y 
+coordinates or PostGIS geometry. In both cases all relocations in 
+relocations_table must have the same projection.}
 
-\item{timestamps}{String. Name of the field in relocations_table that contains the timestamps.
-If NULL, Type I trajectory is assumed.}
+\item{timestamps}{String. Name of the field in relocations_table that 
+contains the timestamps. If NULL, Type I trajectory is assumed.}
 
-\item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.
-If \code{timestamps = NULL}, relocations will be sorted by the ascending numeric IDs in this field.}
+\item{rids}{String. Name of the field in relocations_table that contains 
+the numeric IDs of relocations. If \code{timestamps = NULL}, relocations 
+will be sorted by the ascending numeric IDs in this field.}
 
-\item{srid}{Integer. Optional SRID (spatial reference ID) of (x,y) coordinates provided for relocations.
-Ignored if relocations is a geometry type.}
+\item{srid}{Integer. Optional SRID (spatial reference ID) of (x,y)
+coordinates provided for relocations. Ignored if relocations is a 
+geometry type.}
 
 \item{note}{String. Comment on the pgtraj. The comment is only used in
-the database and not transferred into an ltraj.}
+the database and not transferred into the ltraj.}
 
-\item{clauses}{character, additional SQL to append to modify data selected from relocations_table.
-Must begin with \code{WHERE ...}, and cannot contain ORDER BY or LIMIT clauses.}
+\item{clauses}{character, additional SQL to append to modify data 
+selected from relocations_table. Must begin with \code{WHERE ...}, 
+and cannot contain \code{ORDER BY} or \code{LIMIT} clauses.}
 
-\item{info_cols}{String. Optional character vector of column names of 
-additional information on relocations (replicating "infolocs" from the
-\code{adehabitatLT} object \code{ltraj}).}
+\item{info_cols}{String. Optional character vector of database table 
+column names storing additional information on relocations 
+(replicating "infolocs" from the \code{adehabitatLT} object \code{ltraj}).}
 
 \item{info_table}{Character vector of \code{c("schema","table")} holding the 
-\code{info_cols}. If \code{info_cols} are in \code{relocations_table}, leave NULL.}
+\code{info_cols}. If \code{info_cols} are in \code{relocations_table}, 
+leave NULL.}
 
-\item{info_rids}{String. Column name of unique integer ID in \code{info_table} to join with
-\code{rids}. If \code{info_cols} are in \code{relocations_table}, leave NULL.}
+\item{info_rids}{String. Column name of unique integer ID in \code{info_table} 
+to join with \code{rids} from \code{relocations_table}. If \code{info_cols} 
+are in \code{relocations_table}, leave NULL.}
 }
 \value{
 TRUE on success
 }
 \description{
-\code{as_pgtraj} populates a \code{traj} schema from the data provided
-in \code{relocations_table}. If the provided schema doesn't exist, it will be 
-created. On successful data input, \code{as_pgtraj} creates two database views for
-each pgtraj. These views are named parameters_<pgtraj_name>, 
-step_geometry_<pgtraj_name> and described more in
-detail in the package vignette.
+\code{as_pgtraj} populates a \code{pgtraj} schema from the data provided
+in \code{relocations_table}. If the provided schema doesn't exist, it will 
+be created. On successful data input, \code{as_pgtraj} creates two database 
+views for each new pgtraj. These views are named parameters_<pgtraj_name>, 
+step_geometry_<pgtraj_name> and described in more detail in the package 
+vignette.
 
 The time zone of the pgtraj is set to the local time zone of the user.
 }
@@ -80,7 +90,9 @@ as_pgtraj(conn,
         bursts = "burst",
         relocations = "geom",
         timestamps = "time",
-        rids = "gid")
+        rids = "gid",
+        info_cols = c("dist_to_road","land_cover","error_class")
+        )
 }
 
 \dontrun{
@@ -97,11 +109,13 @@ as_pgtraj(conn,
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
+
+David Bucklin \email{dbucklin@ufl.edu}
 }
 \references{
 \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
 }
 \seealso{
-Section on traj data model in the package vignette.
+Section on pgtraj data model in the package vignette.
 }
 

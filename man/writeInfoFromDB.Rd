@@ -20,8 +20,8 @@ additional information on relocations (replicating "infolocs" from the
 \item{info_table}{Character vector of \code{c("schema","table")} holding the 
 \code{info_cols}.}
 
-\item{info_rids}{String. Column name of unique integer ID in \code{info_table} to join with
-\code{rids} of the original relocations.}
+\item{info_rids}{String. Column name of unique integer ID in \code{info_table} 
+to join with \code{rids} of the original relocations.}
 }
 \value{
 TRUE on successful infolocs writing

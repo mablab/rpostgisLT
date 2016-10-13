@@ -9,13 +9,14 @@ pgtrajDrop(conn, pgtraj, schema = "traj", full_clean = TRUE)
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{pgtraj}{String. Name of the pgtraj.}
+\item{pgtraj}{String. Name of the pgtraj}
 
-\item{schema}{String. Name of the schema that stores the traj data model.}
+\item{schema}{String. Name of the schema storing the pgtraj}
 
 \item{full_clean}{String. Whether to delete all unused rows in all tables
-associated with the pgtraj (and any other previously deleted pgtrajs). Recommended, 
-but may take a long time to run in schemas with many large pgtraj's.}
+associated with the pgtraj (and any other previously deleted pgtrajs). 
+Recommended, but may take a long time to run in schemas with many large 
+pgtrajes.}
 }
 \value{
 TRUE on success

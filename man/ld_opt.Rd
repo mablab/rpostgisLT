@@ -3,7 +3,7 @@
 \name{ld_opt}
 \alias{dl_opt}
 \alias{ld_opt}
-\title{Quick Conversion of Objects of Class ltraj from and to Dataframes}
+\title{Quick Conversion of Objects of Class ltraj from and to data frames}
 \usage{
 ld_opt(ltraj)
 
@@ -11,11 +11,16 @@ dl_opt(x, rnames = TRUE)
 }
 \arguments{
 \item{ltraj}{An object of class \code{ltraj}.}
+
+\item{x}{A data frame}
+
+\item{rnames}{Whether to preserve row names from the data frame to the 
+ltraj}
 }
 \value{
-\code{ld_opt} returns a data frame with all trajectory
-    parameters as columns; \code{dl_opt}
-    returns an object of class \code{ltraj}.
+\code{ld_opt} returns a data frame with all trajectory 
+   parameters as columns; \code{dl_opt} returns an object of class 
+   \code{ltraj}.
 }
 \description{
 Faster versions of \code{\link[adehabitatLT]{ld}} and
@@ -26,8 +31,8 @@ Modified by Mathieu Basille \email{basille@ufl.edu},
     Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \seealso{
-See \code{\link[adehabitatLT]{ld}} for further details on
-    the function and all available arguments.
+See \code{\link[adehabitatLT]{ld}} for further details on the 
+   function and all available arguments.
 }
 \keyword{internal}
 

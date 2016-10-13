@@ -3,7 +3,7 @@
 \name{pgtrajVacuum}
 \alias{pgtrajVacuum}
 \title{pgtrajVacuum
-VACUUM on a pgtraj schema.}
+VACUUM a pgtraj schema.}
 \usage{
 pgtrajVacuum(conn, schema = "traj", full = FALSE, verbose = FALSE,
   analyze = TRUE)

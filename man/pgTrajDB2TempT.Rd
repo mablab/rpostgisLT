@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils.R
 \name{pgTrajDB2TempT}
 \alias{pgTrajDB2TempT}
-\title{Insert relocations from a source table into the table 'zgaqtsn_temp'.}
+\title{Insert relocations from a source table into the table 'zgaqtsn_temp', 
+used in as_pgtraj}
 \usage{
 pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, animals,
   bursts = NULL, relocations, timestamps, rids, srid, proj4string, note,
@@ -11,39 +12,49 @@ pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, animals,
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{String. Name of the schema that stores or will store 
+the pgtraj data model.}
 
-\item{relocations_table}{String. Name of the table that stores the relocations, e.g. c("schema","relocations")}
+\item{relocations_table}{String. Name of the table that stores the 
+relocations, e.g. c("schema","relocations")}
 
-\item{pgtrajs}{String. Name of the pgtraj or name of the field that stores the pgtraj names.}
+\item{pgtrajs}{String. Name of the pgtraj or name of the field that 
+stores the pgtraj names.}
 
-\item{animals}{String. Name of the animal or name of the field that stores the animal names.}
+\item{animals}{String. Name of the animal or name of the field that 
+stores the animal names.}
 
-\item{bursts}{String. Name of the burst or name of the field that stores the burst names.}
+\item{bursts}{String. Name of the burst or name of the field that 
+stores the burst names.}
 
-\item{relocations}{Vector of string(s). Name of the field(s) that contains 
-the relocations in relocations_table. If relocations are stored as pairs of (X,Y) or 
-(long, lat) coorindates, the coordinates should be separated in two fields 
-and referenced accordingly.}
+\item{relocations}{Vector of string(s). Name of the field(s) that 
+contains the relocations in relocations_table. If relocations are 
+stored as pairs of (X,Y) or (long, lat) coorindates, the coordinates 
+should be separated in two fields and referenced accordingly.}
 
-\item{timestamps}{String. Name of the field in relocations_table that contains the timestamps.}
+\item{timestamps}{String. Name of the field in relocations_table 
+that contains the timestamps.}
 
-\item{rids}{String. Name of the field in relocations_table that contains the numeric IDs of relocations.}
+\item{rids}{String. Name of the field in relocations_table that 
+contains the numeric IDs of relocations.}
 
 \item{srid}{Numeric. The PostGIS SRID of the CRS of 'relocations'.}
 
-\item{proj4string}{String. The PROJ4 string to be inserted into \code{pgtraj} table.}
+\item{proj4string}{String. The PROJ4 string to be inserted into 
+\code{pgtraj} table.}
 
-\item{note}{String. Comment on the pgtraj. The comment is only used in
-the database and not transferred into an ltraj.}
+\item{note}{String. Comment on the pgtraj. The comment is only used 
+in the database and not transferred into an ltraj.}
 
-\item{clauses}{String. Additional SQL to modify select query from relocations_table}
+\item{clauses}{String. Additional SQL to modify select query from 
+relocations_table}
 
-\item{time_zone}{String. Time zone to be inserted into \code{pgtraj} table.}
+\item{time_zone}{String. Time zone to be inserted into \code{pgtraj} 
+table.}
 }
 \description{
-If relocations are given as X,Y coordinates, they are converted into a POINT 
-geometry in PostGIS.
+If relocations are given as X,Y coordinates, they are converted into 
+a POINT geometry in PostGIS.
 }
 \author{
 Balázs Dukai

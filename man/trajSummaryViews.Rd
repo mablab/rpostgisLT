@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{trajSummaryViews}
 \alias{trajSummaryViews}
-\title{Create views that summarize pgtrajs (and pgtraj bursts) in a schema.}
+\title{Create views that summarize all pgtrajes (and pgtraj bursts) in a schema.}
 \usage{
 trajSummaryViews(conn, schema)
 }
@@ -12,7 +12,7 @@ trajSummaryViews(conn, schema)
 \item{schema}{String, name of the schema}
 }
 \description{
-Create views that summarize pgtrajs (and pgtraj bursts) in a schema.
+Create views that summarize all pgtrajes (and pgtraj bursts) in a schema.
 }
 \author{
 David Bucklin \email{dbucklin@ufl.edu}

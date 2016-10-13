@@ -94,7 +94,7 @@ con <- dbConnect("PostgreSQL", dbname = <dbname>, host = <host>, user = <user>, 
 The next step will be to check whether the intended pgtraj schema is
 ready to use with the function `pgtrajSchema` (note that by default,
 the function checks and/or create the schema "traj", which can be
-changed with the `name` argument):
+changed with the `schema` argument):
 
 ```{r eval=FALSE}
 pgtrajSchema(con)

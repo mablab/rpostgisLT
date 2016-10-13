@@ -24,8 +24,7 @@ stores the burst names.}
 contains the numeric IDs of relocations.}
 
 \item{epsg}{Numeric. The EPSG code of the Coordinate Reference
-System of the relocation coordinates in the ltraj. Defaults to
-0.}
+System of the relocation coordinates in the ltraj. Defaults to 0.}
 }
 \value{
 nothing

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-10-12" />
+<meta name="date" content="2016-10-13" />
 
 <title>rpostgisLT: Use cases</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">rpostgisLT: Use cases</h1>
 <h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-10-12</em></h4>
+<h4 class="date"><em>2016-10-13</em></h4>
 
 
 <div id="TOC">
@@ -104,7 +104,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>A typical session will start by initializing the connection to the database, using PostgreSQL credentials through the <code>RPostgreSQL</code> package (note that loading <code>rpostgisLT</code> automatically loads <code>RPostgreSQL</code> too):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rpostgisLT)
 con &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(<span class="st">&quot;PostgreSQL&quot;</span>, <span class="dt">dbname =</span> &lt;dbname&gt;, <span class="dt">host =</span> &lt;host&gt;, <span class="dt">user =</span> &lt;user&gt;, <span class="dt">password =</span> &lt;password&gt;)</code></pre></div>
-<p>The next step will be to check whether the intended pgtraj schema is ready to use with the function <code>pgtrajSchema</code> (note that by default, the function checks and/or create the schema “traj”, which can be changed with the <code>name</code> argument):</p>
+<p>The next step will be to check whether the intended pgtraj schema is ready to use with the function <code>pgtrajSchema</code> (note that by default, the function checks and/or create the schema “traj”, which can be changed with the <code>schema</code> argument):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pgtrajSchema</span>(con)</code></pre></div>
 <p>If it is successful, the function should return <code>TRUE</code>, together with a message like:</p>
 <pre><code>The pgtraj schema 'traj' was successfully created in the database.</code></pre>

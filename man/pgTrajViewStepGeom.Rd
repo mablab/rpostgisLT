@@ -9,7 +9,8 @@ pgTrajViewStepGeom(conn, schema, pgtraj)
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{String. Name of the schema that stores or will store the 
+pgtraj data model.}
 
 \item{pgtraj}{String. Name of the pgtraj.}
 }

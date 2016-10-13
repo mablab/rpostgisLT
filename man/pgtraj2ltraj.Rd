@@ -9,15 +9,16 @@ pgtraj2ltraj(conn, pgtraj, schema = "traj")
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{pgtraj}{String. Name of the pgtraj.}
+\item{pgtraj}{String. Name of the pgtraj}
 
-\item{schema}{String. Name of the schema that stores or will store the pgtraj data model.}
+\item{schema}{String. Name of the schema storing the pgtraj}
 }
 \value{
 an ltraj object
 }
 \description{
-\code{pgtraj2ltraj} imports a single pgtraj from a database into an ltraj object.
+\code{pgtraj2ltraj} imports a single pgtraj from a database into an 
+ltraj object.
 }
 \examples{
 \dontrun{

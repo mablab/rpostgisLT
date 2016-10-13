@@ -2,7 +2,7 @@
 % Please edit documentation in R/pgtrajSchema.R
 \name{pgtrajSchema}
 \alias{pgtrajSchema}
-\title{Check pgtraj schema.}
+\title{Check/create pgtraj schema.}
 \usage{
 pgtrajSchema(conn, schema = "traj")
 }

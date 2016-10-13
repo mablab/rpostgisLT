@@ -2,7 +2,7 @@
 % Please edit documentation in R/ltraj2pgtraj.R
 \name{ltraj2pgtraj}
 \alias{ltraj2pgtraj}
-\title{Export ltraj object from R into database.}
+\title{Export ltraj object from R to a PostGIS database.}
 \usage{
 ltraj2pgtraj(conn, ltraj, schema = "traj", pgtraj = NULL, note = NULL,
   overwrite = FALSE, infolocs = TRUE)
@@ -35,8 +35,8 @@ otherwise it is ignored.}
 \code{TRUE} on success.
 }
 \description{
-\code{ltraj2pgtraj} creates a new traj schema or uses an existing
-one and exports an ltraj to the database. The time zone and
+\code{ltraj2pgtraj} creates exports an ltraj to the a database pgtraj,
+creating a new pgtraj schema if it doesn't exist. The time zone and
 projection information stored in the ltraj is transferred to the
 database.
 }
