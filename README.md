@@ -22,7 +22,7 @@ A stable development version of the package will be available on the project's [
     
 For the latest (possibly unstable) development version, use:
 
-    install_github("mablab/rpostgisLT",ref="develop")
+    install_github("mablab/rpostgisLT",ref="dev")
 
 ## Getting started
 
@@ -37,7 +37,7 @@ You're now ready to use rpostgisLT. As a first test, you can try sending a sampl
     library(rpostgisLT)
     con <- dbConnect("PostgreSQL", dbname = <dbname>, host = <host>, user = <user>, password = <password>)
     
-`rpostgisLT` stores `ltraj` in a data format called `pgtraj` (i.e., the PostGIS version of a trajectory). To store data, `rpostgisLT` builds the `pgtraj` data model in a dedicated schema in a database. See the data All `rpostgisLT` functions specify the name of this schema to be `traj` by default, but it can be assigned any name you like (and you can have as many `pgtraj` schemas in a database as you would like). The functions that create `pgtraj` in `rpostgisLT` all will create this schema if it doesn't exist prior to building the `pgtraj`, but you can also create it ahead of time using the function `pgtrajSchema`.
+`rpostgisLT` stores `ltraj` in a data format called `pgtraj` (i.e., the PostGIS version of a trajectory). To store data, `rpostgisLT` builds the `pgtraj` data model in a dedicated schema in a database. All `rpostgisLT` functions specify the name of this schema to be `traj` by default, but it can be assigned any name you like (and you can have as many `pgtraj` schemas in a database as you would like). The functions that create `pgtraj` in `rpostgisLT` all will create this schema if it doesn't exist prior to building the `pgtraj`, but you can also create it ahead of time using the function `pgtrajSchema`.
 
     pgtrajSchema(con)
     
@@ -58,8 +58,7 @@ We can now load a test dataset, and send it to the database using `ltraj2pgtraj`
 `pgtraj` stored in the database can be re-imported as `ltraj` using the `pgtraj2ltraj` function:
 
     cap.db<-pgtraj2ltraj(con, "test_data")
-    all.equal(cap,cap.db)
-    
+
 `rpostgisLT` also can create pgtraj from data already stored in a database. Consider the following table storing animal relocations:
     
     -- this is SQL!!
@@ -109,7 +108,7 @@ You can also provide a column storing burst names, to further subdivide single a
               clauses = "WHERE extract(year FROM acquisition_time) = 2013"
               )
 
-Finally, you can also attach information on locations (`infolocs` in an ltraj) using the info.cols argument. By default, the function assumes that these columns are also in `relocations_table`, but you can specify an alternate table (`info_table`) and its ID column (`info_rids`) that matches (JOINs) with the `rids` column in `relocations_table`.
+Finally, you can also attach information on locations (`infolocs` in an ltraj) using the `info_cols` argument. By default, the function assumes that these columns are also in `relocations_table`, but you can specify an alternate table (`info_table`) and its ID column (`info_rids`) that matches (JOINs) with the `rids` column in `relocations_table`.
 
     as_pgtraj(con,
               relocations_table = c("gps_data","relocations"),
