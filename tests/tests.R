@@ -280,6 +280,8 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid")
 
+pgtraj2ltraj(conn,"medium","traj_t3")
+
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_db_t1", type = "schema", cascade = TRUE)

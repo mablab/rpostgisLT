@@ -45,11 +45,8 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     # Drop query
     sql_query <- paste0("DELETE FROM pgtraj WHERE pgtraj_name = ", 
         dbQuoteString(conn, pgtraj), ";
-                        DROP VIEW ", 
-        dbQuoteIdentifier(conn, paste0("parameters_", pgtraj)), 
-        ";
-                        DROP VIEW ", dbQuoteIdentifier(conn, 
-            paste0("step_geometry_", pgtraj)), ";")
+        DROP VIEW ", dbQuoteIdentifier(conn, paste0("parameters_", pgtraj)), ";
+        DROP VIEW ", dbQuoteIdentifier(conn, paste0("step_geometry_", pgtraj)), ";")
     
     # Begin transaction block
     invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))

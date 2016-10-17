@@ -18,7 +18,7 @@
 #' 
 #' @seealso Section on pgtraj data model in the package vignette. 
 #' 
-#' @references \url{https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf}
+#' @references \url{https://CRAN.R-project.org/package=adehabitatLT/vignettes/adehabitatLT.pdf}
 #' 
 #' @param conn Connection object created with RPostgreSQL
 #' @param relocations_table String. Name of the schema and table that stores 
