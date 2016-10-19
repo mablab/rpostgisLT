@@ -32,7 +32,7 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
         schema), ",public;")
-    invisible(dbSendQuery(conn, sql_query))
+    invisible(dbSendStatement(conn, sql_query))
     
     sql_query <- paste0("SELECT id FROM pgtraj WHERE pgtraj_name = ", 
         dbQuoteString(conn, pgtraj), ";")
@@ -49,10 +49,10 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
         DROP VIEW ", dbQuoteIdentifier(conn, paste0("step_geometry_", pgtraj)), ";")
     
     # Begin transaction block
-    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(dbSendStatement(conn, "BEGIN TRANSACTION;"))
     
     tryCatch({
-        invisible(dbSendQuery(conn, sql_query))
+        invisible(dbSendStatement(conn, sql_query))
         if (dbExistsTable(conn, c(schema, paste0("infolocs_", 
             pgtraj)))) {
             dbDrop(conn, c(schema, paste0("infolocs_", pgtraj)), 
@@ -81,7 +81,7 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
                   JOIN pgtraj p ON p.id = ab.pgtraj_id
                   WHERE p.pgtraj_name IN (SELECT pgtraj_name from pgtraj)
                   AND r2.id IS NOT NULL);"
-            invisible(dbSendQuery(conn, sql_query))
+            invisible(dbSendStatement(conn, sql_query))
         }
         dbCommit(conn)
     }, warning = function(x) {
@@ -99,7 +99,7 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     # Restore database search path
     sql_query <- paste0("SET search_path TO ", current_search_path, 
         ";")
-    invisible(dbSendQuery(conn, sql_query))
+    invisible(dbSendStatement(conn, sql_query))
     
     # Vacuum the schema
     suppressMessages(pgtrajVacuum(conn, schema, full = FALSE, 

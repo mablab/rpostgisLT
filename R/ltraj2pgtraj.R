@@ -106,7 +106,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     ## Parameters to exclude on input
     params <- c("dist", "abs.angle")
     ## Begin transaction block and input to postgres
-    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(dbSendStatement(conn, "BEGIN TRANSACTION;"))
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
@@ -134,7 +134,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
             "/sql/insert_ltraj.sql")
         sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
-        invisible(dbSendQuery(conn, sql_query))
+        invisible(dbSendStatement(conn, sql_query))
         TRUE
     }, warning = function(x) {
         message(x)
@@ -149,7 +149,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     })
     res <- c(res, res2)
     ## Drop temporary table
-    invisible(dbSendQuery(conn, "DROP TABLE zgaqtsn_temp;"))
+    invisible(dbSendStatement(conn, "DROP TABLE zgaqtsn_temp;"))
     ## Create parameter and geometry views
     res3 <- tryCatch({
         pgTrajViewParams(conn, schema, pgtraj, srid, db = FALSE)
@@ -187,7 +187,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
             ## Restore database search path
             sql_query <- paste0("SET search_path TO ", current_search_path, 
                 ";")
-            invisible(dbSendQuery(conn, sql_query))
+            invisible(dbSendStatement(conn, sql_query))
             return(TRUE)
         } else {
             dbRollback(conn)

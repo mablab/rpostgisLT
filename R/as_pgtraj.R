@@ -173,7 +173,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     }
     
     ##### Insert data into temporary table Begin transaction block
-    invisible(dbSendQuery(conn, "BEGIN TRANSACTION;"))
+    invisible(dbSendStatement(conn, "BEGIN TRANSACTION;"))
     
     # Create temporary table 'zgaqtsn_temp'
     res0 <- tryCatch({
@@ -230,7 +230,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
         schema), ",public;")
-    invisible(dbSendQuery(conn, sql_query))
+    invisible(dbSendStatement(conn, sql_query))
     
     # Run the SQL import script to insert the data from the
     # temporary table into the traj schema
@@ -240,7 +240,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
       } else {
         type <- 2
       }
-      invisible(dbSendQuery(conn, paste0("SELECT insert_pgtraj(", type, ");")))
+      invisible(dbSendStatement(conn, paste0("SELECT insert_pgtraj(", type, ");")))
       TRUE
     }, warning = function(x) {
       message(x)
@@ -287,7 +287,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     if (suppressWarnings(all(res))) {
         # infolocs
         if (!is.null(info_cols)) {
-            suppressMessages(dbSendQuery(conn, "ANALYZE zgaqtsn_temp;"))
+            suppressMessages(dbSendStatement(conn, "ANALYZE zgaqtsn_temp;"))
             pgtraj_list <- dbGetQuery(conn, "SELECT DISTINCT pgtraj_name as p FROM zgaqtsn_temp;")$p
             if (is.null(info_rids)) 
                 info_rids <- rids
