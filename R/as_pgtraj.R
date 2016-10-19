@@ -173,7 +173,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     }
     
     ##### Insert data into temporary table Begin transaction block
-    invisible(dbSendStatement(conn, "BEGIN TRANSACTION;"))
+    invisible(dbExecute(conn, "BEGIN TRANSACTION;"))
     
     # Create temporary table 'zgaqtsn_temp'
     res0 <- tryCatch({
@@ -230,7 +230,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
         schema), ",public;")
-    invisible(dbSendStatement(conn, sql_query))
+    invisible(dbExecute(conn, sql_query))
     
     # Run the SQL import script to insert the data from the
     # temporary table into the traj schema
@@ -240,7 +240,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
       } else {
         type <- 2
       }
-      invisible(dbSendStatement(conn, paste0("SELECT insert_pgtraj(", type, ");")))
+      invisible(dbExecute(conn, paste0("SELECT insert_pgtraj(", type, ");")))
       TRUE
     }, warning = function(x) {
       message(x)
@@ -287,7 +287,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     if (suppressWarnings(all(res))) {
         # infolocs
         if (!is.null(info_cols)) {
-            suppressMessages(dbSendStatement(conn, "ANALYZE zgaqtsn_temp;"))
+            suppressMessages(dbExecute(conn, "ANALYZE zgaqtsn_temp;"))
             pgtraj_list <- dbGetQuery(conn, "SELECT DISTINCT pgtraj_name as p FROM zgaqtsn_temp;")$p
             if (is.null(info_rids)) 
                 info_rids <- rids
@@ -309,7 +309,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         # reset search path in the database
         sql_query <- paste0("SET search_path TO ", current_search_path, 
             ";")
-        invisible(dbGetQuery(conn, sql_query))
+        invisible(dbExecute(conn, sql_query))
         # Return TRUE
         return(all(res))
     } else {
@@ -318,6 +318,6 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         # reset search path in the database
         sql_query <- paste0("SET search_path TO ", current_search_path, 
             ";")
-        invisible(dbGetQuery(conn, sql_query))
+        invisible(dbExecute(conn, sql_query))
     }
 }
