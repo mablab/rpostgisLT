@@ -29,7 +29,7 @@ WITH r_output AS (
     FROM zgaqtsn_temp
     ORDER BY burst_order, relocation_time
     ),
-/*calculates relocation coordinates from x+dx etc. for obainting the 2nd 
+/*calculates relocation coordinates from x+dx etc. for obtaining the 2nd 
  * relocation of a step and unites the computed values with the provided values*/
 parsed_relocation AS (
     /*location 1 coordinates and timestamp*/
@@ -125,5 +125,3 @@ INSERT INTO s_b_rel (step_id, animal_burst_id)
 SELECT a.id, b.id
 FROM step_input AS a
 JOIN insert_animal_burst AS b ON a.burst_name = b.burst_name;
-
-

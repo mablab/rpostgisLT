@@ -1,4 +1,16 @@
-rpostgisLT 0.3 (Release date: 23.08.2016)
+rpostgisLT 0.4 
+==============
+
+** INITIAL CRAN RELEASE **
+
+OVERALL CHANGE
+
+* Add handling of infolocs
+* Add support for Type I (no time recorded) trajectories
+* New pgtraj summary functions
+* faster conversion to pgtraj from database data in as_pgtraj()
+
+rpostgisLT 0.3 (Release date: 2016-08-23)
 ==============
 
 Changes:

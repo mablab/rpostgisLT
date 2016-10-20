@@ -7,17 +7,14 @@ CREATE TABLE pgtraj (
 	insert_timestamp	timestamptz DEFAULT now()
 );
 
-
 CREATE TABLE animal_burst (
     id               serial      PRIMARY KEY,
     burst_name       text        NOT NULL ,
     animal_name      text        NOT NULL,
-    pgtraj_id        integer     NOT NULL REFERENCES pgtraj (id)
-                                 ON DELETE CASCADE,
+    pgtraj_id        integer     NOT NULL REFERENCES pgtraj (id) ON DELETE CASCADE,
 	info_cols		   text[][][]  DEFAULT NULL,
     CONSTRAINT burst_pgtraj_unique UNIQUE (burst_name, pgtraj_id)
 );
-
 
 CREATE TABLE relocation (
     id               serial      PRIMARY KEY,
@@ -28,28 +25,17 @@ CREATE TABLE relocation (
 
 CREATE TABLE step (
     id                serial      PRIMARY KEY,
-    relocation_id_1   integer     DEFAULT NULL REFERENCES relocation (id)
-                                  ON DELETE CASCADE,
-    relocation_id_2   integer     DEFAULT NULL REFERENCES relocation (id)
-                                  ON DELETE SET NULL,
+    relocation_id_1   integer     DEFAULT NULL REFERENCES relocation (id) ON DELETE CASCADE,
+    relocation_id_2   integer     DEFAULT NULL REFERENCES relocation (id) ON DELETE SET NULL,
     dt                interval    DEFAULT NULL,
     r_rowname         text        DEFAULT NULL,
     r2n               float8      DEFAULT NULL,
     rel_angle         float8      DEFAULT NULL
 );
-/*
-CREATE TABLE infoloc (
-	id                serial      PRIMARY KEY,
-    infoloc           json        DEFAULT NULL
-);
-*/
+
 CREATE TABLE s_b_rel (
-    step_id          integer     NOT NULL REFERENCES step (id)
-                                 ON DELETE CASCADE,
-    --infoloc_id       integer     REFERENCES infoloc (id)
-    --                             ON DELETE SET NULL,
-    animal_burst_id  integer     NOT NULL REFERENCES animal_burst (id)
-                                 ON DELETE CASCADE,
+    step_id          integer     NOT NULL REFERENCES step (id) ON DELETE CASCADE,
+    animal_burst_id  integer     NOT NULL REFERENCES animal_burst (id) ON DELETE CASCADE,
     PRIMARY KEY (step_id, animal_burst_id)
 );
 
@@ -58,7 +44,6 @@ CREATE INDEX relocation_geom_idx ON relocation USING gist (geom);
 CREATE INDEX relocation_time_idx ON relocation USING btree (relocation_time);
 
 -- add comments to the schema
-
 COMMENT ON TABLE pgtraj IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
 COMMENT ON COLUMN pgtraj.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN pgtraj.pgtraj_name IS 'Name or identifier of trajectory group, not null.';
@@ -74,7 +59,6 @@ COMMENT ON COLUMN animal_burst.animal_name IS 'Name of animal.';
 COMMENT ON COLUMN animal_burst.pgtraj_id IS 'Foreign key to pgtraj records.';
 COMMENT ON COLUMN animal_burst.info_cols IS 'Array holding R data type definitions for infolocs columns. Do not edit.';
 
-
 COMMENT ON TABLE step IS 'Steps derived from relocations.';
 COMMENT ON COLUMN step.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN step.relocation_id_1 IS 'The first of the two successive relocations that form a step.';
@@ -83,15 +67,12 @@ COMMENT ON COLUMN step.dt IS 'Duration of the step.';
 COMMENT ON COLUMN step.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
 COMMENT ON COLUMN step.r2n IS 'R2n parameter copied from the ltraj on import from R.';
 COMMENT ON COLUMN step.rel_angle IS 'Rel.angle parameter copied from the ltraj on import from R.';
+
 COMMENT ON TABLE relocation IS 'Relocation geometry and time stamp.';
 COMMENT ON COLUMN relocation.id IS 'Auto-generated numeric ID.';
 COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';
 COMMENT ON COLUMN relocation.relocation_time IS 'Time stamp of the relocation.';
 COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations table in the database.';
-
---COMMENT ON TABLE infoloc IS 'Contains additional information on steps. Mirrors the infoloc ltraj attribute.';
---COMMENT ON COLUMN infoloc.id IS 'Auto-generated numeric ID of infoloc.';
---COMMENT ON COLUMN infoloc.infoloc IS 'Contains the additional information encoded in JSON.';
 
 COMMENT ON TABLE s_b_rel IS 'Relates step and burst.';
 
@@ -106,7 +87,6 @@ INSERT INTO pgtraj (pgtraj_name, proj4string, time_zone, note)
 		SELECT DISTINCT pgtraj_name, proj4string, time_zone, note
 		FROM zgaqtsn_temp
 		ORDER BY pgtraj_name;
-
 IF $1 = 2 THEN
 -- loop bursts
 	FOR pg IN 
@@ -218,7 +198,5 @@ END IF;
 RETURN TRUE;
 END;
 $BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100;
-
-
+LANGUAGE plpgsql VOLATILE
+COST 100;
