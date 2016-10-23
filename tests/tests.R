@@ -17,6 +17,11 @@ puechcirc <- dl(ld(puechcirc))
 albatross <- dl(ld(albatross))
 porpoise <- dl(ld(porpoise))
 
+## Create Type I ltraj
+ibexraw_I <- typeII2typeI(ibexraw)
+albatross_I <- typeII2typeI(albatross)
+porpoise_I <- typeII2typeI(porpoise)
+
 
 ## Minimal test
 ib_min <- dl(ld(ibexraw[1])[1:10, ]) # note that step parameters are recomputed on purpose
@@ -46,11 +51,11 @@ ibexraw                                 # No infolocs in ibexraw.
 is.regular(ibexraw)
 ## FALSE
 
-ltraj2pgtraj(conn, ibex, overwrite = TRUE)                   # Default should be in schema
-                                        # 'traj' and use ltraj name
-                                        # ('ibex') as pgtraj name.
+ltraj2pgtraj(conn, ibex, overwrite = TRUE) # Default should be in schema
+                                           # 'traj' and use ltraj name
+                                           # ('ibex') as pgtraj name.
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
-                                        # 'traj' schema.
+                                                    # 'traj' schema.
 all.equal(ibex, ibexTest)
 Sys.sleep(2)
 
@@ -63,25 +68,45 @@ attr(ibexraw, 'proj4string') <- srs
 attr(puechcirc, 'proj4string') <- srs2
 attr(albatross, 'proj4string') <- srs
 attr(porpoise, 'proj4string') <- srs2
+# Type I
+attr(porpoise_I, 'proj4string') <- srs2
+attr(albatross_I, 'proj4string') <- srs
+attr(ibexraw_I, 'proj4string') <- srs
 
 ltraj2pgtraj(conn, ltraj = ibexraw, note = "test CRS on ibexraw", overwrite=TRUE)
 ltraj2pgtraj(conn, ltraj = puechcirc, note = "test CRS on puechcirc",overwrite=TRUE)
 ltraj2pgtraj(conn, ltraj = albatross, note = "test CRS on albatross",overwrite=TRUE)
 ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise",overwrite=TRUE)
+# Type I
+ltraj2pgtraj(conn, schema = "type_I", ltraj = porpoise_I, note = "arbitrary CRS")
+ltraj2pgtraj(conn, schema = "type_I", ltraj = albatross_I, note = "arbitrary CRS")
+ltraj2pgtraj(conn, schema = "type_I", ltraj = ibexraw_I, note = "arbitrary CRS")
 
 ibexraw_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
 puechcirc_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
-albatross_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross') # there is an error with this
+albatross_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross')
 porpoise_re <- pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
+# Type I
+porpoise_I_re <- pgtraj2ltraj(conn, schema = "type_I", pgtraj = "porpoise_I")
+albatross_I_re <- pgtraj2ltraj(conn, schema = "type_I", pgtraj = "albatross_I")
+ibexraw_I_re <- pgtraj2ltraj(conn, schema = "type_I", pgtraj = "ibexraw_I")
 
 all.equal(ibexraw, ibexraw_re)
 all.equal(puechcirc, puechcirc_re)
 all.equal(albatross, albatross_re)
 all.equal(porpoise, porpoise_re)
+# Type I
+all.equal(ibexraw_I, ibexraw_I_re)
+all.equal(porpoise_I, porpoise_I_re)
+all.equal(albatross_I, albatross_I_re)
 Sys.sleep(2)
 
+
+# Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re)
+dbDrop(conn, "type_I", type = "schema", cascade = TRUE)
+rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re, ibexraw_I_re,
+        albatross_I_re, porpoise_I_re)
 
 ## Missing relocations
 refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
@@ -235,25 +260,53 @@ as_pgtraj(conn,
         info_rids = "gid"
         )
 
-continental <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
+# Type I trajectories
+as_pgtraj(conn,
+        schema = "traj_db_t2",
+        relocations_table = c("example_data","reloc_t1"),
+        pgtrajs = "type_1",
+        animals = "bunny",
+        relocations = "geom",
+        rid = "gid"
+        )
+
+# mix Type I and Type II in the same schema
+as_pgtraj(conn, 
+        schema = "traj_db_t2",
+        relocations_table = c("example_data","relocations_plus"),
+        pgtrajs = "id",
+        animals = "animal",
+        bursts = "burst",
+        relocations = c("x", "y"),
+        clauses = "where id = 'medium'",
+        timestamps = "time",
+        rid = "gid")
+
+
+continental <- pgtraj2ltraj(conn, "continental" ,"traj_db_t1")
 large <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
 medium <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
 small <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
+type_1 <- pgtraj2ltraj(conn, "type_1", "traj_db_t2")
 
 ltraj2pgtraj(conn,continental,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,large,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,medium,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,small,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
+ltraj2pgtraj(conn, type_1, "traj_db_t2", overwrite = TRUE)
+ltraj2pgtraj(conn, ltraj = type_1, schema = "traj_db_t2", pgtraj = "type_1_re")
 
 continental2 <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large2 <- pgtraj2ltraj(conn, "large" , "traj_db_t1")
 medium2 <- pgtraj2ltraj(conn, "medium" , "traj_db_t1")
 small2 <- pgtraj2ltraj(conn, "small" , "traj_db_t1")
+type_1_2 <- pgtraj2ltraj(conn, "type_1", "traj_db_t2")
 
 all.equal(continental,continental2)
 all.equal(large,large2)
 all.equal(medium,medium2)
 all.equal(small,small2)
+all.equal(type_1, type_1_2)
 Sys.sleep(2)
 
 # relocations are provided as X,Y coordinates
@@ -285,10 +338,12 @@ pgtraj2ltraj(conn,"medium","traj_t3")
 # Clean up
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_db_t1", type = "schema", cascade = TRUE)
+dbDrop(conn, "traj_db_t2", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_t2", type = "schema", cascade = TRUE)
 dbDrop(conn, "traj_t3", type = "schema", cascade = TRUE)
 rm(albatross, continental, ibex, ibex2, ibexraw, ibex.ref, ibexTest, large,
-        large2, medium, porpoise, puechcirc, small, srs, srs2)
+        large2, medium, porpoise, puechcirc, small, srs, srs2, type_1, type_1_2,
+        ibexraw_I, albatross_I, porpoise_I)
 
 #############################################################################
 ## Test parameter computation
