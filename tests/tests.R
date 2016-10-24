@@ -34,9 +34,12 @@ identical(ib_min, ib_min_re)
 dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
 rm(ib_min_re, ib_min)
 
+# Set some projection for testing
 srs <- CRS("+init=epsg:3395")
-ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs) # note that step 
-# parameters are recomputed on purpose
+srs2 <- CRS("+init=epsg:4326")
+
+ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs) 
+# note that step parameters are recomputed on purpose
 ltraj2pgtraj(conn, schema = "traj_min", ltraj = ib_min_srs, pgtraj = "ib_min_3395")
 ib_min_srs_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min_3395")
 all.equal(ib_min_srs, ib_min_srs_re)
@@ -63,7 +66,6 @@ dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibexTest)
 
 ## More basic ltraj
-srs2 <- CRS("+init=epsg:4326")
 attr(ibexraw, 'proj4string') <- srs
 attr(puechcirc, 'proj4string') <- srs2
 attr(albatross, 'proj4string') <- srs
