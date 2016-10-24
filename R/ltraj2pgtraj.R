@@ -37,7 +37,7 @@
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
     note = NULL, overwrite = FALSE, infolocs = TRUE) {
     ## check PostgreSQL connection and PostGIS
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     if (!suppressMessages(pgPostGIS(conn))) {
@@ -133,8 +133,13 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     res2 <- tryCatch({
         pgtraj_insert_file <- paste0(path.package("rpostgisLT"), 
             "/sql/insert_ltraj.sql")
-        sql_query <- paste(readLines(pgtraj_insert_file), collapse = "\n")
-        invisible(dbExecute(conn, sql_query))
+        pif<-readLines(pgtraj_insert_file, encoding = "UTF-8")
+        pif[pif==""]<-"%SPLITHERE%"
+        pif<-paste(pif, collapse = "\n")
+        sql_query<-unlist(strsplit(pif,"%SPLITHERE%",fixed=TRUE))
+        for (sq in sql_query) {
+          invisible(dbExecute(conn, sq))
+        }
         TRUE
     }, warning = function(x) {
         message(x)

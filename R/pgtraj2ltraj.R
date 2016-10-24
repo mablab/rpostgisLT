@@ -27,7 +27,7 @@
 pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     ## check PostgreSQL connection
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     # sanitize schema name
@@ -38,7 +38,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     # check if infolocs exist
     info <- NULL
-    if (dbExistsTable(conn, c(schema, paste0("infolocs_", pgtraj)))) {
+    if (rpostgis:::dbExistsTable(conn, c(schema, paste0("infolocs_", pgtraj)))) {
         # check for column names
         info_info <- dbTableInfo(conn, c(schema, paste0("infolocs_", 
             pgtraj)))$column_name
@@ -48,7 +48,8 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     }
     
     # get ltraj data from parameters view
-    DF <- invisible(dbReadTable(conn, c(schema, view)))
+    DF <- invisible(dbGetQuery(conn, paste0("SELECT * FROM ",
+                                            schema_q,".",view_q,";")))
     # remove step_id column
     DF$step_id <- NULL
     

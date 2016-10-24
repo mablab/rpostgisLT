@@ -25,7 +25,7 @@
 pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     
     ## check PostgreSQL connection
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     ## Set database search path
@@ -42,19 +42,21 @@ pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
             schema, "'."))
     }
     
-    # Drop query
-    sql_query <- paste0("DELETE FROM pgtraj WHERE pgtraj_name = ", 
-        dbQuoteString(conn, pgtraj), ";
-        DROP VIEW ", dbQuoteIdentifier(conn, paste0("parameters_", pgtraj)), ";
-        DROP VIEW ", dbQuoteIdentifier(conn, paste0("step_geometry_", pgtraj)), ";")
+    # Drop query (multiple queries in statment)
+    sql_query <- c(paste0("DELETE FROM pgtraj WHERE pgtraj_name = ", 
+        dbQuoteString(conn, pgtraj), ";"),
+        paste0("DROP VIEW ", dbQuoteIdentifier(conn, paste0("parameters_", pgtraj)), ";"),
+        paste0("DROP VIEW ", dbQuoteIdentifier(conn, paste0("step_geometry_", pgtraj)), ";"))
     
     # Begin transaction block
     invisible(dbExecute(conn, "BEGIN TRANSACTION;"))
     
     tryCatch({
-        invisible(dbExecute(conn, sql_query))
-        if (dbExistsTable(conn, c(schema, paste0("infolocs_", 
-            pgtraj)))) {
+      for (sq in sql_query){
+        invisible(dbExecute(conn, sq))
+      }
+        if (rpostgis:::dbExistsTable(conn, paste0("infolocs_", 
+            pgtraj))) {
             dbDrop(conn, c(schema, paste0("infolocs_", pgtraj)), 
                 type = "table", display = FALSE)
         }

@@ -32,7 +32,7 @@
 
 pgtrajSchema <- function(conn, schema = "traj") {
     ## check PostgreSQL connection
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     ## Check if PostGIS is enabled
@@ -59,10 +59,13 @@ pgtrajSchema <- function(conn, schema = "traj") {
         ## SQL query to set up schema
         pgtraj_schema_file <- paste0(path.package("rpostgisLT"), 
             "/sql/traj_schema.sql")
-        sql_query <- paste(readLines(pgtraj_schema_file), collapse = "\n")
-        ## THIS QUERY CONTAINS MULTIPLE STATEMENTS
-        ## not working for "PqConnection" connection objects (RPostgres package)
-        invisible(dbExecute(conn, sql_query))
+        psf<-readLines(pgtraj_schema_file, encoding = "UTF-8")
+        psf[psf==""]<-"%SPLITHERE%"
+        psf<-paste(psf, collapse = "\n")
+        sql_query<-unlist(strsplit(psf,"%SPLITHERE%",fixed=TRUE))
+        for (sq in sql_query) {
+          invisible(dbExecute(conn, sq))
+        }
         ## create summary views
         trajSummaryViews(conn, schema)
         ## Reset DB search path to the public schema

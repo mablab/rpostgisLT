@@ -2,6 +2,7 @@
 CREATE SEQUENCE loc1_id_seq INCREMENT BY 2
 START WITH 1
 OWNED BY zgaqtsn_temp.x;
+
 CREATE SEQUENCE loc2_id_seq INCREMENT BY 2
 START WITH 2
 OWNED BY zgaqtsn_temp.x;

@@ -28,7 +28,7 @@
 pgtrajVacuum <- function(conn, schema = "traj", full = FALSE, 
     verbose = FALSE, analyze = TRUE) {
     ## check PostgreSQL connection
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     

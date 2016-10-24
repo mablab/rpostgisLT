@@ -41,37 +41,60 @@ CREATE TABLE s_b_rel (
 
 -- create index on step geometry
 CREATE INDEX relocation_geom_idx ON relocation USING gist (geom);
+
 CREATE INDEX relocation_time_idx ON relocation USING btree (relocation_time);
 
 -- add comments to the schema
 COMMENT ON TABLE pgtraj IS 'Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group.';
+
 COMMENT ON COLUMN pgtraj.id IS 'Auto-generated numeric ID.';
+
 COMMENT ON COLUMN pgtraj.pgtraj_name IS 'Name or identifier of trajectory group, not null.';
+
 COMMENT ON COLUMN pgtraj.proj4string IS 'A PROJ.4 projection string of the ltraj, imported from R.';
+
 COMMENT ON COLUMN pgtraj.time_zone IS 'Time zone of the imported trajectory.';
+
 COMMENT ON COLUMN pgtraj.note IS 'User comment.';
+
 COMMENT ON COLUMN pgtraj.insert_timestamp IS 'Time when pgtraj was created.';
 
 COMMENT ON TABLE animal_burst IS 'Contains animal and burst information and their relation to pgtrajs.';
+
 COMMENT ON COLUMN animal_burst.id IS 'Auto-generated numeric ID.';
+
 COMMENT ON COLUMN animal_burst.burst_name IS 'Name of burst.';
+
 COMMENT ON COLUMN animal_burst.animal_name IS 'Name of animal.';
+
 COMMENT ON COLUMN animal_burst.pgtraj_id IS 'Foreign key to pgtraj records.';
+
 COMMENT ON COLUMN animal_burst.info_cols IS 'Array holding R data type definitions for infolocs columns. Do not edit.';
 
 COMMENT ON TABLE step IS 'Steps derived from relocations.';
+
 COMMENT ON COLUMN step.id IS 'Auto-generated numeric ID.';
+
 COMMENT ON COLUMN step.relocation_id_1 IS 'The first of the two successive relocations that form a step.';
+
 COMMENT ON COLUMN step.relocation_id_2 IS 'The second of the two successive relocations that form a step.';
+
 COMMENT ON COLUMN step.dt IS 'Duration of the step.';
+
 COMMENT ON COLUMN step.r_rowname IS 'Row name in the ltraj. This value is used for backward referencing between pgtraj and ltraj.';
+
 COMMENT ON COLUMN step.r2n IS 'R2n parameter copied from the ltraj on import from R.';
+
 COMMENT ON COLUMN step.rel_angle IS 'Rel.angle parameter copied from the ltraj on import from R.';
 
 COMMENT ON TABLE relocation IS 'Relocation geometry and time stamp.';
+
 COMMENT ON COLUMN relocation.id IS 'Auto-generated numeric ID.';
+
 COMMENT ON COLUMN relocation.geom IS 'Geometry of the relocation.';
+
 COMMENT ON COLUMN relocation.relocation_time IS 'Time stamp of the relocation.';
+
 COMMENT ON COLUMN relocation.orig_id IS 'ID number from the original relocations table in the database.';
 
 COMMENT ON TABLE s_b_rel IS 'Relates step and burst.';

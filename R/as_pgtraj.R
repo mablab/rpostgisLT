@@ -33,9 +33,11 @@
 #'    that stores the burst names. If not given, each animal will have one 
 #'    burst.
 #' @param relocations String. Name of the field that contains the relocations 
-#'    in relocations_table. Relocations can be provided either as X,Y 
-#'    coordinates or PostGIS geometry. In both cases all relocations in 
-#'    relocations_table must have the same projection.
+#'    in relocations_table. Relocations can be provided either as columns names
+#'    containing X,Y coordinates (e.g., \code{c("x","y")}) or a PostGIS geometry
+#'    (e.g., \code{"geom"}). In both cases all relocations in relocations_table 
+#'    must have the same projection. If provided as coordinates in two columns,
+#'    projection will be undefined unless \code{srid} is defined.
 #' @param timestamps String. Name of the field in relocations_table that 
 #'    contains the timestamps. If NULL, Type I trajectory is assumed.
 #' @param rids String. Name of the field in relocations_table that contains 
@@ -98,7 +100,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     timestamps = NULL, rids = "rid", srid = NULL, note = NULL, 
     clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
-    if (!inherits(conn, "PostgreSQLConnection")) {
+    if (!inherits(conn, c("PostgreSQLConnection"))) {
         stop("'conn' should be a PostgreSQL connection.")
     }
     if (!suppressMessages(pgPostGIS(conn))) {
@@ -141,7 +143,14 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
             ") FROM ", relocations_table_q, " ", clauses, w_a, 
             relocations_q[1], " IS NOT NULL LIMIT 1;")
         srid <- dbGetQuery(conn, sql_query)[1, 1]
-        if (srid == 0) {
+    } else {
+        # if relocations are provided as X,Y coordinates
+        if (is.null(srid)) {
+          srid <- 0
+        }
+    }
+    # ask to continue if srid = 0
+    if (srid == 0) {
             acr <- NA
             while (is.na(acr) | !(acr %in% "y" | acr %in% "n")) {
                 acr <- readline("The projection of the data is not defined. Do you want to continue? [y/n]")
@@ -150,11 +159,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
             if (acr %in% "n") {
                 stop("Projection is not set, returning from function.")
             }
-        }
-    } else {
-        # if relocations are provided as X,Y coordinates
-        srid <- 0
-    }
+    } 
     
     # Select proj4text from 'spatial_ref_sys'
     sch <- dbGetQuery(conn, "SELECT schemaname FROM pg_tables WHERE tablename = 'spatial_ref_sys';")[1,1]

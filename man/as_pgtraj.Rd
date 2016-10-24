@@ -29,9 +29,11 @@ that stores the burst names. If not given, each animal will have one
 burst.}
 
 \item{relocations}{String. Name of the field that contains the relocations 
-in relocations_table. Relocations can be provided either as X,Y 
-coordinates or PostGIS geometry. In both cases all relocations in 
-relocations_table must have the same projection.}
+in relocations_table. Relocations can be provided either as columns names
+containing X,Y coordinates (e.g., \code{c("x","y")}) or a PostGIS geometry
+(e.g., \code{"geom"}). In both cases all relocations in relocations_table 
+must have the same projection. If provided as coordinates in two columns,
+projection will be undefined unless \code{srid} is defined.}
 
 \item{timestamps}{String. Name of the field in relocations_table that 
 contains the timestamps. If NULL, Type I trajectory is assumed.}

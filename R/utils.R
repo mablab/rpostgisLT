@@ -202,7 +202,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         }
     }
     # maybe analyze table here (to speed up updates)
-    fields <- dbListFields(conn, relocations_table)
+    fields <- dbTableInfo(conn, relocations_table)$column_name
     # Insert pgtraj
     # sanitize pgtraj
     pgtrajs_q<-dbQuoteIdentifier(conn, pgtrajs)
@@ -943,9 +943,9 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     iloc_df$burst_931bqvz <- as.character(burst)
     iloc_df$step_id <- as.integer(1)
     
-    # insert into new table
-    dbWriteTable(conn, c(schema, iloc_nm), value = iloc_df[FALSE, 
-        ], row.names = FALSE)
+    # insert into new table (just columns)
+    ctq<-rpostgis:::dbBuildTableQuery(conn,c(schema, iloc_nm), iloc_df)
+    invisible(dbExecute(conn, ctq))
     
     tztypes <- unlist(lapply(iloc_df, function(x) {
         class(x)[1]
