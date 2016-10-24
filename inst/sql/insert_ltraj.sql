@@ -12,7 +12,7 @@ WITH r_output AS (
     SELECT
         x,
         y,
-        date::timestamptz AS relocation_time,
+        date::text::timestamptz AS relocation_time, --ugly hack for making Type I work
         dx,
         dy,
         dt * INTERVAL '1 second' AS dt,

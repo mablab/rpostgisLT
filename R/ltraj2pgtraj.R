@@ -100,9 +100,26 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
     dframe$.pgtraj <- pgtraj
     dframe$.note <- note
     dframe$.burst_order <- as.integer(ordered(dframe$burst, burst(ltraj)))
-    ## Format date to include time zone that Postgres recognizes
-    dframe$date <- sapply(dframe$date, function(x) strftime(x, 
+    ## Format date to include time zone that Postgres recognizes, or exclude
+    ## 'date' column if the ltraj is of Type I
+    type <- attr(ltraj, "typeII") # TRUE if Type II
+    if (type) {
+        dframe$date <- sapply(dframe$date, function(x) strftime(x, 
         format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE))
+    } else {
+        dframe$date <- NA
+        #dframe$dt <- NA
+        # TODO: workaround in ltraj_insert.sql
+        # It would be more elegant to exclude these columns from the temporary
+        # table since the beginning, but the current import procedure in 
+        # 'insert_ltraj.sql' does not support that. One potential solution 
+        # that I found is to use the CASE conditional to check if the 'date'
+        # column exists in the temporary table and if so insert its value,
+        # else insert NULL. However, CASE cannot check for non-existing 
+        # columns...So a workaround could be build along these answers:
+        # http://dba.stackexchange.com/questions/66741/why-cant-i-use-a-case-statement-to-see-if-a-column-exists-and-not-select-from-i
+        # http://stackoverflow.com/questions/11472790/postgres-analogue-to-cross-apply-in-sql-server#35873193
+    }
     ## Parameters to exclude on input
     params <- c("dist", "abs.angle")
     ## Begin transaction block and input to postgres
