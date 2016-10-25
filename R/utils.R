@@ -37,6 +37,7 @@ ld_opt <- function(ltraj) {
         burst = rep(burst(ltraj), sapply(ltraj, nrow)),
         r.row.names = unlist(lapply(ltraj, function(x) rownames(x)))
         )
+    # set date column to POSIX with tz
     class(df$date) <- c("POSIXct", "POSIXt")
     attr(df$date, "tzone") <- attr(ltraj[[1]]$date, "tzone")
     # infolocs handled in separate function
@@ -55,11 +56,17 @@ dl_opt <- function(x, rnames = TRUE) {
     trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
         "R2n", "abs.angle", "rel.angle")
     ## Check if type I/II
-    if (all(is.na(x$date))) {type2<-FALSE} else {type2<-TRUE}
+    if (all(is.na(x$date))) {
+      type2<-FALSE
+      x$date<-1:length(x$date)
+      } else {
+        type2<-TRUE
+      }
     ## Order bursts by table order    
     x$burst<- factor(x$burst, levels=unique(x$burst))
     idd <- tapply(as.character(x$id), x$burst, unique)
     traj <- split(x[, names(x) %in% trajnam], x$burst)
+    
     ## + Split row names by burst
     ## infolocs handled in seperate function
     if (rnames) {

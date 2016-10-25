@@ -282,7 +282,8 @@ as_pgtraj(conn,
         relocations = c("x", "y"),
         clauses = "where id = 'medium'",
         timestamps = "time",
-        rid = "gid")
+        rid = "gid",
+        srid = 4326)
 
 
 continental <- pgtraj2ltraj(conn, "continental" ,"traj_db_t1")
@@ -321,7 +322,8 @@ as_pgtraj(conn,
         relocations = c("x", "y"),
         clauses = "where id = 'medium'",
         timestamps = "time",
-        rid = "gid")
+        rid = "gid",
+        srid = 4326)
 
 medium <- pgtraj2ltraj(conn, "medium", "traj_t2")
 
@@ -371,7 +373,8 @@ as_pgtraj(conn,
         bursts = "burst",
         relocations = c("x", "y"),
         timestamps = "date",
-        rids = "gid")
+        rids = "gid",
+        srid = 3395)
 ibex_re <- pgtraj2ltraj(conn, "ibex")
 all.equal(ibex, ibex_re)
 # gives warning of inconsistent time zone attribute but that is expected
@@ -389,12 +392,14 @@ as_pgtraj(conn,
         bursts = "burst",
         relocations = c("x", "y"),
         timestamps = "date",
-        rid = "gid")
+        rid = "gid",
+        srid = 3395)
 albatross_re <- pgtraj2ltraj(conn, "albatross")
 all.equal(albatross, albatross_re)
 
 Sys.sleep(2)
 
+# proj4string set in pgtraj, not in original
 # gives warning of inconsistent time zone attribute but that is expected
 # furthermore gives a high number of 'Mean absoloute difference'
 # on the 'date' column 'Component 3', which is
