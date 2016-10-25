@@ -56,9 +56,8 @@ dl_opt <- function(x, rnames = TRUE) {
     trajnam <- c("x", "y", "date", "dx", "dy", "dist", "dt",
         "R2n", "abs.angle", "rel.angle")
     ## Check if type I/II
-    if (all(is.na(x$date))) {
-      type2<-FALSE
-      x$date<-1:length(x$date)
+    if (class(x$date)[1] == "integer") {
+        type2<-FALSE
       } else {
         type2<-TRUE
       }

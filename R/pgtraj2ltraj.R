@@ -76,12 +76,22 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     rnames <- all(stats::complete.cases(DF$r_rowname))
     if (rnames) {
         names(DF)[names(DF) == "r_rowname"] <- "r.row.names"
+        # TYPE I (date = r.row.names column)
+        if (all(is.na(DF$date))) {
+          DF$date <- as.integer(DF$r.row.names)
+        }
     } else {
         DF <- DF[, -which(names(DF) == "r_rowname")]
+        # TYPE I (date = row.names(DF))
+        if (all(is.na(DF$date))) {
+          DF$date <- as.integer(row.names(DF))
+        }
     }
     
     # Set time zone
-    attr(DF$date, "tzone") <- tz
+    if (!class(DF$date)[1] == "integer") {
+      attr(DF$date, "tzone") <- tz
+    }
     
     # Cast into ltraj
     ltraj <- dl_opt(DF, rnames)
