@@ -1,7 +1,9 @@
-## Establish connection with rpostgisLT database
-#source("C:/David/git/rpostgisLT/utility/utility_functions.R")
-#cs("") # creates globals conn and drv
 library(rpostgisLT)
+## Establish connection with rpostgisLT database
+drv<-"PostgreSQL"
+cred<-scan("~/.pgpass_rpostgis", what = "character")
+conn <- dbConnect(drv, host = cred[1], dbname = cred[2], user = cred[3], password = cred[4])
+rm(cred)
 
 ## Get test datasets
 data(ibex)

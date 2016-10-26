@@ -25,9 +25,7 @@
 pgtrajDrop <- function(conn, pgtraj, schema = "traj", full_clean = TRUE) {
     
     ## check PostgreSQL connection
-    if (!inherits(conn, c("PostgreSQLConnection"))) {
-        stop("'conn' should be a PostgreSQL connection.")
-    }
+    rpostgis:::dbConnCheck(conn)
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 

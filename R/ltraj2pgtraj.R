@@ -37,9 +37,7 @@
 ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL, 
     note = NULL, overwrite = FALSE, infolocs = TRUE) {
     ## check PostgreSQL connection and PostGIS
-    if (!inherits(conn, c("PostgreSQLConnection"))) {
-        stop("'conn' should be a PostgreSQL connection.")
-    }
+    rpostgis:::dbConnCheck(conn)
     if (!suppressMessages(pgPostGIS(conn))) {
         stop("PostGIS is not enabled on this database.")
     }

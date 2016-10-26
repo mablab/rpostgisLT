@@ -100,9 +100,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     timestamps = NULL, rids = "rid", srid = NULL, note = NULL, 
     clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
-    if (!inherits(conn, c("PostgreSQLConnection"))) {
-        stop("'conn' should be a PostgreSQL connection.")
-    }
+    rpostgis:::dbConnCheck(conn)
     if (!suppressMessages(pgPostGIS(conn))) {
         stop("PostGIS is not enabled on this database.")
     }

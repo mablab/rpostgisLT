@@ -27,9 +27,7 @@
 pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     ## check PostgreSQL connection
-    if (!inherits(conn, c("PostgreSQLConnection"))) {
-        stop("'conn' should be a PostgreSQL connection.")
-    }
+    rpostgis:::dbConnCheck(conn)
     # sanitize schema name
     schema_q <- dbQuoteIdentifier(conn, schema)
     

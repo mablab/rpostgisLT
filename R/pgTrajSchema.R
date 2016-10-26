@@ -32,9 +32,7 @@
 
 pgtrajSchema <- function(conn, schema = "traj") {
     ## check PostgreSQL connection
-    if (!inherits(conn, c("PostgreSQLConnection"))) {
-        stop("'conn' should be a PostgreSQL connection.")
-    }
+    rpostgis:::dbConnCheck(conn)
     ## Check if PostGIS is enabled
     if (!suppressMessages(pgPostGIS(conn))) {
         stop("PostGIS is not enabled on this database.")
