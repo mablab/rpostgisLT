@@ -81,6 +81,11 @@ ltraj2pgtraj(conn, ltraj = ibexraw, note = "test CRS on ibexraw", overwrite=TRUE
 ltraj2pgtraj(conn, ltraj = puechcirc, note = "test CRS on puechcirc",overwrite=TRUE)
 ltraj2pgtraj(conn, ltraj = albatross, note = "test CRS on albatross",overwrite=TRUE)
 ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise",overwrite=TRUE)
+
+#pgtrajDrop test
+ltraj2pgtraj(conn, ltraj = porpoise, note = "test CRS on porpoise",overwrite=TRUE)
+pgtrajDrop(conn)
+
 # Type I
 ltraj2pgtraj(conn, schema = "type_I", ltraj = porpoise_I, note = "arbitrary CRS")
 ltraj2pgtraj(conn, schema = "type_I", ltraj = albatross_I, note = "arbitrary CRS")
@@ -300,6 +305,9 @@ ltraj2pgtraj(conn,medium,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn,small,"traj_db_t1",overwrite = TRUE, infolocs = TRUE)
 ltraj2pgtraj(conn, type_1, "traj_db_t2", overwrite = TRUE)
 ltraj2pgtraj(conn, ltraj = type_1, schema = "traj_db_t2", pgtraj = "type_1_re")
+
+# test full_clean (no pgtraj specified)
+pgtrajDrop(conn, schema = "traj_db_t1", full_clean = TRUE)
 
 continental2 <- pgtraj2ltraj(conn,  "continental" ,"traj_db_t1")
 large2 <- pgtraj2ltraj(conn, "large" , "traj_db_t1")

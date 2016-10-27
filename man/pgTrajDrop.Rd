@@ -2,32 +2,34 @@
 % Please edit documentation in R/pgtrajDrop.R
 \name{pgtrajDrop}
 \alias{pgtrajDrop}
-\title{Delete a pgtraj from a traj schema.}
+\title{Delete a pgtraj/unused rows from a traj schema.}
 \usage{
-pgtrajDrop(conn, pgtraj, schema = "traj", full_clean = TRUE)
+pgtrajDrop(conn, pgtraj = NULL, schema = "traj", full_clean = TRUE)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
 
-\item{pgtraj}{String. Name of the pgtraj}
+\item{pgtraj}{String. Name of the pgtraj (can be left NULL to perform full_clean)}
 
 \item{schema}{String. Name of the schema storing the pgtraj}
 
-\item{full_clean}{String. Whether to delete all unused rows in all tables
-associated with the pgtraj (and any other previously deleted pgtrajs). 
-Recommended, but may take a long time to run in schemas with many large 
-pgtrajes.}
+\item{full_clean}{String. Whether to delete all unused rows in 'relocation' table.
+Should be done regularly if frequently overwriting many pgtraj, 
+but note that it can take a long time to run.}
 }
 \value{
 TRUE on success
 }
 \description{
-\code{pgtrajDrop} deletes a pgtraj from a traj schema.
+\code{pgtrajDrop} deletes a pgtraj and/or all unused rows from a traj schema.
 }
 \examples{
 \dontrun{
   # drop "ibex" pgtraj in schema "traj"
   pgtrajDrop(conn, "ibex")
+  
+  # clean "traj" schema by deleting all unused rows in "relocation" table
+  pgtrajDrop(conn)
 }
 }
 \author{
