@@ -70,6 +70,15 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     
     DF <- DF[, -which(names(DF) == "pgtraj")]
     
+    # TYPE I – insert 1 for 'dt'
+    if (all(is.na(DF$date))) {
+        k <- table(DF$burst)
+        for (i in names(k)) {
+            len <- as.vector(k[i]) - 1
+            DF[DF$burst == i, "dt"][1:len] <- 1
+        }
+    }
+    
     # Check if the row names are stored in the pgtraj
     rnames <- all(stats::complete.cases(DF$r_rowname))
     if (rnames) {
@@ -85,6 +94,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
           DF$date <- as.integer(row.names(DF))
         }
     }
+    
     
     # Set time zone
     if (!class(DF$date)[1] == "integer") {

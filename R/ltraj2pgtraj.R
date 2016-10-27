@@ -106,7 +106,7 @@ ltraj2pgtraj <- function(conn, ltraj, schema = "traj", pgtraj = NULL,
         format = "%Y-%m-%d %H:%M:%S", tz = "", usetz = TRUE))
     } else {
         dframe$date <- NA
-        #dframe$dt <- NA
+        dframe$dt <- NA
         # TODO: workaround in ltraj_insert.sql
         # It would be more elegant to exclude these columns from the temporary
         # table since the beginning, but the current import procedure in 

@@ -15,7 +15,7 @@ WITH r_output AS (
         date::text::timestamptz AS relocation_time, --ugly hack for making Type I work
         dx,
         dy,
-        dt * INTERVAL '1 second' AS dt,
+        dt::int * INTERVAL '1 second' AS dt, --cast to int NULLs can be multiplied in case of Type I
         "R2n" AS r2n,
         "rel.angle" AS rel_angle,
         id AS animal_name,
