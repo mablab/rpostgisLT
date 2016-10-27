@@ -226,10 +226,9 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         invisible(dbExecute(conn, sql_query))
     } else {
         # use the string
-        # check for valid pgtraj names
-        if (!grepl("^[A-Za-z]",pgtrajs) || make.names(pgtrajs) != pgtrajs) {
-        stop("Invalid pgtraj name. Valid pgtraj names can contain letters, numbers, '.', and '_',
-             and must begin with a letter.")
+        # only allow pgtraj names that begin with letters or numbers
+        if (!grepl("^[0-9A-Za-z]", pgtrajs)) {
+            stop("Invalid pgtraj name. Valid pgtraj names must begin with a letter or number.")
         }
         sql_query <- paste0("UPDATE zgaqtsn_temp SET pgtraj_name = ", dbQuoteString(conn,pgtrajs), ";")
         invisible(dbExecute(conn, sql_query))
@@ -1036,13 +1035,24 @@ writeInfoFromDB <- function(conn, pgtraj, schema, info_cols,
     # original relocation ids (orig_id) to relocation table
     # select orig_id using join step.relocation_id_1 =
     # relocation.id where steps in current pgtraj
+  
+    # check if cols in table
+    tabl_chk<-rpostgis::dbTableInfo(conn,info_table)$column_name
+    info_cols<-info_cols[info_cols %in% tabl_chk]
+  
+    # only reserved name is 'step_id'
+    fix_df <- make.names(c("step_id",info_cols), unique = TRUE)
+    fix_df <- fix_df[2:length(fix_df)]
+    info_repl<-info_cols
+    info_repl[info_cols=="step_id"]<-fix_df[info_cols=="step_id"]
+    info_replq<-dbQuoteIdentifier(conn,info_repl)
     
     # query-safe identifier names
     info_tableq <- dbQuoteIdentifier(conn, info_table)
     info_colsq <- dbQuoteIdentifier(conn, info_cols)
     schemaq <- dbQuoteIdentifier(conn, schema)
     
-    ins_cols <- paste("info_tab.", info_colsq, sep = "")
+    ins_cols <- paste("info_tab.", info_colsq, " AS ", info_replq, sep = "")
     info_ridsq <- dbQuoteIdentifier(conn, info_rids)
     iloc_nm <- paste0("infolocs_", pgtraj)
     iloc_nmq <- dbQuoteIdentifier(conn, iloc_nm)

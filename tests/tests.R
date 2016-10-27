@@ -243,12 +243,12 @@ as_pgtraj(conn,
         relocations_table = c("example_data","relocations_plus"),
         pgtrajs = "id",
         animals = "animal",
-        bursts = "burst",
+        bursts = "burstname_cont",
         relocations = "geom",
         timestamps = "time",
         rids = "gid",
         clauses = "where id = 'continental'",
-        info_cols = c("info_day","dummy")
+        info_cols = c("info_day","dummy", "step_id") #step_id gets changed to avoid conflict
         )
 
 dbDrop(conn,name = "traj_db_t1",type = "schema",cascade = TRUE)
@@ -264,7 +264,7 @@ as_pgtraj(conn,
         timestamps = "time",
         rid = "gid",
         #clauses = "where id = 'continental'",
-        info_cols = c("info_day","dummy"),
+        info_cols = c("info_day","dummy", "NOT_HERE"), #step
         info_table = c("infoloc_test"),
         info_rids = "gid"
         )
@@ -333,7 +333,8 @@ as_pgtraj(conn,
         clauses = "where id = 'medium'",
         timestamps = "time",
         rid = "gid",
-        srid = 4326)
+        srid = 4326,
+        note = "note")
 
 medium <- pgtraj2ltraj(conn, "medium", "traj_t2")
 
@@ -406,6 +407,20 @@ as_pgtraj(conn,
         srid = 3395)
 albatross_re <- pgtraj2ltraj(conn, "albatross")
 all.equal(albatross, albatross_re)
+
+# null timestamp, relocations x,y, note
+as_pgtraj(conn, 
+        schema = "traj",
+        relocations_table = c("example_data","albatross"),
+        pgtraj = "albatross_type_I",
+        animals = "id",
+        bursts = NULL,
+        relocations = c("x", "y"),
+        timestamps = NULL,
+        rid = "gid",
+        srid = 3395,
+        note = "albatross type I")
+albatross_re <- pgtraj2ltraj(conn, "albatross_type_I")
 
 Sys.sleep(2)
 
