@@ -2,7 +2,6 @@
 
 #' Import a pgtraj into an ltraj.
 #' 
-#' @description 
 #' \code{pgtraj2ltraj} imports a single pgtraj from a database into an 
 #' ltraj object.
 #' 

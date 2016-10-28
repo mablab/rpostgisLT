@@ -11,15 +11,13 @@ Authors@R: c(
            c("aut", "cre")),
     person("Clément", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
           role = c("aut")) )
-Description: The 'rpostgisLT' package develops the integration of R
-    and 'PostGIS' for managing movement trajectories. The focus is on
-    streamlining the work flow for biologists to store and process
-    animal trajectories in 'PostGIS' and analyze them in R, thus
-    utilizing the strengths of both software. The package relies on
-    'ltraj' objects from the R package 'adehabitatLT', and provides
-    the analogous 'pgtraj' data structure in 'PostGIS', with all
-    functions to create and manage 'pgtraj' data, and convert from and
-    to both formats ('pgtraj' in 'PostGIS', 'ltraj' in R).
+Description: Integrates R and the 'PostgreSQL/PostGIS' database 
+    system to build and manage animal trajectory (movement) datasets. 
+    The package relies on 'ltraj' objects from the R package 'adehabitatLT',
+    building the analogous 'pgtraj' data structure in 'PostGIS'. Functions
+    allow users to seamlessly transfer between 'ltraj' and 'pgtraj', as
+    well as build new 'pgtraj' directly from location data stored in the 
+    database.
 SystemRequirements:
     PostgreSQL with PostGIS extension
 Depends:

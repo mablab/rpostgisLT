@@ -12,7 +12,7 @@
 
 <meta name="author" content="Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge" />
 
-<meta name="date" content="2016-10-27" />
+<meta name="date" content="2016-10-28" />
 
 <title>rpostgisLT: Database model</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">rpostgisLT: Database model</h1>
 <h4 class="author"><em>Balázs Dukai, Mathieu Basille, David Bucklin, and Clément Calenge</em></h4>
-<h4 class="date"><em>2016-10-27</em></h4>
+<h4 class="date"><em>2016-10-28</em></h4>
 
 
 <div id="TOC">
@@ -98,7 +98,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>s_b_rel</li>
 </ul>
 <p>The tables <strong>pgtraj</strong>, <strong>animal_burst</strong>, <strong>step</strong>, and <strong>relocation</strong> each have a unique auto-incrementing integer identifier (primary key) column (<strong>id</strong>), which is referenced in other tables and views as the table name with an “_id&quot; suffix (e.g., <strong>pgtraj_id</strong>). There are one of each of these tables in every pgtraj schema, which will store the core information that make up the trajectories. These tables are managed completely through <code>rpostgisLT</code> functions, and should not be manually altered.</p>
-<p>Additional information about <code>pgtraj</code> data should be stored in an optional “infolocs” table, which is automatically created in <code>rpostgisLT</code> functions (one for each pgtraj). See further information in the table description.</p>
+<p>Additional information about locations/steps in <code>pgtraj</code> data should be stored in an optional “infolocs” table, which is automatically created in <code>rpostgisLT</code> functions (one for each pgtraj). See further information in the table description.</p>
 <p>The default schema name in <code>rpostgisLT</code> functions is <strong>traj</strong>, and can store as many pgtrajes as needed. For faster processing and retrieval, it is recommended to subdivide large datasets into multiple pgtrajes, and to create different pgtraj schemas for different projects. All functions default to schema <strong>traj</strong>, but the user can change the target schema, using the <code>schema</code> argument in all <code>rpostgisLT</code> functions.</p>
 <p>There are two views that are created by default in every pgtraj schema:</p>
 <ul>
@@ -171,7 +171,7 @@ Contains animal and burst names and their relation to pgtrajes.</p>
 </table>
 <p>Table constraint: the combination of <em>burst_name</em> and <em>pgtraj_id</em> must be unique.</p>
 <p><strong><em>pgtraj</em> table</strong><br />
-Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.</p>
+Groups of trajectories, with unique names. The highest level in the pgtraj hierarchy; the PostgreSQL/PostGIS equivalent to the <code>ltraj</code> in <code>adehabitat</code>.</p>
 <table>
 <colgroup>
 <col width="11%"></col>
@@ -366,7 +366,7 @@ Relates step and burst, using the PKs of the <em>step</em> and <em>animal_burst<
 </table>
 <p>There can also be one “infolocs” table for each pgtraj, if it is desirable to store additional information with a pgtraj.</p>
 <p><strong><em>infolocs_(pgtraj_name)</em> tables</strong><br />
-Contains additional information on steps for each pgtraj (if applicable).</p>
+Contain additional information on locations/steps for each pgtraj (optional).</p>
 <table>
 <thead>
 <tr class="header">

@@ -36,7 +36,7 @@ is referenced in other tables and views as the table name with an "_id" suffix
 which will store the core information that make up the trajectories. 
 These tables are managed completely through `rpostgisLT` functions, and should not be manually altered.
 
-Additional information about `pgtraj` data should be stored 
+Additional information about locations/steps in `pgtraj` data should be stored 
 in an optional "infolocs" table, which is automatically created in `rpostgisLT`
 functions (one for each pgtraj). See further information in the table description. 
 
@@ -80,7 +80,7 @@ Contains animal and burst names and their relation to pgtrajes.
 Table constraint: the combination of *burst_name* and *pgtraj_id* must be unique.
 
 ***pgtraj* table**\
-Groups of trajectories, with unique names. Groups can be defined on any criteria, e.g. steps belonging to one ltraj object can form a group, thus belong under one pgtraj.
+Groups of trajectories, with unique names. The highest level in the pgtraj hierarchy; the PostgreSQL/PostGIS equivalent to the `ltraj` in `adehabitat`.
 
 | Name    | Type   | Constraint       | Description                                      |
 |---------|--------|------------------|--------------------------------------------------|
@@ -126,7 +126,7 @@ There can also be one "infolocs" table for each pgtraj, if it is desirable to st
 information with a pgtraj.
 
 ***infolocs_(pgtraj_name)* tables**\
-Contains additional information on steps for each pgtraj (if applicable).
+Contain additional information on locations/steps for each pgtraj (optional).
 
 | Name    | Type   | Constraint | Description                                          |
 |---------|--------|------------|------------------------------------------------------|

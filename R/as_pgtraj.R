@@ -2,7 +2,6 @@
 
 #' Imports location data from a database table into the pgtraj database model
 #' 
-#' @description
 #' \code{as_pgtraj} populates a \code{pgtraj} schema from the data provided
 #' in \code{relocations_table}. If the provided schema doesn't exist, it will 
 #' be created. On successful data input, \code{as_pgtraj} creates two database 
@@ -10,11 +9,21 @@
 #' step_geometry_<pgtraj_name> and described in more detail in the package 
 #' vignette.
 #' 
-#' The time zone of the pgtraj is set to the local time zone of the user.
-#' 
-#' @details
-#' Opening and closing connections have to be done manually by the user. 
+#' Opening and closing PostgreSQL connections have to be done manually by the user. 
 #' However, the function checks if the provided connection is still valid. 
+#' 
+#' Note that the arguments \code{pgtrajs}, \code{animals}, \code{bursts}, and 
+#' \code{note} can refer to either a column name in \code{relocations_table},
+#' or a string value. If the value is a column name, the values for the corresponding
+#' attribute (e.g., \code{animals}) will be the values from that column.
+#' When providing a string value, the value will be applied to that attribute for 
+#' the entire \code{pgtraj}.
+#' 
+#' Burst names must be unique across a pgtraj. If it is not desired to further 
+#' subset individual animal trajectories, leave \code{bursts = NULL},
+#' in which case burst names will be equal to the animal name.
+#' 
+#' The time zone of the pgtraj is set to the local time zone of the user.
 #' 
 #' @seealso Section on pgtraj data model in the package vignette. 
 #' 
@@ -72,13 +81,14 @@
 #' \dontrun{
 #' as_pgtraj(conn, 
 #'         relocations_table = c("example_data","relocations_plus"),
-#'         schema = "traj_t4",
 #'         pgtrajs = "id",
 #'         animals = "animal",
 #'         bursts = "burst",
 #'         relocations = "geom",
 #'         timestamps = "time",
 #'         rids = "gid",
+#'         note = "trajectories in 2015",
+#'         clauses = "WHERE extract(year FROM acquisition_time) = 2015",
 #'         info_cols = c("dist_to_road","land_cover","error_class")
 #'         )
 #' }

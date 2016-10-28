@@ -5,9 +5,9 @@ rpostgisLT 0.4
 
 OVERALL CHANGE
 
-* Add handling of infolocs
-* Add support for Type I (no time recorded) trajectories
-* New pgtraj summary functions
+* Added handling of infolocs
+* Added support for Type I (no time recorded) trajectories
+* New pgtraj and burst summary views
 * faster conversion to pgtraj from database data in as_pgtraj()
 
 rpostgisLT 0.3 (Release date: 2016-08-23)

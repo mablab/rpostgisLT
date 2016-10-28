@@ -1,6 +1,7 @@
+# pgtrajDrop
+
 #' Delete a pgtraj/unused rows from a traj schema.
 #' 
-#' @description 
 #' \code{pgtrajDrop} deletes a pgtraj and/or all unused rows from a traj schema.
 #' 
 #' @param conn Connection object created with RPostgreSQL

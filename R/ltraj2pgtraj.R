@@ -2,7 +2,7 @@
 
 #' Export ltraj object from R to a PostGIS database.
 #'
-#' \code{ltraj2pgtraj} creates exports an ltraj to the a database pgtraj,
+#' \code{ltraj2pgtraj} exports an ltraj to the a database pgtraj,
 #' creating a new pgtraj schema if it doesn't exist. The time zone and
 #' projection information stored in the ltraj is transferred to the
 #' database.
