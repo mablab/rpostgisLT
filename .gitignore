@@ -9,7 +9,7 @@ Scripts
 rpostgisLT.Rproj
 .project
 .settings
-/.dbeaver-data-sources.xml
+.dbeaver-data-sources.xml
 adehabitatLT
 /utility_functions.R
 inst/doc
