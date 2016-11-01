@@ -47,7 +47,7 @@ bi-directional conversion between PostGIS and R, by introducing
 the `pgtraj` data type/structure, the PostGIS equivalent of an `ltraj`.**
 
 Before getting started with `rpostgisLT`, we recommend reading the
-[vignette of *adehabitatLT*](https://cran.r-project.org/web/packages/adehabitatLT/vignettes/adehabitatLT.pdf),
+[vignette of *adehabitatLT*](https://cran.r-project.org/package=adehabitatLT/vignettes/adehabitatLT.pdf),
 which clearly defines a trajectory and its elements. Let us however
 repeat a few key concepts that are regularly used in this vignette. A
 **trajectory** is a continuous curve described by an animal, person or

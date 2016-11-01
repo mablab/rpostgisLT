@@ -12,7 +12,7 @@ Authors@R: c(
     person("Clément", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
           role = c("aut")) )
 Description: Integrates R and the 'PostgreSQL/PostGIS' database 
-    system to build and manage animal trajectory (movement) datasets. 
+    system to build and manage animal trajectory (movement) data sets. 
     The package relies on 'ltraj' objects from the R package 'adehabitatLT',
     building the analogous 'pgtraj' data structure in 'PostGIS'. Functions
     allow users to seamlessly transfer between 'ltraj' and 'pgtraj', as
