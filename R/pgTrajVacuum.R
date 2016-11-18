@@ -1,4 +1,4 @@
-#' pgtrajVacuum
+# pgtrajVacuum
 
 #' VACUUM a pgtraj schema.
 #' 

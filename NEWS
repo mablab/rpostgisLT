@@ -1,4 +1,9 @@
-rpostgisLT 0.4 
+rpostgisLT 1.0
+==============
+
+* version bump to 1.0
+
+rpostgisLT 0.4 (Release date: 2016-11-01)
 ==============
 
 ** INITIAL CRAN RELEASE **
