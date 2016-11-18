@@ -2,8 +2,7 @@
 % Please edit documentation in R/pgtrajVacuum.R
 \name{pgtrajVacuum}
 \alias{pgtrajVacuum}
-\title{pgtrajVacuum
-VACUUM a pgtraj schema.}
+\title{VACUUM a pgtraj schema.}
 \usage{
 pgtrajVacuum(conn, schema = "traj", full = FALSE, verbose = FALSE,
   analyze = TRUE)
