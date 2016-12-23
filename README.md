@@ -1,7 +1,7 @@
 rpostgisLT
 ==========
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rpostgisLT)](http://cran.r-project.org/package=rpostgisLT)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rpostgisLT)](https://CRAN.R-project.org/package=rpostgisLT)
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 ![](http://cranlogs.r-pkg.org/badges/rpostgisLT)
 
@@ -11,7 +11,7 @@ The package was originally developed during Google Summer of Code 2016 by [Balá
 
 ## Installation of the released versions
 
-You can install the latest released version (0.4) from CRAN:
+You can install the latest released version from CRAN:
 
     install.packages("rpostgisLT")
 
