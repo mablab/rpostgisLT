@@ -137,7 +137,7 @@ rm(ibexraw_re, puechcirc_re, albatross_re, porpoise_re, ibexraw_I_re,
 ### Missing relocations
 refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
     tz = "Europe/Paris")
-(ibex <- setNA(ibex, refda, 4, units = "hour"))
+ibex <- setNA(ibex, refda, 4, units = "hour")
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
@@ -149,7 +149,7 @@ rm(ibexTest)
 
 
 ### Rounding timestamps
-(ibex <- sett0(ibex, refda, 4, units = "hour"))
+ibex <- sett0(ibex, refda, 4, units = "hour")
 ibex.ref <- ibex                        # At this stage, 'ibex' is our
                                         # reference data
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
@@ -163,7 +163,7 @@ Sys.sleep(2)
 
 ## 1. In space
 summary(ld(ibex)$dist)
-(ibex <- redisltraj(ibex, 400,type="space"))        # Note that 'redisltraj'
+ibex <- redisltraj(ibex, 400,type="space")      # Note that 'redisltraj'
                                                     # creates an 'infolocs'
                                                     # attribute, which is 
                                                     # a factor (but should be probably be a character)
@@ -179,7 +179,7 @@ Sys.sleep(2)
 
 ## 2. In time
 ibex <- ibex.ref
-(ibex <- redisltraj(na.omit(ibex), 14400, type = "time"))
+ibex <- redisltraj(na.omit(ibex), 14400, type = "time")
 
 ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
@@ -225,7 +225,7 @@ Sys.sleep(2)
 
 ## 2. Subsample on the temporal sequence
 ibex <- ibex.ref
-(ibex <- subsample(ibex, 14400*2))
+ibex <- subsample(ibex, 14400*2)
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
@@ -236,14 +236,14 @@ Sys.sleep(2)
 
 ## 1. Cut if there is a step greater than 3000 m
 ibex <- ibex.ref
-(ibex <- cutltraj(ibex, "dist > 3000"))
+ibex <- cutltraj(ibex, "dist > 3000")
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
 Sys.sleep(2)
 
 ## 2. Bind back by individual:
-(ibex <- bindltraj(ibex))
+ibex <- bindltraj(ibex)
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
 all.equal(ibex, ibexTest)
@@ -254,7 +254,7 @@ Sys.sleep(2)
 ibex <- ibex.ref
 ibex2 <- ibex
 burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
-(ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))])
+ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))]
 attr(ibex,"proj4string") <- CRS() # proj4string attributes needs to be added
 ltraj2pgtraj(conn, ibex, overwrite = TRUE)
 ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")

@@ -2,6 +2,7 @@
 % Please edit documentation in R/pgtraj2ltraj.R
 \name{pgtraj2ltraj}
 \alias{pgtraj2ltraj}
+\alias{readTraj}
 \title{Import a pgtraj into an ltraj.}
 \usage{
 pgtraj2ltraj(conn, pgtraj, schema = "traj")
