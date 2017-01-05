@@ -26,6 +26,7 @@
 #' @return \code{TRUE} on success.
 #' @seealso \code{\link{as_pgtraj}} to create a \code{pgtraj} with
 #'     data already stored in the database.
+#' @aliases writeTraj
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @export
 #' @examples

@@ -916,6 +916,15 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
       attr2[badtz] <- "NULL"
       attr2 <- unlist(attr2)
       
+      # convert non-matching tz time to db tz
+      pgtz<-dbGetQuery(conn, "SHOW timezone;")[1,1]
+      tzl<-names(attr2[attr2 != "NULL" & attr2 != pgtz])
+      for (t in tzl) {
+        eval(parse(
+          text = paste0("attributes(b_df$",t,")$tzone <- pgtz")
+        ))
+      }
+      
       # handle attribute (factor levels)
       fact <- unlist(lapply(b_df[1, ], function(x) {
           paste0("/*/", paste(attr(x, "levels"), collapse = "/*/"), 
@@ -1122,6 +1131,9 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                           ORDER BY a.id;")
     bursts <- dbGetQuery(conn, sql_query)$burst
     
+    # get db tz
+    pgtz<-dbGetQuery(conn, "SHOW timezone;")[1,1]
+    
     getinfo<-list()
     for (b in 1:length(bursts)) {
       b_nm<-bursts[b]
@@ -1175,7 +1187,11 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                     justinfo[, i] <- list(eval(parse(text = paste0("as.", 
                       att$defs, "(as.character(justinfo[,i]),
                                           tz='", 
-                      att$atts, "')"))))
+                      pgtz, "')"))))
+                    # assign R tz
+                    eval(parse(
+                        text = paste0("attributes(justinfo$",i,")$tzone <- att$atts")
+                    ))
                   }
               } else {
                   justinfo[, i] <- do.call(paste0("as.", att$defs), 

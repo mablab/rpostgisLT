@@ -8,15 +8,12 @@
 #' @param conn Connection object created with RPostgreSQL
 #' @param pgtraj String. Name of the pgtraj
 #' @param schema String. Name of the schema storing the pgtraj
-#' 
 #' @return an ltraj object
-#' 
 #' @importFrom stats complete.cases
 #' @importFrom sp CRS
-#' 
+#' @aliases readTraj
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @export 
-#' 
 #' @examples 
 #' \dontrun{
 #'  # create ltraj from pgtraj named "ibex" in schema "traj_t2"
