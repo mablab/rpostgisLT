@@ -1,7 +1,7 @@
 citHeader("To cite rpostgisLT in publications use:")
 
-citEntry(entry = "Misc",
-  title        = "{rpostgisLT}: Managing Animal Movement Data with 'PostGIS' and R",
+citEntry(entry = "Manual",
+  title        = "rpostgisLT: Managing Animal Movement Data with 'PostGIS' and R",
   author       = personList(as.person("Balázs Dukai"), 
                             as.person("Mathieu Basille"),
                             as.person("David Bucklin")),
