@@ -1,0 +1,14 @@
+citHeader("To cite rpostgisLT in publications use:")
+
+citEntry(entry = "Misc",
+  title        = "{rpostgisLT}: Managing Animal Movement Data with 'PostGIS' and R",
+  author       = personList(as.person("Balázs Dukai"), 
+                            as.person("Mathieu Basille"),
+                            as.person("David Bucklin")),
+  year         = "2016",
+  url          = "https://CRAN.R-project.org/package=rpostgisLT",
+
+  textVersion  =
+  paste("Balázs Dukai, Mathieu Basille and David Bucklin (2016). rpostgisLT: Managing Animal Movement Data with 'PostGIS' and R. 
+        https://CRAN.R-project.org/package=rpostgisLT")
+)
