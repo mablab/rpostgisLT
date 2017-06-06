@@ -6,6 +6,7 @@ library(RPostgreSQL)
 library(adehabitatLT)
 library(rpostgisLT)
 library(lubridate)
+library(shiny)
 
 # DB connection -----------------------------------------------------------
 # NOTE: need to connect to a database on your own
@@ -106,16 +107,16 @@ traj_mapview_window <- function(conn, schema, pgtraj, d_start, t_start, tzone,
             if(collect_features){
                 suppressWarnings(m <- m + mapview(x, zcol = "animal_name"))
             } else {
-                suppressWarnings(m <- mapview(x, native.crs = cr,
-                                              map.types = mtype,
-                                              zcol = "animal_name"))
+                # suppressWarnings(m <- mapview(x, native.crs = cr,
+                #                               map.types = mtype,
+                #                               zcol = "animal_name"))
+                m@map %>% addPolylines(data = x)
             }
             print(m)
         } else {
             print(head(x))
         }
     }
-    
     # x <- get_t_window(conn, schema, view, "2003-06-01", "00:00:00", increment)
     # # x <- st_transform(x, "+init=epsg:4326")
     # mapview(x, native.crs = FALSE, map.types = "OpenTopoMap")
@@ -129,7 +130,7 @@ d_start <- "2003-06-01" # first date
 t_start <- "00:00:00" # first hour
 tzone <- tzone # time zone for time input
 increment <- 4 # increment by 1 hours at a time
-nr_increment <- 20 # increment 10x
+nr_increment <- 10 # increment 10x
 interval <- 24 # hours of time window to load
 sleep <- 0.5 # seconds until next query
 # print_map – plot trajectories or only print data in console?
@@ -138,8 +139,65 @@ sleep <- 0.5 # seconds until next query
 # collect_features – collect the queried trajectory segments on the map, or
 #                   only show the current segments
 
-traj_mapview_window(conn, schema, pgtraj, d_start, t_start, tzone, increment,
-                    nr_increment, interval, print_map = TRUE, basemap = TRUE,
-                    collect_features = TRUE, sleep)
+# traj_mapview_window(conn, schema, pgtraj, d_start, t_start, tzone, increment,
+#                     nr_increment, interval, print_map = TRUE, basemap = TRUE,
+#                     collect_features = FALSE, sleep)
 
+# still creates new plots
+# m <- mapview(gadmCHE)
+# m@map %>% addCircleMarkers(data = breweries91)
+
+
+
+# Shiny integration -------------------------------------------------------
+
+incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increment,
+                        nr_increment, interval) {
+    view <- paste0("step_geometry_shiny_", pgtraj)
+    # Start time
+    t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+    # Get initial set of trajectories
+    st <- get_t_window(conn, schema, view, t, interval)
+    
+    ui <- bootstrapPage(
+        tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+        # actionButton("b", "Back"),
+        actionButton("n", "Next"),
+        leafletOutput("map", width = "100%", height = "100%")
+    )
+    
+    server <- function(input, output) {
+        
+        trajWindow <- eventReactive(input$n, {
+            t <- t + duration(hour = increment)
+            get_t_window(conn, schema, view, t, interval)
+        })
+
+        # Leaflet base map, and starting view centered at the trajectories
+        output$map <- renderLeaflet({
+            leaflet(st) %>%
+                addTiles() %>%
+                addPolylines(
+                    fillOpacity = 1,
+                    opacity = 1,
+                    color = "#de2d26",
+                    weight = 3
+                )
+        })
+        
+        observe({
+            leafletProxy("map", data = trajWindow()) %>%
+                addPolylines(
+                    fillOpacity = 1,
+                    opacity = 1,
+                    color = "#de2d26",
+                    weight = 3
+                )
+        })
+    }
+    shinyApp(ui, server)
+}
+
+incrementSteps(conn, schema, pgtraj, d_start, t_start, tzone, increment,
+            nr_increment, interval)
 
