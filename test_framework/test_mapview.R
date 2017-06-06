@@ -1,70 +1,50 @@
+# Libraries ---------------------------------------------------------------
+
 library(mapview)
 library(sf)
 library(RPostgreSQL)
 library(adehabitatLT)
 library(rpostgisLT)
-
+library(lubridate)
 
 # DB connection -----------------------------------------------------------
 # NOTE: need to connect to a database on your own
-# conn <- ?
+
 # Connect server
-cs <- function(pw, drv = "PostgreSQL", host = "local") {
-    if (host == "local") {
-        conn <<- dbConnect(drv, user="bdukai", password=pw, dbname="rpostgisLT",
-                           host="localhost")
-        message(paste("Connection to host",host,"established successfully"))
-    } else if (host == "ufl") {
-        conn <<- dbConnect(drv, user="rpostgis", password=pw, dbname="rpostgis",
-                           host="basille-flrec.ad.ufl.edu")
-        message(paste("Connection to host",host,"established successfully"))
-    }
-}
-# Reconnect server
-rcs <- function(pw, drv = "PostgreSQL") {
-    dbDisconnect(conn)
-    postgresqlCloseDriver(drv)
-    dbUnloadDriver(drv)
-    cs()
-}
-
-drv <- "PostgreSQL"
-cs(pw="gsoc", drv = drv, host = "ufl")
-
-
-# Mapview speed test ------------------------------------------------------
-traj_mapview <- function(conn, schema, pgtraj, use_sf = TRUE){
-    view <- paste0("step_geometry_", pgtraj)
-    SQL <- paste0("select step_id, step_geom, relocation_time
-                  from ", schema, ".", view,
-                  " where step_geom is not null")
-    if (use_sf == TRUE) {
-        x <- suppressWarnings(st_read_db(conn, query = SQL))
-        x <- st_transform(x, "+init=epsg:4326")
-    } else {
-        x <- pgGetGeom(conn, geom = "step_geom", query = SQL)
-        x <- spTransform(x, CRS("+init=epsg:4326"))
-    }
-    mapview(x, native.crs = FALSE, map.types = "OpenTopoMap")
-}
-
-# Play around here, by loading different pgtrajes:
-# pgtrajes in "roe_traj" schema are: "bondone", "rendena", "both_area"
-# use_sf = TRUE – use simple feature geometry and st_read_db()
-# use_sf = FALSE – use sp geometry and pgGetGeom()
-traj_mapview(conn, "roe_traj", "bondone", use_sf = TRUE)
-
+# cs <- function(pw, drv = "PostgreSQL", host = "local") {
+#     if (host == "local") {
+#         conn <<- dbConnect(drv, user="bdukai", password=pw, dbname="rpostgisLT",
+#                            host="localhost")
+#         message(paste("Connection to host",host,"established successfully"))
+#     } else if (host == "ufl") {
+#         conn <<- dbConnect(drv, user="rpostgis", password=pw, dbname="rpostgis",
+#                            host="basille-flrec.ad.ufl.edu")
+#         message(paste("Connection to host",host,"established successfully"))
+#     }
+# }
+# # Reconnect server
+# rcs <- function(pw, drv = "PostgreSQL") {
+#     dbDisconnect(conn)
+#     postgresqlCloseDriver(drv)
+#     dbUnloadDriver(drv)
+#     cs()
+# }
+# 
+# drv <- "PostgreSQL"
+# cs(pw="gsoc", drv = drv, host = "ufl")
 
 # Data for PoC ------------------------------------------------------------
 
 data(ibex)
-attr(ibex, "proj4string") <- CRS("+init=epsg:2154")
+attr(ibex, "proj4string") <- CRS("+init=epsg:2154") # my best guess for the Ibex CRS
 ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
+tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
 
 # Window query ------------------------------------------------------------
 
-get_t_window <- function(conn, schema, view, start_date, start_hour, interval){
-    t_start <- paste(start_date, start_hour)
+get_t_window <- function(conn, schema, view, time, interval){
+    # t_start <- paste(start_date, start_hour)
+    t <- format(time, usetz = TRUE)
     t_interval <- paste(interval, "hour")
     sql_query <- paste0("
         SELECT
@@ -75,8 +55,8 @@ get_t_window <- function(conn, schema, view, start_date, start_hour, interval){
             a.animal_name,
             a.pgtraj_name
         FROM ", schema, ".", view, " a
-        WHERE a.relocation_time >= '", t_start, "'::timestamp
-        AND a.relocation_time < ('", t_start, "'::timestamp + '",
+        WHERE a.relocation_time >= '", t, "'::timestamptz
+        AND a.relocation_time < ('", t, "'::timestamptz + '",
                         t_interval, "'::INTERVAL)
         AND a.step_geom IS NOT NULL;")
     # s <- gsub("\n", "", sql_query)
@@ -85,22 +65,81 @@ get_t_window <- function(conn, schema, view, start_date, start_hour, interval){
     # return(pgGetGeom(conn, query = sql_query))
 }
 
-x <- get_t_window(conn, "ibex", "step_geometry_ibex", "2003-06-01", "00:00:00", 24)
+# d_start <- "2003-06-01"
+# t_start <- "00:00:00"
+# t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+# x <- get_t_window(conn, "ibex", "step_geometry_ibex", t, 24)
 
 # Mapview -----------------------------------------------------------------
 
-traj_mapview_window <- function(conn, schema, pgtraj, increment){
+traj_mapview_window <- function(conn, schema, pgtraj, d_start, t_start, tzone,
+                                increment, nr_increment, interval,
+                                print_map = TRUE, basemap = TRUE,
+                                collect_features = TRUE, sleep){
     view <- paste0("step_geometry_", pgtraj)
-    # 
-    # ANSWER <- readline("step next (n) or back (b)?")
-    # if(ANSWER=="n")
-    x <- get_t_window(conn, schema, view, "2003-06-01", "00:00:00", 24)
-    # x <- st_transform(x, "+init=epsg:4326")
-    mapview(x, native.crs = FALSE, map.types = "OpenTopoMap")
+    # Start time
+    t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+    # Prepare map output
+    if(print_map){
+        # Get first set of features
+        x <- get_t_window(conn, schema, view, t, interval)
+        # In case features are collected and not replaced on the map
+        if(basemap){
+            mtype <- "OpenTopoMap"
+            cr <- FALSE
+        } else {
+            mtype <- NA
+            cr <- TRUE
+        }
+        # prepare map
+        m <- mapview(x, native.crs = cr, map.types = mtype, zcol = "animal_name")
+    }
+    # Simulate stepping through a trajectory
+    for(i in 1:nr_increment){
+        # Wait until next "click"
+        Sys.sleep(sleep)
+        # Get new set of features in time window
+        t <- t + duration(hour = increment)
+        x <- get_t_window(conn, schema, view, t, interval)
+        # x <- st_transform(x, "+init=epsg:4326")
+        if(print_map) {
+            if(collect_features){
+                suppressWarnings(m <- m + mapview(x, zcol = "animal_name"))
+            } else {
+                suppressWarnings(m <- mapview(x, native.crs = cr,
+                                              map.types = mtype,
+                                              zcol = "animal_name"))
+            }
+            print(m)
+        } else {
+            print(head(x))
+        }
+    }
+    
+    # x <- get_t_window(conn, schema, view, "2003-06-01", "00:00:00", increment)
+    # # x <- st_transform(x, "+init=epsg:4326")
+    # mapview(x, native.crs = FALSE, map.types = "OpenTopoMap")
 }
 
-traj_mapview_window(conn, "ibex", "ibex")
+# Settings and run ---------------------------------------------------------
 
-cat("What's your name? ")
-x <- readLines(file("stdin"),1)
-print(x)
+schema <- "ibex"
+pgtraj <- "ibex"
+d_start <- "2003-06-01" # first date
+t_start <- "00:00:00" # first hour
+tzone <- tzone # time zone for time input
+increment <- 4 # increment by 1 hours at a time
+nr_increment <- 20 # increment 10x
+interval <- 24 # hours of time window to load
+sleep <- 0.5 # seconds until next query
+# print_map – plot trajectories or only print data in console?
+# basemap – use a basemap (WMS) that also requires reprojection,
+#           or don't reproject and don't use basemap (faster)
+# collect_features – collect the queried trajectory segments on the map, or
+#                   only show the current segments
+
+traj_mapview_window(conn, schema, pgtraj, d_start, t_start, tzone, increment,
+                    nr_increment, interval, print_map = TRUE, basemap = TRUE,
+                    collect_features = TRUE, sleep)
+
+

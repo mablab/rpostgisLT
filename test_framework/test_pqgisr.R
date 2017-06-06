@@ -20,9 +20,6 @@ connect_db_ogr <- function(host = "local", pw, pgtraj) {
                       " password=", PSSWD," schemas=roe_traj 
                       tables=step_geometry_", pgtraj)
     } else if (host == "ufl") {
-        conn <<- dbConnect(drv, user="rpostgis", password=pw, dbname="rpostgis",
-                           host="basille-flrec.ad.ufl.edu")
-        message(paste("Connection to host",host,"established successfully"))
         DB <- "rpostgis"
         HOST <- "basille-flrec.ad.ufl.edu"
         USER <- "rpostgis"
