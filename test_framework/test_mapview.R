@@ -66,6 +66,24 @@ get_t_window <- function(conn, schema, view, time, interval){
     # return(pgGetGeom(conn, query = sql_query))
 }
 
+get_full_traj <- function(conn, schema, view){
+    # t_start <- paste(start_date, start_hour)
+    sql_query <- paste0("
+        SELECT
+            a.step_id,
+            a.step_geom,
+            a.relocation_time,
+            a.burst_name,
+            a.animal_name,
+            a.pgtraj_name
+        FROM ", schema, ".", view, " a
+        WHERE a.step_geom IS NOT NULL;")
+    # s <- gsub("\n", "", sql_query)
+    # print(s)
+    return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
+    # return(pgGetGeom(conn, query = sql_query))
+}
+
 # d_start <- "2003-06-01"
 # t_start <- "00:00:00"
 # t <- ymd_hms(paste(d_start, t_start), tz = tzone)
@@ -165,8 +183,11 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     # Get initial set of trajectories
     st <- get_t_window(conn, schema, view, t, interval)
     
-    factpal <- colorFactor(topo.colors(4), st$animal_name)
+    # Get full traj
+    st.1 <- get_full_traj(conn, schema, view)
     
+    factpal <- colorFactor(topo.colors(4), st$animal_name)
+
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
         h3(textOutput("tstamp")),
@@ -177,6 +198,7 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     
     server <- function(input, output) {
         
+        w <- reactiveValues(data = st.1)
         x <- reactiveValues(data = st)
         timeOut <- reactiveValues(data = t)
         
@@ -197,26 +219,31 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
 
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
-            if (is.null(x$data)) return()
-            leaflet(x$data) %>%
+            if (is.null(w$data)) return()
+            leaflet(w$data) %>%
                 addTiles() %>%
                 addPolylines(
-                    group = "traj",
-                    fillOpacity = 1,
-                    opacity = 1,
+                    group = "trajfull",
+                    fillOpacity = .8,
+                    opacity = .8,
                     color = ~factpal(animal_name),
-                    weight = 3
+                    weight = 2
+                ) %>%
+                addLayersControl(
+                    overlayGroups = "trajfull",
+                    options = layersControlOptions(collapsed = FALSE)
                 )
         })
         
         observe({
             leafletProxy("map", data = x$data) %>%
+                clearGroup("traj") %>%
                 addPolylines(
                     group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
                     color = ~factpal(animal_name),
-                    weight = 3
+                    weight = 4
                 )
         })
     }
