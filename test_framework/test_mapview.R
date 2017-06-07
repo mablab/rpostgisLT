@@ -165,8 +165,11 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     # Get initial set of trajectories
     st <- get_t_window(conn, schema, view, t, interval)
     
+    factpal <- colorFactor(topo.colors(4), st$animal_name)
+    
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+        h3(textOutput("tstamp")),
         actionButton("b", "Back"),
         actionButton("n", "Next"),
         leafletOutput("map", width = "100%", height = "100%")
@@ -175,26 +178,22 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     server <- function(input, output) {
         
         x <- reactiveValues(data = st)
+        timeOut <- reactiveValues(data = t)
         
         observeEvent(input$n, {
-            print(t)
-            t <<- t + duration(hour = increment)
-            x$data <- get_t_window(conn, schema, view, t, interval)
+            timeOut$data <- timeOut$data + duration(hour = increment)
+            x$data <- get_t_window(conn, schema, view, timeOut$data, interval)
         })
         
         observeEvent(input$b, {
-            print(t)
-            t <<- t - duration(hour = increment)
-            x$data <- get_t_window(conn, schema, view, t, interval)
+            timeOut$data <- timeOut$data - duration(hour = increment)
+            x$data <- get_t_window(conn, schema, view, timeOut$data, interval)
         })
         
-        # trajWindow <- eventReactive(input$n, {
-        #     # print(t)
-        #     t <<- t + duration(hour = increment)
-        #     x <- get_t_window(conn, schema, view, t, interval)
-        #     # print(head(x))
-        #     return(x)
-        # })
+        # Report current timestamp
+        output$tstamp <- renderText({
+            paste("Current time stamp:", format(timeOut$data, usetz = TRUE))
+        })
 
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
@@ -205,20 +204,18 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
                     group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
-                    color = "#de2d26",
+                    color = ~factpal(animal_name),
                     weight = 3
                 )
         })
         
         observe({
             leafletProxy("map", data = x$data) %>%
-                # clearGroup("map", "traj") %>% 
-                # clearShapes() %>%
                 addPolylines(
                     group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
-                    color = "#de2d26",
+                    color = ~factpal(animal_name),
                     weight = 3
                 )
         })
