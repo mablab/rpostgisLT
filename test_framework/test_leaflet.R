@@ -75,8 +75,8 @@ subsetSteps <- function(conn, schema, pgtraj, use_sf = TRUE) {
         absolutePanel(top = 10, right = 10,
                       sliderInput("range", "Timestamp", minT, maxT, 
                                   value = c(minT, maxT), step = 60
-                      )
-        )
+                                )
+                    )
     )
     
     server <- function(input, output, session) {

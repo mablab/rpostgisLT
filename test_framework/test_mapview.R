@@ -151,6 +151,12 @@ sleep <- 0.5 # seconds until next query
 
 # Shiny integration -------------------------------------------------------
 
+# Need to create a new View in DB with EPSG:4326, because that's what Leaflet
+# understands by default. Coordinate transformation can be expensive.
+
+source("./test_framework/makeShinyView.R")
+makeShinyView(conn, schema, pgtraj)
+
 incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increment,
                         nr_increment, interval) {
     view <- paste0("step_geometry_shiny_", pgtraj)
@@ -161,7 +167,7 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-        # actionButton("b", "Back"),
+        actionButton("b", "Back"),
         actionButton("n", "Next"),
         leafletOutput("map", width = "100%", height = "100%")
     )
@@ -169,8 +175,11 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     server <- function(input, output) {
         
         trajWindow <- eventReactive(input$n, {
-            t <- t + duration(hour = increment)
-            get_t_window(conn, schema, view, t, interval)
+            # print(t)
+            t <<- t + duration(hour = increment)
+            x <- get_t_window(conn, schema, view, t, interval)
+            # print(head(x))
+            return(x)
         })
 
         # Leaflet base map, and starting view centered at the trajectories
@@ -178,6 +187,7 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
             leaflet(st) %>%
                 addTiles() %>%
                 addPolylines(
+                    group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
                     color = "#de2d26",
@@ -187,7 +197,10 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
         
         observe({
             leafletProxy("map", data = trajWindow()) %>%
+                # clearGroup("map", "traj") %>% 
+                # clearShapes() %>%
                 addPolylines(
+                    group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
                     color = "#de2d26",
