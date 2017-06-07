@@ -174,17 +174,32 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     
     server <- function(input, output) {
         
-        trajWindow <- eventReactive(input$n, {
-            # print(t)
+        x <- reactiveValues(data = st)
+        
+        observeEvent(input$n, {
+            print(t)
             t <<- t + duration(hour = increment)
-            x <- get_t_window(conn, schema, view, t, interval)
-            # print(head(x))
-            return(x)
+            x$data <- get_t_window(conn, schema, view, t, interval)
         })
+        
+        observeEvent(input$b, {
+            print(t)
+            t <<- t - duration(hour = increment)
+            x$data <- get_t_window(conn, schema, view, t, interval)
+        })
+        
+        # trajWindow <- eventReactive(input$n, {
+        #     # print(t)
+        #     t <<- t + duration(hour = increment)
+        #     x <- get_t_window(conn, schema, view, t, interval)
+        #     # print(head(x))
+        #     return(x)
+        # })
 
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
-            leaflet(st) %>%
+            if (is.null(x$data)) return()
+            leaflet(x$data) %>%
                 addTiles() %>%
                 addPolylines(
                     group = "traj",
@@ -196,7 +211,7 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
         })
         
         observe({
-            leafletProxy("map", data = trajWindow()) %>%
+            leafletProxy("map", data = x$data) %>%
                 # clearGroup("map", "traj") %>% 
                 # clearShapes() %>%
                 addPolylines(
