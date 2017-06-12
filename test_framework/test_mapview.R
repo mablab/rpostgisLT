@@ -36,10 +36,15 @@ library(shiny)
 
 # Data for PoC ------------------------------------------------------------
 
-data(ibex)
-attr(ibex, "proj4string") <- CRS("+init=epsg:2154") # my best guess for the Ibex CRS
-ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
-tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
+# data(ibex)
+# attr(ibex, "proj4string") <- CRS("+init=epsg:2154") # my best guess for the Ibex CRS
+# ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
+# tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
+
+# as_pgtraj(conn, relocations_table = c("example_data", "stork_gps"),
+#           schema = "stork_traj", pgtrajs = "year", animals = "animal_id",
+#           relocations = "geom", timestamps = "acquisition_time",
+#           rids = "gps_data_animals_id")
 
 # Window query ------------------------------------------------------------
 
@@ -142,15 +147,17 @@ traj_mapview_window <- function(conn, schema, pgtraj, d_start, t_start, tzone,
 
 # Settings and run ---------------------------------------------------------
 
-schema <- "ibex"
-pgtraj <- "ibex"
-d_start <- "2003-06-01" # first date
+schema <- "stork_traj"
+pgtraj <- "2004"
+d_start <- "2004-06-01" # first date
 t_start <- "00:00:00" # first hour
-tzone <- tzone # time zone for time input
-increment <- 4 # increment by 1 hours at a time
+# tzone <- tzone # time zone for time input
+tzone <- "Europe/Amsterdam"
+increment <- 24 # increment by 1 hours at a time
 nr_increment <- 10 # increment 10x
-interval <- 24 # hours of time window to load
-sleep <- 0.5 # seconds until next query
+interval <- 48 # hours of time window to load
+
+# sleep <- 0.5 # seconds until next query
 # print_map – plot trajectories or only print data in console?
 # basemap – use a basemap (WMS) that also requires reprojection,
 #           or don't reproject and don't use basemap (faster)

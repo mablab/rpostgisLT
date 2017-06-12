@@ -8,7 +8,7 @@ makeShinyView <- function(conn, schema, pgtraj) {
     ## Create view
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
     sql_query <- paste0("
-        CREATE OR REPLACE VIEW ", view, " AS
+        CREATE MATERIALIZED VIEW ", view, " AS
          SELECT s.id AS step_id,
             st_transform(st_makeline(r1.geom, r2.geom), 4326) AS step_geom,
             r1.relocation_time,
@@ -27,13 +27,25 @@ makeShinyView <- function(conn, schema, pgtraj) {
              JOIN animal_burst ab ON ab.id = rel.animal_burst_id
              JOIN pgtraj p ON p.id = ab.pgtraj_id
           WHERE p.pgtraj_name = ",dbQuoteString(conn, pgtraj),"::text
-          ORDER BY ab.id, s.id;")
+          ORDER BY ab.id, s.id;
+        
+        CREATE
+            INDEX step_geometry_shiny_", pgtraj, "_reloc_time_idx ON
+            ", view, "
+                USING btree(relocation_time);
+        
+        CREATE
+            INDEX step_geometry_shiny_", pgtraj, "_step_geom_idx ON
+            ", view, "
+                USING gist(step_geom);")
     
     create_sql_query <- gsub(pattern = '\\s', replacement = " ",
                              x = sql_query)
     invisible(dbExecute(conn, create_sql_query))
     message(paste0("View 'step_geometry_shiny_",pgtraj,"' created in schema '",
                    schema, "'."))
+    
+    dbVacuum(conn, name = paste0("step_geometry_shiny_",pgtraj), analyze = TRUE)
     
     ## Restore database search path
     sql_query <- paste0("SET search_path TO ", current_search_path, ";")
