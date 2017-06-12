@@ -147,6 +147,18 @@ traj_mapview_window <- function(conn, schema, pgtraj, d_start, t_start, tzone,
 
 # Settings and run ---------------------------------------------------------
 
+# Ibex
+schema <- "ibex"
+pgtraj <- "ibex"
+d_start <- "2003-06-01" # first date
+t_start <- "00:00:00" # first hour
+# tzone <- tzone # time zone for time input
+tzone <- "Europe/Amsterdam"
+increment <- 4 # increment by 1 hours at a time
+nr_increment <- 10 # increment 10x
+interval <- 24 # hours of time window to loa
+
+# Storks
 schema <- "stork_traj"
 pgtraj <- "2004"
 d_start <- "2004-06-01" # first date
@@ -198,8 +210,18 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
         h3(textOutput("tstamp")),
+        tags$script('$(document).on("keydown",
+                 function (e) {
+                 if(e.which == 66) {
+                   Shiny.onInputChange("b", new Date());
+                 } else if (e.which == 78) {
+                   Shiny.onInputChange("n", new Date());
+                 }
+                 });
+                '),
         actionButton("b", "Back"),
         actionButton("n", "Next"),
+        h5("press B or N"),
         leafletOutput("map", width = "100%", height = "100%")
     )
     

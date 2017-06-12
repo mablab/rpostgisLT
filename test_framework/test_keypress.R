@@ -1,19 +1,16 @@
 library(shiny)
-
-
 shinyApp(ui <- pageWithSidebar(
     headerPanel("Test keyboard control"),
     sidebarPanel(
-        tags$script(
-            'tags$head(
-            $(document).keydown(function(e)){
-                if (e.keyCode == 85) {
-                    Shiny.onInputChange("upButton", new Date());
-                } else if (e.keyCode == 68) {
-                    Shiny.onInputChange("downButton", new Date());
-                }
-            });'
-        ),
+        tags$script('$(document).on("keydown",
+                 function (e) {
+                 if(e.which == 68) {
+                   Shiny.onInputChange("downButton", new Date());
+                 } else if (e.which == 85) {
+                   Shiny.onInputChange("upButton", new Date());
+                 }
+                 });
+                '),
         actionButton("downButton", "Down"),
         actionButton("upButton", "Up")
     ),
@@ -29,5 +26,3 @@ server <- function(session, input, output) {
     output$text <- renderText(paste("Counter is:", vals$count))
 }
 )
-
-
