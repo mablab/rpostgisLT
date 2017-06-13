@@ -39,7 +39,7 @@ library(shiny)
 #
 # data(ibex)
 # attr(ibex, "proj4string") <- CRS("+init=epsg:27572") # my best guess for the Ibex CRS
-# ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
+# ltraj2pgtraj(conn, ibex, schema = "ibex_traj", overwrite = TRUE)
 # tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
 
 # Storks
@@ -53,7 +53,7 @@ library(shiny)
 # Settings -----------------------------------------------------------------
 
 # Ibex
-schema <- "ibex"
+schema <- "ibex_traj"
 pgtraj <- "ibex"
 d_start <- "2003-06-01" # first date
 t_start <- "00:00:00" # first hour

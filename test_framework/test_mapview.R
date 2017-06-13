@@ -37,7 +37,7 @@ library(lubridate)
 
 # data(ibex)
 # attr(ibex, "proj4string") <- CRS("+init=epsg:27572") # my best guess for the Ibex CRS
-# ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
+# ltraj2pgtraj(conn, ibex, schema = "ibex_traj", overwrite = TRUE)
 # tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
 tzone <- "Europe/Paris"
 
@@ -69,7 +69,7 @@ get_t_window <- function(conn, schema, view, time, interval){
 # d_start <- "2003-06-01"
 # t_start <- "00:00:00"
 # t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-# x <- get_t_window(conn, "ibex", "step_geometry_ibex", t, 24)
+# x <- get_t_window(conn, "ibex_traj", "step_geometry_ibex", t, 24)
 
 # Mapview -----------------------------------------------------------------
 
@@ -120,7 +120,7 @@ traj_mapview_window <- function(conn, schema, pgtraj, d_start, t_start, tzone,
 
 # Settings and run ---------------------------------------------------------
 
-schema <- "ibex"
+schema <- "ibex_traj"
 pgtraj <- "ibex"
 d_start <- "2003-06-01" # first date
 t_start <- "00:00:00" # first hour
