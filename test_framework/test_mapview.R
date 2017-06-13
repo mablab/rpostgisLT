@@ -36,7 +36,7 @@ library(lubridate)
 # Data for PoC ------------------------------------------------------------
 
 # data(ibex)
-# attr(ibex, "proj4string") <- CRS("+init=epsg:2154") # my best guess for the Ibex CRS
+# attr(ibex, "proj4string") <- CRS("+init=epsg:27572") # my best guess for the Ibex CRS
 # ltraj2pgtraj(conn, ibex, schema = "ibex", overwrite = TRUE)
 # tzone <- tz(ibex[[1]][1, "date"]) # because I'm lazy to pull from DB
 tzone <- "Europe/Paris"
