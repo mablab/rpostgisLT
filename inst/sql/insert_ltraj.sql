@@ -20,7 +20,7 @@ WITH r_output AS (
         "rel.angle" AS rel_angle,
         id AS animal_name,
         burst AS burst_name,
-		".burst_order"::integer AS burst_order,
+        ".burst_order"::integer AS burst_order,
         "r.row.names"::integer AS r_rowname,
         ".time_zone" AS time_zone,
         ".srid"::integer AS srid,
@@ -119,7 +119,7 @@ insert_animal_burst AS (
     SELECT a.burst_name, a.animal_name, b.id
     FROM (SELECT DISTINCT pgtraj_name, burst_name, animal_name, burst_order from r_output) AS a
     JOIN insert_pgtraj AS b ON b.pgtraj_name = a.pgtraj_name
-	ORDER BY b.id, a.burst_order 
+    ORDER BY b.id, a.burst_order 
     RETURNING id, burst_name
 )
 INSERT INTO s_b_rel (step_id, animal_burst_id)
