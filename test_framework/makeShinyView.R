@@ -8,7 +8,7 @@ makeShinyView <- function(conn, schema, pgtraj) {
     ## Create view
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
     sql_query <- paste0("
-        CREATE MATERIALIZED VIEW ", view, " AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
          SELECT s.id AS step_id,
             st_transform(st_makeline(r1.geom, r2.geom), 4326) AS step_geom,
             r1.relocation_time,
