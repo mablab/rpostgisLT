@@ -121,15 +121,14 @@ as_pgtraj(conn,
         rids = "gid")
 }
 }
-\author{
-Balázs Dukai \email{balazs.dukai@gmail.com}
-
-David Bucklin \email{dbucklin@ufl.edu}
-}
 \references{
 \url{https://CRAN.R-project.org/package=adehabitatLT/vignettes/adehabitatLT.pdf}
 }
 \seealso{
 Section on pgtraj data model in the package vignette.
 }
+\author{
+Balázs Dukai \email{balazs.dukai@gmail.com}
 
+David Bucklin \email{dbucklin@ufl.edu}
+}

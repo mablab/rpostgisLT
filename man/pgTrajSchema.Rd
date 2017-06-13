@@ -42,4 +42,3 @@ The function has its own standalone transaction control.
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
-

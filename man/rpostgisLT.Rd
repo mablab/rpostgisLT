@@ -23,4 +23,3 @@ functions, use \code{library(help = "rpostgisLT")}
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
-

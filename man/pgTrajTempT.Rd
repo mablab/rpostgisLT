@@ -29,4 +29,3 @@ user generated tables.
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \keyword{internal}
-

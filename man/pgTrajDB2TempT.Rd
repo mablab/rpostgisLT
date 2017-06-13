@@ -60,4 +60,3 @@ a POINT geometry in PostGIS.
 Balázs Dukai
 }
 \keyword{internal}
-

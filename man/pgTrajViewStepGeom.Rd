@@ -24,4 +24,3 @@ Creates a view of the step geometries for visualization.
 Balázs Dukai
 }
 \keyword{internal}
-

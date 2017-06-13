@@ -47,11 +47,10 @@ database.
   ltraj2pgtraj(conn, ibex, "traj_t2")
 }
 }
-\author{
-Balázs Dukai \email{balazs.dukai@gmail.com}
-}
 \seealso{
 \code{\link{as_pgtraj}} to create a \code{pgtraj} with
     data already stored in the database.
 }
-
+\author{
+Balázs Dukai \email{balazs.dukai@gmail.com}
+}

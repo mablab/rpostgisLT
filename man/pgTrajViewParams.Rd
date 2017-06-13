@@ -37,4 +37,3 @@ creates a view for the pgtraj. The views are always named as
 Balázs Dukai
 }
 \keyword{internal}
-

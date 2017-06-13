@@ -147,7 +147,6 @@ Sys.sleep(2)
 dbDrop(conn, "traj", type = "schema", cascade = TRUE)
 rm(ibexTest)
 
-
 ### Rounding timestamps
 ibex <- sett0(ibex, refda, 4, units = "hour")
 ibex.ref <- ibex                        # At this stage, 'ibex' is our

@@ -33,4 +33,3 @@ Write infolocs table to database from database in pgtraj2ltraj()
 David Bucklin \email{dbucklin@ufl.edu}
 }
 \keyword{internal}
-

@@ -1,7 +1,12 @@
 rpostgisLT 1.0
 ==============
 
+OVERALL CHANGES
+
+* example datasets added (Roe deer GPS tracking dataset)
+
 * version bump to 1.0
+
 
 rpostgisLT 0.4 (Release date: 2016-11-01)
 ==============
