@@ -9,13 +9,12 @@ makeShinyView <- function(conn, schema, pgtraj) {
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
     sql_query <- paste0("
         CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
-         SELECT s.id AS step_id,
-            st_transform(st_makeline(r1.geom, r2.geom), 4326) AS step_geom,
+         SELECT
+            s.id AS step_id,
+            st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(linestring, 4326) AS step_geom,
             r1.relocation_time,
-            s.dt,
+            s.dt::interval,
             s.r_rowname,
-            r1.geom AS relocation1_geom,
-            r2.geom AS relocation2_geom,
             ab.burst_name,
             ab.animal_name,
             p.pgtraj_name,
@@ -27,6 +26,7 @@ makeShinyView <- function(conn, schema, pgtraj) {
              JOIN animal_burst ab ON ab.id = rel.animal_burst_id
              JOIN pgtraj p ON p.id = ab.pgtraj_id
           WHERE p.pgtraj_name = ",dbQuoteString(conn, pgtraj),"::text
+          AND st_makeline(r1.geom, r2.geom) NOTNULL
           ORDER BY ab.id, s.id;
         
         CREATE
