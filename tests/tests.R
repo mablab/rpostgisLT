@@ -291,6 +291,7 @@ as_pgtraj(conn,
         relocations = "geom",
         timestamps = "time",
         rid = "gid",
+        tzone = "America/Chicago",
         #clauses = "where id = 'continental'",
         info_cols = c("info_day","dummy", "NOT_HERE"), #columns not found are ignored
         info_table = c("infoloc_test"),
