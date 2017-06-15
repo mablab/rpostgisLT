@@ -1,5 +1,5 @@
 ## Test environments
-* local Windows 7 install, R 3.3.1
+* local Windows 7 install, R 3.4.0
 * win-builder, R Under development (unstable) (2016-10-17 r71527)
 * Debian 8.6, R 3.3.1
 
