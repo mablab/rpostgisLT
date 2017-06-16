@@ -1,7 +1,7 @@
 ## Test environments
 * local Windows 7 install, R 3.4.0
-* win-builder, R Under development (unstable) (2016-10-17 r71527)
-* Debian 8.6, R 3.3.1
+* win-builder, R Under development (unstable) (2017-06-13 r72789)
+* Debian 8.8, R 3.3.3
 
 ## R CMD check results
 There were no ERRORs, WARNINGS, or NOTEs.

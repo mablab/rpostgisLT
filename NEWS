@@ -8,7 +8,12 @@ OVERALL CHANGES
 NEW FEATURES
 
 * `as_pgtraj`: new argument `tzone` allows for time zone specification, and 
-applies the database time zone if left NULL (formerly used the R time zone)
+applies the database time zone if left NULL (formerly used the R (system) time zone)
+
+BUG FIXES
+
+* `as_pgtraj`: fixed bug potentially affecting sorting of steps within 
+a burst in `step_geometry` view, and subsequently in imported `ltraj`.
 
 rpostgisLT 0.4 (Release date: 2016-11-01)
 ==============

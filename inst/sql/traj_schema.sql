@@ -134,6 +134,7 @@ IF $1 = 2 THEN
 		WITH relos AS (
 			SELECT
 				a.id AS relocation_id_1,
+				a.relocation_time AS rt,
 				b.id AS relocation_id_2,
 				b.relocation_time - a.relocation_time AS dt,
 				a.mark
@@ -150,7 +151,8 @@ IF $1 = 2 THEN
 			)
 		INSERT INTO step (relocation_id_1, relocation_id_2, dt, mark)
 			SELECT relocation_id_1, relocation_id_2, dt, 1
-			FROM relos;
+			FROM relos
+			ORDER BY rt;
 		-- step-burst rel
 		INSERT INTO s_b_rel (step_id, animal_burst_id)
 			SELECT a.id, a.burst_id
@@ -203,7 +205,8 @@ ELSE
 			)
 		INSERT INTO step (relocation_id_1, relocation_id_2, mark)
 			SELECT relocation_id_1, relocation_id_2, 1
-			FROM relos;
+			FROM relos
+			ORDER BY relocation_id_1;
 		-- step-burst rel
 		INSERT INTO s_b_rel (step_id, animal_burst_id)
 			SELECT a.id, a.burst_id
