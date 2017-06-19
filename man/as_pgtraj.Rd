@@ -47,7 +47,7 @@ coordinates provided for relocations. Ignored if relocations is a
 geometry type.}
 
 \item{tzone}{String. Time zone specification for the timestamps column. If not
-specified, the database server time zone will be used (usually the local
+specified, the database server time zone will be used (usually the server's local
 time zone).}
 
 \item{note}{String. Comment on the pgtraj. The comment is only used in

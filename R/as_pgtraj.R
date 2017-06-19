@@ -56,7 +56,7 @@
 #'    coordinates provided for relocations. Ignored if relocations is a 
 #'    geometry type.
 #' @param tzone String. Time zone specification for the timestamps column. If not
-#'    specified, the database server time zone will be used (usually the local
+#'    specified, the database server time zone will be used (usually the server's local
 #'    time zone).
 #' @param note String. Comment on the pgtraj. The comment is only used in
 #'    the database and not transferred into the ltraj.
@@ -181,7 +181,8 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     if (is.null(tzone)) {
       time_zone <- dbGetQuery(conn, "SHOW timezone;")$TimeZone
     } else {
-      if (!tzone %in% OlsonNames()) stop("Invalid time zone name.")
+      if (!tzone %in% OlsonNames()) stop(paste0("Invalid time zone name (",
+                                                tzone,"). Run `OlsonNames()` for a list of valid names."))
       time_zone <- tzone
     }
     
