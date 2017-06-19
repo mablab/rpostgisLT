@@ -496,7 +496,8 @@ print(system.time({
   
   ## Messing with timezone: timez
   ## capreochiz$timez <- lubridate::with_tz(capreochiz$date, tz = "America/Chicago")
-  capreochiz$timez <- as.POSIXct(capreochiz$date, tz = "America/Chicago")
+  capreochiz$timez <- as.POSIXct(capreochiz$date)
+  attr(capreochiz$timez, "tzone") <- "America/Chicago"
   attributes(capreochiz$timez)
   
   ## Messing with data class (and time zones!): posixlt

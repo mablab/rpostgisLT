@@ -921,7 +921,7 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
       tzl<-names(attr2[attr2 != "NULL" & attr2 != pgtz])
       for (t in tzl) {
         eval(parse(
-          text = paste0("attributes(b_df$",t,")$tzone <- pgtz")
+          text = paste0("attributes(b_df$",t,")$tzone <- pgtz") 
         ))
       }
       
@@ -1183,7 +1183,7 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                     justinfo[, i] <- factor(as.character(justinfo[, 
                       i]), levels = levs[levs != ""], ordered = ordered)
                   }
-                  if (att$defs %in% c("POSIXct", "POSIXlt", "POSIXt")) {
+                  if (att$defs %in% c("POSIXct","POSIXt")) {
                     justinfo[, i] <- list(eval(parse(text = paste0("as.", 
                       att$defs, "(as.character(justinfo[,i]),
                                           tz='", 
@@ -1192,6 +1192,11 @@ getPgtrajWithInfo <- function(conn, pgtraj, schema) {
                     eval(parse(
                         text = paste0("attributes(justinfo$",i,")$tzone <- att$atts")
                     ))
+                  }
+                  if (att$defs == "POSIXlt") {
+                    justinfo[, i] <- list(eval(parse(text = paste0("as.", 
+                      att$defs, "(as.character(justinfo[,i]),
+                                          tz=att$atts)"))))
                   }
               } else {
                   justinfo[, i] <- do.call(paste0("as.", att$defs), 
