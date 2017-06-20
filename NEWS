@@ -13,7 +13,11 @@ applies the database time zone if left NULL (formerly used the R (system) time z
 BUG FIXES
 
 * `as_pgtraj`: fixed bug potentially affecting sorting of steps within 
-a burst in `step_geometry` view, and subsequently in imported `ltraj` using `pgtraj2ltraj`.
+a burst in `step_geometry` view, and subsequently in imported 
+`ltraj` using `pgtraj2ltraj`.
+
+* `pgtraj2ltraj`: infolocs columns of type `POSIXlt` now re-import time zone 
+attribute correctly
 
 rpostgisLT 0.4 (Release date: 2016-11-01)
 ==============

@@ -1,6 +1,6 @@
 ## Test environments
 * local Windows 7 install, R 3.4.0
-* win-builder, R Under development (unstable) (2017-06-13 r72789)
+* win-builder, R Under development (unstable) (2017-06-19 r72808)
 * Debian 8.8, R 3.3.3
 
 ## R CMD check results
