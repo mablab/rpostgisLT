@@ -19,6 +19,8 @@ a burst in `step_geometry` view, and subsequently in imported
 * `pgtraj2ltraj`: infolocs columns of type `POSIXlt` now re-import time zone 
 attribute correctly
 
+* `ltraj2pgtraj`: fixed bug affecting infolocs factors with commas
+
 rpostgisLT 0.4 (Release date: 2016-11-01)
 ==============
 
