@@ -121,7 +121,7 @@ dl_opt <- function(x, rnames = TRUE) {
 #'    contains the numeric IDs of relocations.
 #' @param relocations Vector of string(s). Name of the field(s) that 
 #'    contains the relocations in relocations_table. If relocations are 
-#'    stored as pairs of (X,Y) or (long, lat) coorindates, the coordinates 
+#'    stored as pairs of (X,Y) or (long, lat) coordinates, the coordinates 
 #'    should be separated in two fields and referenced accordingly.
 #' @param srid Numeric. The PostGIS SRID of the CRS of 'relocations'.
 #' @param proj4string String. The PROJ4 string to be inserted into 
