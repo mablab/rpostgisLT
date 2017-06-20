@@ -930,6 +930,7 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
           paste0("/*/", paste(attr(x, "levels"), collapse = "/*/"), 
               "/*/")
       }))
+      fact <- gsub(",", "\\,", fact, fixed = TRUE)
       attr2[!fact == "/*//*/"] <- fact[!fact == "/*//*/"]
       
       # make array of columns, types, and time zones
