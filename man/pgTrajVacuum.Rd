@@ -40,4 +40,3 @@ the tables of a \code{traj} schema.
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
-

@@ -55,6 +55,9 @@
 #' @param srid Integer. Optional SRID (spatial reference ID) of (x,y)
 #'    coordinates provided for relocations. Ignored if relocations is a 
 #'    geometry type.
+#' @param tzone String. Time zone specification for the timestamps column. If not
+#'    specified, the database server time zone will be used (usually the server's local
+#'    time zone).
 #' @param note String. Comment on the pgtraj. The comment is only used in
 #'    the database and not transferred into the ltraj.
 #' @param clauses character, additional SQL to append to modify data 
@@ -69,7 +72,6 @@
 #' @param info_rids String. Column name of unique integer ID in \code{info_table} 
 #'    to join with \code{rids} from \code{relocations_table}. If \code{info_cols} 
 #'    are in \code{relocations_table}, leave NULL.
-#' 
 #' @return TRUE on success
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
@@ -107,7 +109,7 @@
 
 as_pgtraj <- function(conn, relocations_table, schema = "traj", 
     pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations, 
-    timestamps = NULL, rids = "rid", srid = NULL, note = NULL, 
+    timestamps = NULL, rids = "rid", srid = NULL, tzone = NULL, note = NULL, 
     clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
     rpostgis:::dbConnCheck(conn)
@@ -176,7 +178,13 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     proj4string <- dbGetQuery(conn, sql_query)[1,1]
     
     # Get user local time zone for temporary table
-    time_zone <- Sys.timezone(location = TRUE)
+    if (is.null(tzone)) {
+      time_zone <- dbGetQuery(conn, "SHOW timezone;")$TimeZone
+    } else {
+      if (!tzone %in% OlsonNames()) stop(paste0("Invalid time zone name (",
+                                                tzone,"). Run `OlsonNames()` for a list of valid names."))
+      time_zone <- tzone
+    }
     
     # Create traj database schema if it doesn't exist
     x <- pgtrajSchema(conn, schema)

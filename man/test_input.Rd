@@ -36,4 +36,3 @@ Test inputs for the functions pgTrajDB2TempT()
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \keyword{internal}
-

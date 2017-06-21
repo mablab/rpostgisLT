@@ -29,7 +29,7 @@ stores the burst names.}
 
 \item{relocations}{Vector of string(s). Name of the field(s) that 
 contains the relocations in relocations_table. If relocations are 
-stored as pairs of (X,Y) or (long, lat) coorindates, the coordinates 
+stored as pairs of (X,Y) or (long, lat) coordinates, the coordinates 
 should be separated in two fields and referenced accordingly.}
 
 \item{timestamps}{String. Name of the field in relocations_table 
@@ -60,4 +60,3 @@ a POINT geometry in PostGIS.
 Balázs Dukai
 }
 \keyword{internal}
-

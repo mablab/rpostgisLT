@@ -6,8 +6,8 @@
 \usage{
 as_pgtraj(conn, relocations_table, schema = "traj", pgtrajs = "pgtraj",
   animals = "animal", bursts = NULL, relocations, timestamps = NULL,
-  rids = "rid", srid = NULL, note = NULL, clauses = NULL,
-  info_cols = NULL, info_table = NULL, info_rids = NULL)
+  rids = "rid", srid = NULL, tzone = NULL, note = NULL,
+  clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL)
 }
 \arguments{
 \item{conn}{Connection object created with RPostgreSQL}
@@ -45,6 +45,10 @@ will be sorted by the ascending numeric IDs in this field.}
 \item{srid}{Integer. Optional SRID (spatial reference ID) of (x,y)
 coordinates provided for relocations. Ignored if relocations is a 
 geometry type.}
+
+\item{tzone}{String. Time zone specification for the timestamps column. If not
+specified, the database server time zone will be used (usually the server's local
+time zone).}
 
 \item{note}{String. Comment on the pgtraj. The comment is only used in
 the database and not transferred into the ltraj.}
@@ -121,15 +125,14 @@ as_pgtraj(conn,
         rids = "gid")
 }
 }
-\author{
-Balázs Dukai \email{balazs.dukai@gmail.com}
-
-David Bucklin \email{dbucklin@ufl.edu}
-}
 \references{
 \url{https://CRAN.R-project.org/package=adehabitatLT/vignettes/adehabitatLT.pdf}
 }
 \seealso{
 Section on pgtraj data model in the package vignette.
 }
+\author{
+Balázs Dukai \email{balazs.dukai@gmail.com}
 
+David Bucklin \email{dbucklin@ufl.edu}
+}

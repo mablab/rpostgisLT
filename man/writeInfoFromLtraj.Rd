@@ -25,4 +25,3 @@ Write infolocs table to database from ltraj in ltraj2pgtraj()
 David Bucklin \email{dbucklin@ufl.edu}
 }
 \keyword{internal}
-

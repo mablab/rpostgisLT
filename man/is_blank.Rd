@@ -19,4 +19,3 @@ Test if an argument is either NA, NULL, NaN or empty string.
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
 \keyword{internal}
-

@@ -30,4 +30,3 @@ ltraj object.
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
 }
-

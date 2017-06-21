@@ -18,4 +18,3 @@ Create views that summarize all pgtrajes (and pgtraj bursts) in a schema.
 David Bucklin \email{dbucklin@ufl.edu}
 }
 \keyword{internal}
-

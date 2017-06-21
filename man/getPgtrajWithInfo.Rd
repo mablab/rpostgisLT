@@ -20,4 +20,3 @@ Get pgtraj with infolocs as a data frame (used in pgtraj2ltraj)
 David Bucklin \email{dbucklin@ufl.edu}
 }
 \keyword{internal}
-
