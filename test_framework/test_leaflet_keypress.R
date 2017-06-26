@@ -6,6 +6,7 @@ library(adehabitatLT)
 library(rpostgisLT)
 library(lubridate)
 library(shiny)
+library(leaflet)
 
 # DB connection -----------------------------------------------------------
 # NOTE: need to connect to a database on your own
@@ -78,7 +79,7 @@ source("./test_framework/makeShinyView.R")
 # keep in mind that the current version of makeShinyView materializes the views
 makeShinyView(conn, schema, pgtraj)
 
-# Window query ------------------------------------------------------------
+# Queriess ------------------------------------------------------------
 
 get_t_window <- function(conn, schema, view, time, interval){
     # t_start <- paste(start_date, start_hour)
@@ -103,21 +104,18 @@ get_t_window <- function(conn, schema, view, time, interval){
     # return(pgGetGeom(conn, query = sql_query))
 }
 
+
 get_full_traj <- function(conn, schema, view){
     # t_start <- paste(start_date, start_hour)
     sql_query <- paste0("
         SELECT
-            a.step_id,
-            a.step_geom,
-            a.relocation_time,
-            a.burst_name,
-            a.animal_name,
-            a.pgtraj_name
-        FROM ", schema, ".", view, " a
-        WHERE a.step_geom IS NOT NULL;")
+            st_makeline(step_geom)::geometry(linestring, 4326) AS traj_geom,
+            animal_name
+        FROM ", schema, ".", view, "
+        GROUP BY animal_name;")
     # s <- gsub("\n", "", sql_query)
     # print(s)
-    return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
+    return(st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
     # return(pgGetGeom(conn, query = sql_query))
 }
 
@@ -182,8 +180,8 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
                 addTiles() %>%
                 addPolylines(
                     group = "trajfull",
-                    fillOpacity = .8,
-                    opacity = .8,
+                    fillOpacity = .5,
+                    opacity = .5,
                     color = ~factpal(animal_name),
                     weight = 2
                 ) %>%
