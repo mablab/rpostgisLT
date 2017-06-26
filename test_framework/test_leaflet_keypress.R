@@ -121,13 +121,17 @@ get_full_traj <- function(conn, schema, view){
 
 # Shiny App----------------------------------------------------------------
 
+view <- "step_geometry_shiny_2004"
+
 incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increment,
                         nr_increment, interval) {
     view <- paste0("step_geometry_shiny_", pgtraj)
     # Start time
     t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+    t_next <- t + duration(hour = increment)
     # Get initial set of trajectories
     st <- get_t_window(conn, schema, view, t, interval)
+    st_next <- get_t_window(conn, schema, view, t_next, interval)
     
     # Get full traj
     st.1 <- get_full_traj(conn, schema, view)
@@ -155,53 +159,87 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
     server <- function(input, output) {
         
         w <- reactiveValues(data = st.1)
-        x <- reactiveValues(data = st)
-        timeOut <- reactiveValues(data = t)
+        x <- reactiveValues(currStep = st, nextStep = st_next)
+        # get current time window and the next
+        timeOut <- reactiveValues(currTime = t,
+                                  nextTime = t + duration(hour = increment))
         
+        # Only update timestamp on click
         observeEvent(input$n, {
-            timeOut$data <- timeOut$data + duration(hour = increment)
-            x$data <- get_t_window(conn, schema, view, timeOut$data, interval)
+            timeOut$currTime <- timeOut$currTime + duration(hour = increment)
+            timeOut$nextTime <- timeOut$currTime + duration(hour = increment)
         })
         
         observeEvent(input$b, {
-            timeOut$data <- timeOut$data - duration(hour = increment)
-            x$data <- get_t_window(conn, schema, view, timeOut$data, interval)
+            timeOut$currTime <- timeOut$currTime - duration(hour = increment)
+            timeOut$nextTime <- timeOut$currTime - duration(hour = increment)
         })
         
         # Report current timestamp
         output$tstamp <- renderText({
-            paste("Current time stamp:", format(timeOut$data, usetz = TRUE))
+            paste("Current time stamp:", format(timeOut$currTime, usetz = TRUE))
         })
 
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
-            if (is.null(w$data)) return()
-            leaflet(w$data) %>%
-                addTiles() %>%
-                addPolylines(
-                    group = "trajfull",
-                    fillOpacity = .5,
-                    opacity = .5,
-                    color = ~factpal(animal_name),
-                    weight = 2
-                ) %>%
-                addLayersControl(
-                    overlayGroups = "trajfull",
-                    options = layersControlOptions(collapsed = FALSE)
-                )
+            if (is.null(w$data)) {
+                return()
+            } else {
+                map <- leaflet() %>%
+                    addTiles(group = "OSM (default)") %>%
+                    addPolylines(
+                        data = w$data,
+                        group = "trajfull",
+                        fillOpacity = .5,
+                        opacity = .5,
+                        color = ~factpal(animal_name),
+                        weight = 2
+                    ) %>%
+                    addLayersControl(
+                        overlayGroups = c("OSM (default)", "trajfull"),
+                        options = layersControlOptions(collapsed = FALSE)
+                    ) 
+                
+                # map %>% 
+                #     addPolylines(
+                #         data = x$currStep,
+                #         group = "traj",
+                #         fillOpacity = 1,
+                #         opacity = 1,
+                #         color = ~factpal(animal_name),
+                #         weight = 4
+                #     )
+            }
+        })
+        
+        # get the traj segment on every click, on either n or b
+        observe({
+            x$currStep <- get_t_window(conn, schema, view, timeOut$currTime, interval)
+            x$nextStep <- get_t_window(conn, schema, view, timeOut$nextTime, interval)
         })
         
         observe({
-            leafletProxy("map", data = x$data) %>%
-                clearGroup("traj") %>%
+            leafletProxy("map", data = x$currStep, deferUntilFlush = TRUE) %>%
+                clearGroup("traj") %>% 
                 addPolylines(
+                    data = x$currStep,
                     group = "traj",
                     fillOpacity = 1,
                     opacity = 1,
                     color = ~factpal(animal_name),
                     weight = 4
-                )
+                ) %>% 
+                addPolylines(
+                    data = x$nextStep,
+                    group = "traj",
+                    fillOpacity = 1,
+                    opacity = 1,
+                    color = ~factpal(animal_name),
+                    weight = 4
+                ) %>% 
+                clearGroup("trajnew")
         })
+    
     }
     shinyApp(ui, server)
 }
