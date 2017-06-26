@@ -2,10 +2,20 @@ library(devtools)
 library(roxygen2)
 library(rmarkdown)
 
+
+# Simple install from source ----------------------------------------------
+
 pkg <- "rpostgisLT"
 
-# Install, build, load the package
+setwd("/home/bdukai/Development")
+
+# only install from the current source tree
 install(pkg)
+
+
+# Build the package -------------------------------------------------------
+
+# build, load the package
 build(pkg, binary = FALSE)
 devtools::check_built(path = "/home/bdukai/Development/rpostgisLT_0.4.0.tar.gz", check_version=TRUE)
 build_win(pkg)
