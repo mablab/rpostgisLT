@@ -30,12 +30,12 @@ makeShinyView <- function(conn, schema, pgtraj) {
           ORDER BY ab.id, s.id;
         
         CREATE
-            INDEX step_geometry_shiny_", pgtraj, "_reloc_time_idx ON
+            INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_reloc_time_idx ON
             ", view, "
                 USING btree(relocation_time);
         
         CREATE
-            INDEX step_geometry_shiny_", pgtraj, "_step_geom_idx ON
+            INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_step_geom_idx ON
             ", view, "
                 USING gist(step_geom);")
     
