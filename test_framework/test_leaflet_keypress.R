@@ -231,7 +231,7 @@ incrementSteps <- function(conn, schema, pgtraj, d_start, t_start, tzone, increm
                 ) %>% 
                 addPolylines(
                     data = x$nextStep,
-                    group = "traj",
+                    group = "trajnew",
                     fillOpacity = 1,
                     opacity = 1,
                     color = ~factpal(animal_name),
