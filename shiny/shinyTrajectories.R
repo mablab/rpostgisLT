@@ -11,6 +11,16 @@ source("./shiny/trajPlotter.R")
 
 # if you need to transfer pgtraj-es between databases, use the /utility/transfer_pgtraj.R script
 
+# Ibex
+schema <- "ibex_traj"
+pgtraj <- "ibex"
+d_start <- "2003-06-01" # first date
+t_start <- "00:00:00" # first hour
+tzone <- "Europe/Paris"
+increment <- 4 # increment by 1 hours at a time
+nr_increment <- 10 # increment 10x
+interval <- 24 # hours of time window to load
+
 # Storks
 schema <- "stork_traj"
 pgtraj <- "2004"
@@ -26,10 +36,15 @@ interval <- 48 # hours of time window to load
 # Keep in mind that the current version of makeShinyView materializes the views
 
 # However, the storks dataset is in EPSG:4326 already
-# makeShinyView(conn, schema, pgtraj)
+makeShinyView(conn, schema, pgtraj)
 
 
 # Run ---------------------------------------------------------------------
 
-trajPlotter(conn, schema, pgtraj, d_start, t_start, tzone, increment,
-            nr_increment, interval)
+pgtrajPlotter(conn, schema, pgtraj, d_start, t_start, tzone, increment,
+                nr_increment, interval)
+
+
+ltrajPlotter(conn, schema, pgtraj, stork_2004_sf, d_start, t_start, tzone, increment, nr_increment,
+             interval)
+
