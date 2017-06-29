@@ -257,6 +257,7 @@ ltrajPlotter <- function(conn, schema, pgtraj, pgtraj_sf, d_start, t_start, tzon
             leafletProxy("map", data = x$currStep, deferUntilFlush = TRUE) %>%
                 clearGroup("traj") %>%
                 addPolylines(
+                    layerId = "a",
                     data = x$currStep,
                     group = "traj",
                     fillOpacity = 1,
