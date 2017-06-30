@@ -1,0 +1,45 @@
+grid_code;clc_l3_code;label1;label2;label3
+1;111;Artificial surfaces;Urban fabric;Continuous urban fabric
+2;112;Artificial surfaces;Urban fabric;Discontinuous urban fabric
+3;121;Artificial surfaces;Industrial, commercial and transport units;Industrial or commercial units
+4;122;Artificial surfaces;Industrial, commercial and transport units;Road and rail networks and associated land
+5;123;Artificial surfaces;Industrial, commercial and transport units;Port areas
+6;124;Artificial surfaces;Industrial, commercial and transport units;Airports
+7;131;Artificial surfaces;Mine, dump and construction sites;Mineral extraction sites
+8;132;Artificial surfaces;Mine, dump and construction sites;Dump sites
+9;133;Artificial surfaces;Mine, dump and construction sites;Construction sites
+10;141;Artificial surfaces;Artificial, non-agricultural vegetated areas;Green urban areas
+11;142;Artificial surfaces;Artificial, non-agricultural vegetated areas;Sport and leisure facilities
+12;211;Agricultural areas;Arable land;Non-irrigated arable land
+13;212;Agricultural areas;Arable land;Permanently irrigated land
+14;213;Agricultural areas;Arable land;Rice fields
+15;221;Agricultural areas;Permanent crops;Vineyards
+16;222;Agricultural areas;Permanent crops;Fruit trees and berry plantations
+17;223;Agricultural areas;Permanent crops;Olive groves
+18;231;Agricultural areas;Pastures;Pastures
+19;241;Agricultural areas;Heterogeneous agricultural areas;Annual crops associated with permanent crops
+20;242;Agricultural areas;Heterogeneous agricultural areas;Complex cultivation patterns
+21;243;Agricultural areas;Heterogeneous agricultural areas;Land principally occupied by agriculture, with significant areas of natural vegetation
+22;244;Agricultural areas;Heterogeneous agricultural areas;Agro-forestry areas
+23;311;Forest and semi natural areas;Forests;Broad-leaved forest
+24;312;Forest and semi natural areas;Forests;Coniferous forest
+25;313;Forest and semi natural areas;Forests;Mixed forest
+26;321;Forest and semi natural areas;Scrub and/or herbaceous vegetation associations;Natural grasslands
+27;322;Forest and semi natural areas;Scrub and/or herbaceous vegetation associations;Moors and heathland
+28;323;Forest and semi natural areas;Scrub and/or herbaceous vegetation associations;Sclerophyllous vegetation
+29;324;Forest and semi natural areas;Scrub and/or herbaceous vegetation associations;Transitional woodland-shrub
+30;331;Forest and semi natural areas;Open spaces with little or no vegetation;Beaches, dunes, sands
+31;332;Forest and semi natural areas;Open spaces with little or no vegetation;Bare rocks
+32;333;Forest and semi natural areas;Open spaces with little or no vegetation;Sparsely vegetated areas
+33;334;Forest and semi natural areas;Open spaces with little or no vegetation;Burnt areas
+34;335;Forest and semi natural areas;Open spaces with little or no vegetation;Glaciers and perpetual snow
+35;411;Wetlands;Inland wetlands;Inland marshes
+36;412;Wetlands;Inland wetlands;Peat bogs
+37;421;Wetlands;Maritime wetlands;Salt marshes
+38;422;Wetlands;Maritime wetlands;Salines
+39;423;Wetlands;Maritime wetlands;Intertidal flats
+40;511;Water bodies;Inland waters;Water courses
+41;512;Water bodies;Inland waters;Water bodies
+42;521;Water bodies;Marine waters;Coastal lagoons
+43;522;Water bodies;Marine waters;Estuaries
+44;523;Water bodies;Marine waters;Sea and ocean
