@@ -47,28 +47,38 @@ get_full_traj <- function(conn, schema, view){
 
 # Shiny App----------------------------------------------------------------
 
-pgtrajPlotter <- function(conn, schema, pgtraj, d_start, t_start, tzone, increment,
-                           nr_increment, interval) {
-    view <- paste0("step_geometry_shiny_", pgtraj)
-    # Start time
-    t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-    # Get initial set of trajectories
-    st <- get_t_window(conn, schema, view, t, interval)
-    
-    # Get full traj
-    st.1 <- get_full_traj(conn, schema, view)
-    
-    factpal <- colorFactor(topo.colors(4), st$animal_name)
-    
+
+pgtrajPlotter <-
+    function(conn,
+             schema,
+             pgtraj,
+             d_start,
+             t_start,
+             tzone,
+             increment,
+             nr_increment,
+             interval) {
+        view <- paste0("step_geometry_shiny_", pgtraj)
+        # Start time
+        t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+        # Get initial set of trajectories
+        st <- get_t_window(conn, schema, view, t, interval)
+        
+        # Get full traj
+        st.1 <- get_full_traj(conn, schema, view)
+        
+        factpal <- colorFactor(topo.colors(4), st$animal_name)
+        
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
         h4(textOutput("tstamp")),
         tags$script('$(document).on("keydown",
                     function (e) {
+                    var d = new Date(); 
                     if(e.which == 66) {
-                    Shiny.onInputChange("b", new Date());
+                    Shiny.onInputChange("b", Math.round((d.getMilliseconds()+251) / 500) );
                     } else if (e.which == 78) {
-                    Shiny.onInputChange("n", new Date());
+                    Shiny.onInputChange("n", Math.round((d.getMilliseconds()+251) / 500) );
                     }
                     });
                     '),

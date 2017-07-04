@@ -26,10 +26,11 @@ ltrajPlotter <- function(pgtraj_sf,
         tags$script(
             '$(document).on("keydown",
             function (e) {
+            var d = new Date();
             if(e.which == 66) {
-            Shiny.onInputChange("b", new Date());
+            Shiny.onInputChange("b", Math.round((d.getMilliseconds()+251) / 500) );
             } else if (e.which == 78) {
-            Shiny.onInputChange("n", new Date());
+            Shiny.onInputChange("n", Math.round((d.getMilliseconds()+251) / 500) );
             }
             });
             '
@@ -41,9 +42,8 @@ ltrajPlotter <- function(pgtraj_sf,
     )
     
     server <- function(input, output) {
-        
-        filterData <- 
-        x <- reactiveValues(currStep = st, counter = 0)
+        filterData <-
+            x <- reactiveValues(currStep = st, counter = 0)
         # get current time window and the next
         timeOut <- reactiveValues(currTime = t)
         
@@ -51,35 +51,38 @@ ltrajPlotter <- function(pgtraj_sf,
         observeEvent(input$n, {
             # for assigning alternating group names
             x$counter <- x$counter + 1
-            timeOut$currTime <- timeOut$currTime + duration(hour = increment)
+            timeOut$currTime <-
+                timeOut$currTime + duration(hour = increment)
             x$currStep <-
-                filter(
-                    pgtraj_sf,
-                    date >= timeOut$currTime &
-                        date < (timeOut$currTime + duration(hour = interval))
-                )
+                filter(pgtraj_sf,
+                       date >= timeOut$currTime &
+                           date < (timeOut$currTime + duration(hour = interval)))
         })
         
         observeEvent(input$b, {
             # for assigning alternating group names
             x$counter <- x$counter + 1
-            timeOut$currTime <- timeOut$currTime - duration(hour = increment)
+            timeOut$currTime <-
+                timeOut$currTime - duration(hour = increment)
             x$currStep <-
-                filter(
-                    pgtraj_sf,
-                    date >= timeOut$currTime &
-                        date < (timeOut$currTime + duration(hour = interval))
-                )
+                filter(pgtraj_sf,
+                       date >= timeOut$currTime &
+                           date < (timeOut$currTime + duration(hour = interval)))
         })
         
         # Report current timestamp
         output$tstamp <- renderText({
-            paste("Time window:",
-                  format(timeOut$currTime, usetz = TRUE),
-                  "—",
-                  format(timeOut$currTime + duration(hour = interval), usetz = TRUE))
+            paste(
+                "Time window:",
+                format(timeOut$currTime, usetz = TRUE),
+                "—",
+                format(
+                    timeOut$currTime + duration(hour = interval),
+                    usetz = TRUE
+                )
+            )
         })
-
+        
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
             map <- leaflet() %>%
@@ -89,7 +92,7 @@ ltrajPlotter <- function(pgtraj_sf,
                     group = "trajfull",
                     fillOpacity = .5,
                     opacity = .5,
-                    color = ~factpal(id),
+                    color = ~ factpal(id),
                     # color = "red",
                     weight = 2
                 ) %>%
@@ -108,7 +111,7 @@ ltrajPlotter <- function(pgtraj_sf,
                     group = gname,
                     fillOpacity = 1,
                     opacity = 1,
-                    color = ~factpal(id),
+                    color = ~ factpal(id),
                     weight = 4
                 )
             if (x$counter %% 2 == 0) {
@@ -121,4 +124,4 @@ ltrajPlotter <- function(pgtraj_sf,
     }
     shinyApp(ui, server)
     
-}
+    }
