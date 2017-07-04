@@ -30,5 +30,19 @@ roe_ltraj_reg <- adehabitatLT::redisltraj(roe_ltraj, 14400, type = "time")
 roe_df <- hab::ltraj2sldf(na.omit(roe_ltraj_reg), by = "step")
 roe_sf <- dplyr::arrange(sf::st_as_sf(roe_df), date)
 sf::st_crs(roe_sf) = 4326
+save(roe_sf, file = "./data/roe_sf.RData")
 
 rm(roe_df, roe_gps_data, roe_ltraj, roe_ltraj_reg, gps_data)
+
+# Prepare stork_2004_sf.rda ----------------------------------------------------
+
+stork_2004_ltraj <- pgtraj2ltraj(conn, "2004", "stork_traj")
+stork_2004_df <- hab::ltraj2sldf(na.omit(stork_2004_ltraj),
+                                 by = "step")
+stork_2004_sf <- 
+    sf::st_as_sf(stork_2004_df) %>% 
+    arrange(date) %>% 
+    st_set_crs(4326)
+
+save(stork_2004_sf, file = "./data/stork_2004_sf.rda")
+

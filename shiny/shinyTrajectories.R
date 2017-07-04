@@ -4,6 +4,7 @@ source("./shiny/makeShinyView.R")
 source("./shiny/pgtrajPlotter.R")
 source("./shiny/ltrajPlotter.R")
 data("roe_sf")
+data("stork_2004_sf")
 
 # Setup -------------------------------------------------------------------
 
@@ -19,7 +20,6 @@ d_start <- "2003-06-01" # first date
 t_start <- "00:00:00" # first hour
 tzone <- "Europe/Paris"
 increment <- 4 # increment by 1 hours at a time
-nr_increment <- 10 # increment 10x
 interval <- 24 # hours of time window to load
 
 # Storks
@@ -29,7 +29,6 @@ d_start <- "2004-06-01" # first date
 t_start <- "00:00:00" # first hour
 tzone <- "Europe/Amsterdam"
 increment <- 24 # increment by 1 hours at a time
-nr_increment <- 10 # increment 10x
 interval <- 48 # hours of time window to load
 
 # Need to create a new View in DB with EPSG:4326, because that's what Leaflet
@@ -63,3 +62,11 @@ ltrajPlotter(
     interval = 48
 )
 
+ltrajPlotter(
+    pgtraj_sf = stork_2004_sf,
+    d_start = "2004-06-01",
+    t_start = "00:00:00",
+    tzone = "Europe/Amsterdam",
+    increment = 24,
+    interval = 48
+)
