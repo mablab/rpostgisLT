@@ -169,116 +169,116 @@ pgtrajPlotter <- function(conn, schema, pgtraj, d_start, t_start, tzone, increme
 }
 
 
-ltrajPlotter <- function(conn, schema, pgtraj, pgtraj_sf, d_start, t_start, tzone, increment,
-                         nr_increment, interval) {
-    view <- paste0("step_geometry_shiny_", pgtraj)
-    # Start time
-    t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-    t_next <- t + duration(hour = increment)
-    
-    # st.1 <- get_full_traj(conn, schema, view)
-    
-    st <- filter(pgtraj_sf, relocation_time >= t & relocation_time < t + duration(hour = increment))
-    st_next <- filter(pgtraj_sf, relocation_time >= t_next & relocation_time < t_next + duration(hour = increment))
-    
-    factpal <- colorFactor(topo.colors(4), st$animal_name)
-    
-    ui <- bootstrapPage(
-        tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-        h3(textOutput("tstamp")),
-        tags$script('$(document).on("keydown",
-                    function (e) {
-                    if(e.which == 66) {
-                    Shiny.onInputChange("b", new Date());
-                    } else if (e.which == 78) {
-                    Shiny.onInputChange("n", new Date());
-                    }
-                    });
-                    '),
-        actionButton("b", "Back"),
-        actionButton("n", "Next"),
-        h5("press B or N"),
-        leafletOutput("map", width = "100%", height = "100%")
-    )
-    
-    server <- function(input, output) {
-        
-        # w <- reactiveValues(data = st.1)
-        x <- reactiveValues(currStep = st, nextStep = st_next)
-        # get current time window and the next
-        timeOut <- reactiveValues(currTime = t,
-                                  nextTime = t + duration(hour = increment))
-        
-        # Only update timestamp on click
-        observeEvent(input$n, {
-            timeOut$currTime <- timeOut$currTime + duration(hour = increment)
-            timeOut$nextTime <- timeOut$currTime + duration(hour = increment)
-        })
-        
-        observeEvent(input$b, {
-            timeOut$currTime <- timeOut$currTime - duration(hour = increment)
-            timeOut$nextTime <- timeOut$currTime - duration(hour = increment)
-        })
-        
-        # Report current timestamp
-        output$tstamp <- renderText({
-            paste("Current time stamp:", format(timeOut$currTime, usetz = TRUE))
-        })
-        
-        # Leaflet base map, and starting view centered at the trajectories
-        output$map <- renderLeaflet({
-            # if (is.null(w$data)) {
-            #     return()
-            # } else {
-                map <- leaflet() %>%
-                    addTiles(group = "OSM (default)") %>%
-                    addPolylines(
-                        data = st,
-                        group = "trajfull",
-                        fillOpacity = .5,
-                        opacity = .5,
-                        color = ~factpal(animal_name),
-                        weight = 2
-                    ) %>%
-                    addLayersControl(
-                        overlayGroups = c("OSM (default)", "trajfull"),
-                        options = layersControlOptions(collapsed = FALSE)
-                    ) 
-            # }
-        })
-        
-        # get the traj segment on every click, on either n or b
-        observe({
-            x$currStep <-
-                filter(
-                    pgtraj_sf,
-                    relocation_time >= timeOut$currTime &
-                        relocation_time < timeOut$currTime + duration(hour = interval)
-                )
-            x$nextStep <-
-                filter(
-                    pgtraj_sf,
-                    relocation_time >= timeOut$nextTime &
-                        relocation_time < timeOut$nextTime + duration(hour = interval)
-                )
-        })
-        
-        observe({
-            leafletProxy("map", data = x$currStep, deferUntilFlush = TRUE) %>%
-                clearGroup("traj") %>%
-                addPolylines(
-                    layerId = "a",
-                    data = x$currStep,
-                    group = "traj",
-                    fillOpacity = 1,
-                    opacity = 1,
-                    color = ~factpal(animal_name),
-                    weight = 4
-                )
-        })
-        
-    }
-    shinyApp(ui, server)
-    
-}
+# ltrajPlotter <- function(conn, schema, pgtraj, pgtraj_sf, d_start, t_start, tzone, increment,
+#                          nr_increment, interval) {
+#     view <- paste0("step_geometry_shiny_", pgtraj)
+#     # Start time
+#     t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+#     t_next <- t + duration(hour = increment)
+#     
+#     # st.1 <- get_full_traj(conn, schema, view)
+#     
+#     st <- filter(pgtraj_sf, relocation_time >= t & relocation_time < t + duration(hour = increment))
+#     st_next <- filter(pgtraj_sf, relocation_time >= t_next & relocation_time < t_next + duration(hour = increment))
+#     
+#     factpal <- colorFactor(topo.colors(4), st$animal_name)
+#     
+#     ui <- bootstrapPage(
+#         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+#         h3(textOutput("tstamp")),
+#         tags$script('$(document).on("keydown",
+#                     function (e) {
+#                     if(e.which == 66) {
+#                     Shiny.onInputChange("b", new Date());
+#                     } else if (e.which == 78) {
+#                     Shiny.onInputChange("n", new Date());
+#                     }
+#                     });
+#                     '),
+#         actionButton("b", "Back"),
+#         actionButton("n", "Next"),
+#         h5("press B or N"),
+#         leafletOutput("map", width = "100%", height = "100%")
+#     )
+#     
+#     server <- function(input, output) {
+#         
+#         # w <- reactiveValues(data = st.1)
+#         x <- reactiveValues(currStep = st, nextStep = st_next)
+#         # get current time window and the next
+#         timeOut <- reactiveValues(currTime = t,
+#                                   nextTime = t + duration(hour = increment))
+#         
+#         # Only update timestamp on click
+#         observeEvent(input$n, {
+#             timeOut$currTime <- timeOut$currTime + duration(hour = increment)
+#             timeOut$nextTime <- timeOut$currTime + duration(hour = increment)
+#         })
+#         
+#         observeEvent(input$b, {
+#             timeOut$currTime <- timeOut$currTime - duration(hour = increment)
+#             timeOut$nextTime <- timeOut$currTime - duration(hour = increment)
+#         })
+#         
+#         # Report current timestamp
+#         output$tstamp <- renderText({
+#             paste("Current time stamp:", format(timeOut$currTime, usetz = TRUE))
+#         })
+#         
+#         # Leaflet base map, and starting view centered at the trajectories
+#         output$map <- renderLeaflet({
+#             # if (is.null(w$data)) {
+#             #     return()
+#             # } else {
+#                 map <- leaflet() %>%
+#                     addTiles(group = "OSM (default)") %>%
+#                     addPolylines(
+#                         data = st,
+#                         group = "trajfull",
+#                         fillOpacity = .5,
+#                         opacity = .5,
+#                         color = ~factpal(animal_name),
+#                         weight = 2
+#                     ) %>%
+#                     addLayersControl(
+#                         overlayGroups = c("OSM (default)", "trajfull"),
+#                         options = layersControlOptions(collapsed = FALSE)
+#                     ) 
+#             # }
+#         })
+#         
+#         # get the traj segment on every click, on either n or b
+#         observe({
+#             x$currStep <-
+#                 filter(
+#                     pgtraj_sf,
+#                     relocation_time >= timeOut$currTime &
+#                         relocation_time < timeOut$currTime + duration(hour = interval)
+#                 )
+#             x$nextStep <-
+#                 filter(
+#                     pgtraj_sf,
+#                     relocation_time >= timeOut$nextTime &
+#                         relocation_time < timeOut$nextTime + duration(hour = interval)
+#                 )
+#         })
+#         
+#         observe({
+#             leafletProxy("map", data = x$currStep, deferUntilFlush = TRUE) %>%
+#                 clearGroup("traj") %>%
+#                 addPolylines(
+#                     layerId = "a",
+#                     data = x$currStep,
+#                     group = "traj",
+#                     fillOpacity = 1,
+#                     opacity = 1,
+#                     color = ~factpal(animal_name),
+#                     weight = 4
+#                 )
+#         })
+#         
+#     }
+#     shinyApp(ui, server)
+#     
+# }
 
