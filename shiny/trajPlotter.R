@@ -13,16 +13,16 @@ get_t_window <- function(conn, schema, view, time, interval){
     t_interval <- paste(interval, "hour")
     sql_query <- paste0("
                         SELECT
-                        a.step_id,
-                        a.step_geom,
-                        a.relocation_time,
-                        a.burst_name,
-                        a.animal_name,
-                        a.pgtraj_name
+                            a.step_id,
+                            a.step_geom,
+                            a.relocation_time,
+                            a.burst_name,
+                            a.animal_name,
+                            a.pgtraj_name
                         FROM ", schema, ".", view, " a
                         WHERE a.relocation_time >= '", t, "'::timestamptz
                         AND a.relocation_time < ('", t, "'::timestamptz + '",
-                        t_interval, "'::INTERVAL)
+                            t_interval, "'::INTERVAL)
                         AND a.step_geom IS NOT NULL;")
     # s <- gsub("\n", "", sql_query)
     # print(s)
@@ -249,8 +249,18 @@ ltrajPlotter <- function(conn, schema, pgtraj, pgtraj_sf, d_start, t_start, tzon
         
         # get the traj segment on every click, on either n or b
         observe({
-            x$currStep <- filter(pgtraj_sf, relocation_time >= timeOut$currTime & relocation_time < timeOut$currTime + duration(hour = increment))
-            x$nextStep <- filter(pgtraj_sf, relocation_time >= timeOut$nextTime & relocation_time < timeOut$nextTime + duration(hour = increment))
+            x$currStep <-
+                filter(
+                    pgtraj_sf,
+                    relocation_time >= timeOut$currTime &
+                        relocation_time < timeOut$currTime + duration(hour = interval)
+                )
+            x$nextStep <-
+                filter(
+                    pgtraj_sf,
+                    relocation_time >= timeOut$nextTime &
+                        relocation_time < timeOut$nextTime + duration(hour = interval)
+                )
         })
         
         observe({
