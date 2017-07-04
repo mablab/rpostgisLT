@@ -1,8 +1,9 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
 source("./utility/connect_db.R")
 source("./shiny/makeShinyView.R")
-source("./shiny/trajPlotter.R")
-
+source("./shiny/pgtrajPlotter.R")
+source("./shiny/ltrajPlotter.R")
+data("roe_sf")
 
 # Setup -------------------------------------------------------------------
 
@@ -41,10 +42,24 @@ makeShinyView(conn, schema, pgtraj)
 
 # Run ---------------------------------------------------------------------
 
-pgtrajPlotter(conn, schema, pgtraj, d_start, t_start, tzone, increment,
-                nr_increment, interval)
+# pgtraj from database
+pgtrajPlotter(conn,
+              schema,
+              pgtraj,
+              d_start,
+              t_start,
+              tzone,
+              increment,
+              nr_increment,
+              interval)
 
-
-ltrajPlotter(conn, schema, pgtraj, stork_2004_sf, d_start, t_start, tzone, increment, nr_increment,
-             interval)
+# ltraj-sf from R
+ltrajPlotter(
+    pgtraj_sf = roe_sf,
+    d_start = "2005-10-22",
+    t_start = "00:00:00",
+    tzone = "UTC",
+    increment = 4,
+    interval = 48
+)
 

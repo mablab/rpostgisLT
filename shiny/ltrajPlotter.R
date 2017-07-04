@@ -3,7 +3,6 @@ library(lubridate)
 library(shiny)
 library(leaflet)
 library(dplyr)
-load("roe_sf.RData")
 
 ltrajPlotter <- function(pgtraj_sf,
                          d_start,
@@ -13,25 +12,17 @@ ltrajPlotter <- function(pgtraj_sf,
                          interval) {
     # Start time
     t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-    t_next <- t + duration(hour = increment)
     
     st <-
         filter(pgtraj_sf,
                date >= t &
                    date < t + duration(hour = increment))
-    st_next <-
-        filter(
-            pgtraj_sf,
-            date >= t_next &
-                date < t_next + duration(hour = increment)
-        )
     
     factpal <- colorFactor("RdYlBu", st$id)
     
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-        h3(textOutput("tstamp")),
-        h3(textOutput("window_end")),
+        h4(textOutput("tstamp")),
         tags$script(
             '$(document).on("keydown",
             function (e) {
@@ -50,36 +41,45 @@ ltrajPlotter <- function(pgtraj_sf,
     )
     
     server <- function(input, output) {
-        x <- reactiveValues(currStep = st, nextStep = st_next)
+        
+        filterData <- 
+        x <- reactiveValues(currStep = st, counter = 0)
         # get current time window and the next
-        timeOut <- reactiveValues(currTime = t,
-                                  nextTime = t + duration(hour = increment))
+        timeOut <- reactiveValues(currTime = t)
         
         # Only update timestamp on click
         observeEvent(input$n, {
+            # for assigning alternating group names
+            x$counter <- x$counter + 1
             timeOut$currTime <- timeOut$currTime + duration(hour = increment)
-            timeOut$nextTime <-
-                timeOut$currTime + duration(hour = increment)
+            x$currStep <-
+                filter(
+                    pgtraj_sf,
+                    date >= timeOut$currTime &
+                        date < (timeOut$currTime + duration(hour = interval))
+                )
         })
         
         observeEvent(input$b, {
+            # for assigning alternating group names
+            x$counter <- x$counter + 1
             timeOut$currTime <- timeOut$currTime - duration(hour = increment)
-            timeOut$nextTime <-
-                timeOut$currTime - duration(hour = increment)
+            x$currStep <-
+                filter(
+                    pgtraj_sf,
+                    date >= timeOut$currTime &
+                        date < (timeOut$currTime + duration(hour = interval))
+                )
         })
         
         # Report current timestamp
         output$tstamp <- renderText({
-            paste("Time window start:",
-                  format(timeOut$currTime, usetz = TRUE))
-        })
-        
-        output$window_end <- renderText({
-            paste("Time window end:",
+            paste("Time window:",
+                  format(timeOut$currTime, usetz = TRUE),
+                  "—",
                   format(timeOut$currTime + duration(hour = interval), usetz = TRUE))
         })
 
-        
         # Leaflet base map, and starting view centered at the trajectories
         output$map <- renderLeaflet({
             map <- leaflet() %>%
@@ -97,48 +97,28 @@ ltrajPlotter <- function(pgtraj_sf,
                                  options = layersControlOptions(collapsed = FALSE))
         })
         
-        # get the traj segment on every click, on either n or b
         observe({
-            x$currStep <-
-                filter(
-                    pgtraj_sf,
-                    date >= timeOut$currTime &
-                        date < (timeOut$currTime + duration(hour = interval))
-                )
-            x$nextStep <-
-                filter(
-                    pgtraj_sf,
-                    date >= timeOut$nextTime &
-                        date < (timeOut$nextTime + duration(hour = interval))
-                )
-        })
-        
-        observe({
-            leafletProxy("map", deferUntilFlush = TRUE) %>%
-                clearGroup("traj") %>%
+            if (x$counter %% 2 == 0) {
+                gname <- "traj"
+            } else {
+                gname <- "trajnew"
+            }
+            proxy <- leafletProxy("map", data = x$currStep) %>%
                 addPolylines(
-                    data = x$currStep,
-                    group = "traj",
+                    group = gname,
                     fillOpacity = 1,
                     opacity = 1,
-                    color = ~ factpal(id),
-                    # color = "red",
+                    color = ~factpal(id),
                     weight = 4
                 )
+            if (x$counter %% 2 == 0) {
+                proxy %>% clearGroup("trajnew")
+            } else {
+                proxy %>% clearGroup("traj")
+            }
         })
         
     }
     shinyApp(ui, server)
     
 }
-
-
-ltrajPlotter(
-    pgtraj_sf = roe_sf,
-    d_start = "2005-10-22",
-    t_start = "00:00:00",
-    tzone = "UTC",
-    increment = 4,
-    interval = 48
-)
-
