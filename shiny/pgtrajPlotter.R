@@ -4,6 +4,7 @@ library(shiny)
 library(leaflet)
 library(dplyr)
 library(RPostgreSQL)
+library(testthat)
 
 
 # Queries ------------------------------------------------------------
@@ -75,17 +76,13 @@ get_burst_geom(conn, schema, "step_geometry_shiny_ibex", "A153")
 
 # Get the complete trajectory of an animal as a single linestring
 get_full_traj <- function(conn, schema, view){
-    # t_start <- paste(start_date, start_hour)
     sql_query <- paste0("
                         SELECT
                         st_makeline(step_geom)::geometry(linestring, 4326) AS traj_geom,
                         animal_name
                         FROM ", schema, ".", view, "
                         GROUP BY animal_name;")
-    # s <- gsub("\n", "", sql_query)
-    # print(s)
     return(st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
-    # return(pgGetGeom(conn, query = sql_query))
 }
 
 # Shiny App----------------------------------------------------------------
@@ -110,14 +107,21 @@ pgtrajPlotter <-
         # Get full traj
         st.1 <- get_full_traj(conn, schema, view)
         
+        # color by animal_name
         factpal <- colorFactor(topo.colors(4), st$animal_name)
+        
+        # get burst list for burst mode
+        burst_list <- get_burst_list(conn, schema, view)
+        # burst_counter <- 1
+        burst_len <- nrow(burst_list)
+        paste0(burst_counter, "/", burst_len)
+        
+        # TODO: add validation for burst_len >= 1
         
     ui <- fluidPage(
         # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
         sidebarLayout(
             sidebarPanel(
-                h4(strong("Time window")),
-                h5(textOutput("tstamp")),
                 tags$script('$(document).on("keydown",
                     function (e) {
                         var d = new Date(); 
@@ -130,13 +134,18 @@ pgtrajPlotter <-
                         }
                     });
                     '),
-                actionButton("b", "Back"),
-                actionButton("n", "Next"),
-                h5("press B or N"),
                 radioButtons("step_burst", label = h4(strong("Increment")),
                              choices = list("Bursts" = "burst",
                                             "Steps" = "step"),
-                             selected = "burst")
+                             selected = "step"),
+                h4(strong("Steps")),
+                h5(textOutput("tstamp")),
+                h4(strong("Burst")),
+                h5(textOutput("burst_name")),
+                h5(textOutput("burst_counter")),
+                actionButton("b", "Back"),
+                actionButton("n", "Next"),
+                h5("press B or N")
             ),
             mainPanel(
                 leafletOutput("map")
@@ -147,7 +156,8 @@ pgtrajPlotter <-
     server <- function(input, output) {
         
         w <- reactiveValues(data = st.1)
-        x <- reactiveValues(currStep = st, counter = 0)
+        x <- reactiveValues(currStep = st, counter = 0, burst_counter = 0,
+                            burst_name = "")
         # get current time window and the next
         timeOut <- reactiveValues(currTime = t)
         
@@ -155,15 +165,37 @@ pgtrajPlotter <-
         observeEvent(input$n, {
             # for assigning alternating group names
             x$counter <- x$counter + 1
-            timeOut$currTime <- timeOut$currTime + duration(hour = increment)
-            x$currStep <- get_t_window(conn, schema, view, timeOut$currTime, interval)
+            
+            if(input$step_burst == "burst") {
+                if(x$burst_counter < burst_len) {
+                    x$burst_counter <- x$burst_counter + 1
+                    x$burst_name <- burst_list[x$burst_counter, "burst_name"]
+                    x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
+                }
+            } else if (input$step_burst == "step") {
+                timeOut$currTime <- timeOut$currTime + duration(hour = increment)
+                x$currStep <- get_t_window(conn, schema, view, timeOut$currTime,
+                                           interval)
+            }
         })
         
         observeEvent(input$b, {
             # for assigning alternating group names
             x$counter <- x$counter + 1
-            timeOut$currTime <- timeOut$currTime - duration(hour = increment)
-            x$currStep <- get_t_window(conn, schema, view, timeOut$currTime, interval)
+            
+            if(input$step_burst == "burst") {
+
+                if(x$burst_counter > 1){
+                    x$burst_counter <- x$burst_counter - 1
+                    x$burst_name <- burst_list[x$burst_counter, "burst_name"]
+                    x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
+                }
+            } else if (input$step_burst == "step") {
+                timeOut$currTime <- timeOut$currTime - duration(hour = increment)
+                x$currStep <- get_t_window(conn, schema, view, timeOut$currTime,
+                                           interval)
+            }
+
         })
         
         # Report current timestamp
@@ -171,6 +203,15 @@ pgtrajPlotter <-
             paste(format(timeOut$currTime, usetz = TRUE),
                   "—",
                   format(timeOut$currTime + duration(hour = interval), usetz = TRUE))
+        })
+        
+        # Report current burst name and count
+        output$burst_name <- renderText({
+            x$burst_name
+        })
+        
+        output$burst_counter <- renderText({
+            paste0(x$burst_counter, "/", burst_len)
         })
         
         # Leaflet base map, and starting view centered at the trajectories
