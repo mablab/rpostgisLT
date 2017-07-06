@@ -69,23 +69,32 @@ pgtrajPlotter <-
         
         factpal <- colorFactor(topo.colors(4), st$animal_name)
         
-    ui <- bootstrapPage(
-        tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-        h4(textOutput("tstamp")),
-        tags$script('$(document).on("keydown",
+    ui <- fluidPage(
+        # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+        sidebarLayout(
+            sidebarPanel(
+                h5(strong("Time window")),
+                h5(textOutput("tstamp")),
+                tags$script('$(document).on("keydown",
                     function (e) {
-                    var d = new Date(); 
-                    if(e.which == 66) {
-                    Shiny.onInputChange("b", Math.round((d.getMilliseconds()+251) / 500) );
-                    } else if (e.which == 78) {
-                    Shiny.onInputChange("n", Math.round((d.getMilliseconds()+251) / 500) );
-                    }
+                        var d = new Date(); 
+                        if(e.which == 66) {
+                            Shiny.onInputChange("b",
+                                Math.round((d.getMilliseconds()+251) / 500) );
+                        } else if (e.which == 78) {
+                            Shiny.onInputChange("n",
+                                Math.round((d.getMilliseconds()+251) / 500) );
+                        }
                     });
                     '),
-        actionButton("b", "Back"),
-        actionButton("n", "Next"),
-        h5("press B or N"),
-        leafletOutput("map", width = "100%", height = "100%")
+                actionButton("b", "Back"),
+                actionButton("n", "Next"),
+                h5("press B or N")
+            ),
+            mainPanel(
+                leafletOutput("map")
+            )
+        )
     )
     
     server <- function(input, output) {
@@ -112,8 +121,7 @@ pgtrajPlotter <-
         
         # Report current timestamp
         output$tstamp <- renderText({
-            paste("Time window:",
-                  format(timeOut$currTime, usetz = TRUE),
+            paste(format(timeOut$currTime, usetz = TRUE),
                   "—",
                   format(timeOut$currTime + duration(hour = interval), usetz = TRUE))
         })
