@@ -42,7 +42,6 @@ makeShinyView(conn, schema, pgtraj)
 # Run ---------------------------------------------------------------------
 
 # pgtraj from database
-source("./shiny/pgtrajPlotter.R")
 pgtrajPlotter(conn,
               schema,
               pgtraj,

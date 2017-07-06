@@ -3,19 +3,21 @@ library(lubridate)
 library(shiny)
 library(leaflet)
 library(dplyr)
-library(RPostgreSQL)
-library(testthat)
+library(DBI)
+library(htmltools)
+library(mapview)
 
 
 # Queries ------------------------------------------------------------
 
 # Get steps within a temporal window
-get_t_window <- function(conn, schema, view, time, interval){
+get_step_window <- function(conn, schema, view, time, interval, step_mode){
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(interval, "hour"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
-    sql_query <- paste0("
+    if(step_mode){
+        sql_query <- paste0("
                         SELECT
                             a.step_id,
                             a.step_geom,
@@ -28,6 +30,21 @@ get_t_window <- function(conn, schema, view, time, interval){
                         AND a.relocation_time < (",t,"::timestamptz + ",
                             t_interval, "::INTERVAL)
                         AND a.step_geom IS NOT NULL;")
+    } else {
+        sql_query <- paste0("
+                        SELECT
+                            st_makeline(a.step_geom)::geometry(
+                                linestring,
+                                4326
+                            ) AS step_geom,
+                            a.animal_name
+                        FROM ", schema_q, ".", view_q, " a
+                        WHERE a.relocation_time >= ",t,"::timestamptz
+                        AND a.relocation_time < (",t,"::timestamptz + ",
+                            t_interval, "::INTERVAL)
+                        AND a.step_geom IS NOT NULL
+                        GROUP BY a.animal_name;")
+    }
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
 }
 
@@ -42,13 +59,6 @@ get_burst_list <- function(conn, schema, view){
                             ",schema_q,".", view_q,";")
     return(dbGetQuery(conn, sql_query))
 }
-
-burst_list <- get_burst_list(conn, schema, "step_geometry_shiny_ibex")
-burst_counter <- 1
-burst_len <- nrow(burst_list)
-paste0(burst_counter, "/", burst_len)
-burst_name <- burst_list[burst_counter, "burst_name"]
-print(burst_name)
 
 # Get geometry of a single burst linestring
 get_burst_geom <- function(conn, schema, view, burst_name){
@@ -71,8 +81,6 @@ get_burst_geom <- function(conn, schema, view, burst_name){
                             animal_name;")
     return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
 }
-
-get_burst_geom(conn, schema, "step_geometry_shiny_ibex", "A153")
 
 # Get the complete trajectory of an animal as a single linestring
 get_full_traj <- function(conn, schema, view){
@@ -102,7 +110,8 @@ pgtrajPlotter <-
         # Start time
         t <- ymd_hms(paste(d_start, t_start), tz = tzone)
         # Get initial set of trajectories
-        st <- get_t_window(conn, schema, view, t, interval)
+        st <- get_step_window(conn, schema, view, t, interval,
+                              FALSE)
         
         # Get full traj
         st.1 <- get_full_traj(conn, schema, view)
@@ -112,15 +121,16 @@ pgtrajPlotter <-
         
         # get burst list for burst mode
         burst_list <- get_burst_list(conn, schema, view)
-        # burst_counter <- 1
         burst_len <- nrow(burst_list)
-        paste0(burst_counter, "/", burst_len)
         
         # TODO: add validation for burst_len >= 1
         
     ui <- fluidPage(
         # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+        titlePanel(paste("pgtraj name:", pgtraj)),
+        
         sidebarLayout(
+            
             sidebarPanel(
                 tags$script('$(document).on("keydown",
                     function (e) {
@@ -138,6 +148,7 @@ pgtrajPlotter <-
                              choices = list("Bursts" = "burst",
                                             "Steps" = "step"),
                              selected = "step"),
+                checkboxInput("step_mode", label = "Step mode", value = FALSE),
                 h4(strong("Steps")),
                 h5(textOutput("tstamp")),
                 h4(strong("Burst")),
@@ -147,6 +158,7 @@ pgtrajPlotter <-
                 actionButton("n", "Next"),
                 h5("press B or N")
             ),
+            
             mainPanel(
                 leafletOutput("map")
             )
@@ -174,8 +186,8 @@ pgtrajPlotter <-
                 }
             } else if (input$step_burst == "step") {
                 timeOut$currTime <- timeOut$currTime + duration(hour = increment)
-                x$currStep <- get_t_window(conn, schema, view, timeOut$currTime,
-                                           interval)
+                x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
+                                           interval, input$step_mode)
             }
         })
         
@@ -192,8 +204,8 @@ pgtrajPlotter <-
                 }
             } else if (input$step_burst == "step") {
                 timeOut$currTime <- timeOut$currTime - duration(hour = increment)
-                x$currStep <- get_t_window(conn, schema, view, timeOut$currTime,
-                                           interval)
+                x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
+                                           interval, input$step_mode)
             }
 
         })
@@ -249,7 +261,8 @@ pgtrajPlotter <-
                     fillOpacity = 1,
                     opacity = 1,
                     color = ~factpal(animal_name),
-                    weight = 4
+                    weight = 4,
+                    popup = mapview::popupTable(x$currStep)
                 )
             if (x$counter %% 2 == 0) {
                 proxy %>% clearGroup("trajnew")
