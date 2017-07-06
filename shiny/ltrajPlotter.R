@@ -42,8 +42,7 @@ ltrajPlotter <- function(pgtraj_sf,
     )
     
     server <- function(input, output) {
-        filterData <-
-            x <- reactiveValues(currStep = st, counter = 0)
+        x <- reactiveValues(currStep = st, counter = 0)
         # get current time window and the next
         timeOut <- reactiveValues(currTime = t)
         
