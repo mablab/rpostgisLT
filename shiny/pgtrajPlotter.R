@@ -3,14 +3,17 @@ library(lubridate)
 library(shiny)
 library(leaflet)
 library(dplyr)
+library(RPostgreSQL)
 
 
 # Queries ------------------------------------------------------------
 
+# Get steps within a temporal window
 get_t_window <- function(conn, schema, view, time, interval){
-    # t_start <- paste(start_date, start_hour)
     t <- format(time, usetz = TRUE)
     t_interval <- paste(interval, "hour")
+    schema_q <- dbQuoteIdentifier(conn, schema)
+    view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
                         SELECT
                             a.step_id,
@@ -19,18 +22,28 @@ get_t_window <- function(conn, schema, view, time, interval){
                             a.burst_name,
                             a.animal_name,
                             a.pgtraj_name
-                        FROM ", schema, ".", view, " a
+                        FROM ", schema_q, ".", view_q, " a
                         WHERE a.relocation_time >= '", t, "'::timestamptz
                         AND a.relocation_time < ('", t, "'::timestamptz + '",
                             t_interval, "'::INTERVAL)
                         AND a.step_geom IS NOT NULL;")
-    # s <- gsub("\n", "", sql_query)
-    # print(s)
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
-    # return(pgGetGeom(conn, query = sql_query))
 }
 
+# Get list of bursts in step_geometry view
+get_burst_list <- function(conn, schema, view){
+    schema_q <- dbQuoteIdentifier(conn, schema)
+    view_q <- dbQuoteIdentifier(conn, view)
+    sql_query <- paste0("
+                        SELECT
+                            DISTINCT burst_name
+                        FROM
+                            ",schema_q,".", view_q,";")
+    bursts <- dbGetQuery(conn, sql_query)
+    return(bursts)
+}
 
+# Get the complete trajectory of an animal as a single linestring
 get_full_traj <- function(conn, schema, view){
     # t_start <- paste(start_date, start_hour)
     sql_query <- paste0("
@@ -73,7 +86,7 @@ pgtrajPlotter <-
         # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
         sidebarLayout(
             sidebarPanel(
-                h5(strong("Time window")),
+                h4(strong("Time window")),
                 h5(textOutput("tstamp")),
                 tags$script('$(document).on("keydown",
                     function (e) {
@@ -89,7 +102,11 @@ pgtrajPlotter <-
                     '),
                 actionButton("b", "Back"),
                 actionButton("n", "Next"),
-                h5("press B or N")
+                h5("press B or N"),
+                radioButtons("step_burst", label = h4(strong("Increment")),
+                             choices = list("Bursts" = "burst",
+                                            "Steps" = "step"),
+                             selected = "burst")
             ),
             mainPanel(
                 leafletOutput("map")
