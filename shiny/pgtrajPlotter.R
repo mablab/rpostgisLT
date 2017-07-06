@@ -10,8 +10,8 @@ library(RPostgreSQL)
 
 # Get steps within a temporal window
 get_t_window <- function(conn, schema, view, time, interval){
-    t <- format(time, usetz = TRUE)
-    t_interval <- paste(interval, "hour")
+    t <- dbQuoteString(conn, format(time, usetz = TRUE))
+    t_interval <- dbQuoteString(conn, paste(interval, "hour"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
@@ -23,9 +23,9 @@ get_t_window <- function(conn, schema, view, time, interval){
                             a.animal_name,
                             a.pgtraj_name
                         FROM ", schema_q, ".", view_q, " a
-                        WHERE a.relocation_time >= '", t, "'::timestamptz
-                        AND a.relocation_time < ('", t, "'::timestamptz + '",
-                            t_interval, "'::INTERVAL)
+                        WHERE a.relocation_time >= ",t,"::timestamptz
+                        AND a.relocation_time < (",t,"::timestamptz + ",
+                            t_interval, "::INTERVAL)
                         AND a.step_geom IS NOT NULL;")
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
 }
@@ -39,9 +39,39 @@ get_burst_list <- function(conn, schema, view){
                             DISTINCT burst_name
                         FROM
                             ",schema_q,".", view_q,";")
-    bursts <- dbGetQuery(conn, sql_query)
-    return(bursts)
+    return(dbGetQuery(conn, sql_query))
 }
+
+burst_list <- get_burst_list(conn, schema, "step_geometry_shiny_ibex")
+burst_counter <- 1
+burst_len <- nrow(burst_list)
+paste0(burst_counter, "/", burst_len)
+burst_name <- burst_list[burst_counter, "burst_name"]
+print(burst_name)
+
+# Get geometry of a single burst linestring
+get_burst_geom <- function(conn, schema, view, burst_name){
+    schema_q <- dbQuoteIdentifier(conn, schema)
+    view_q <- dbQuoteIdentifier(conn, view)
+    sql_query <- paste0("
+                        SELECT
+                            st_makeline(step_geom)::geometry(
+                                linestring,
+                                4326
+                            ) AS burst_geom,
+                            burst_name,
+                            animal_name
+                        FROM
+                            ",schema_q,".", view_q,"
+                        WHERE
+                            burst_name = ", dbQuoteString(conn, burst_name),"
+                        GROUP BY
+                            burst_name,
+                            animal_name;")
+    return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
+}
+
+get_burst_geom(conn, schema, "step_geometry_shiny_ibex", "A153")
 
 # Get the complete trajectory of an animal as a single linestring
 get_full_traj <- function(conn, schema, view){
