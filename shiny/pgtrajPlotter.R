@@ -117,7 +117,7 @@ pgtrajPlotter <-
         st.1 <- get_full_traj(conn, schema, view)
         
         # color by animal_name
-        factpal <- colorFactor(topo.colors(4), st$animal_name)
+        # factpal <- colorFactor(topo.colors(4), st$animal_name)
         
         # get burst list for burst mode
         burst_list <- get_burst_list(conn, schema, view)
@@ -238,7 +238,7 @@ pgtrajPlotter <-
                         group = "trajfull",
                         fillOpacity = .5,
                         opacity = .5,
-                        color = ~factpal(animal_name),
+                        color = "blue", #~factpal(animal_name),
                         weight = 2
                     ) %>%
                     addLayersControl(
@@ -260,7 +260,7 @@ pgtrajPlotter <-
                     group = gname,
                     fillOpacity = 1,
                     opacity = 1,
-                    color = ~factpal(animal_name),
+                    color = "red", #~factpal(animal_name),
                     weight = 4,
                     popup = mapview::popupTable(x$currStep)
                 )

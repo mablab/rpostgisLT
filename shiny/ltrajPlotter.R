@@ -18,7 +18,7 @@ ltrajPlotter <- function(pgtraj_sf,
                date >= t &
                    date < t + duration(hour = increment))
     
-    factpal <- colorFactor("RdYlBu", st$id)
+    # factpal <- colorFactor("RdYlBu", st$id)
     
     ui <- bootstrapPage(
         tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
@@ -91,7 +91,7 @@ ltrajPlotter <- function(pgtraj_sf,
                     group = "trajfull",
                     fillOpacity = .5,
                     opacity = .5,
-                    color = ~ factpal(id),
+                    color = "blue", #~factpal(id),
                     # color = "red",
                     weight = 2
                 ) %>%
@@ -110,7 +110,7 @@ ltrajPlotter <- function(pgtraj_sf,
                     group = gname,
                     fillOpacity = 1,
                     opacity = 1,
-                    color = ~ factpal(id),
+                    color = "red", #~factpal(id),
                     weight = 4
                 )
             if (x$counter %% 2 == 0) {
