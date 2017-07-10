@@ -6,14 +6,17 @@ library(dplyr)
 library(DBI)
 library(htmltools)
 library(mapview)
+library(testthat)
 
 
 # Queries ------------------------------------------------------------
 
 # Get steps within a temporal window
 get_step_window <- function(conn, schema, view, time, interval, step_mode){
+    stopifnot(expect_true(is.duration(interval)))
+    
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
-    t_interval <- dbQuoteString(conn, paste(interval, "hour"))
+    t_interval <- dbQuoteString(conn, paste(interval@.Data, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     if(step_mode){
@@ -93,6 +96,47 @@ get_full_traj <- function(conn, schema, view){
     return(st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
 }
 
+# Get default time parameters
+get_traj_defaults <- function(conn, schema, view, pgtraj){
+    schema_q <- dbQuoteIdentifier(conn, schema)
+    view_q <- dbQuoteIdentifier(conn, view)
+    sql_query <- paste0("
+                        SELECT time_zone
+                        FROM ", schema, ".pgtraj
+                        WHERE pgtraj_name = ", dbQuoteString(conn, pgtraj),
+                        ";")
+    tzone <- dbGetQuery(conn, sql_query)
+    
+    # default increment is the median step duration
+    sql_query <- paste0("
+                        SELECT
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MIN( relocation_time )
+                            ) AS tstamp_start,
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MAX( relocation_time )
+                            ) AS tstamp_last,
+                            EXTRACT(
+                                epoch
+                            FROM
+                                PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
+                                ORDER BY
+                                    dt
+                                )
+                            ) AS increment
+                        FROM ",schema_q,".", view_q,";")
+    
+    time_params <- dbGetQuery(conn, sql_query)
+    
+    return(cbind(time_params, tzone))
+}
+
+# time_params <- get_traj_defaults(conn, schema, view, pgtraj)
+
 # Shiny App----------------------------------------------------------------
 
 
@@ -100,15 +144,51 @@ pgtrajPlotter <-
     function(conn,
              schema,
              pgtraj,
-             d_start,
-             t_start,
-             tzone,
-             increment,
-             nr_increment,
-             interval) {
+             d_start=NULL,
+             t_start=NULL,
+             increment=NULL,
+             interval=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
-        # Start time
-        t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+        # Get default time parameters
+        time_params <- get_traj_defaults(conn, schema, view, pgtraj)
+        
+        tzone <- time_params$time_zone
+        
+        tstamp_last <- as.POSIXct(time_params$tstamp_last,
+                                 origin = "1970-01-01 00:00:00",
+                                 tz = "UTC")
+        attributes(t)$tzone <- tzone
+        
+        if(is.null(d_start)){
+            expect_null(t_start)
+            t <- as.POSIXct(time_params$tstamp_start,
+                            origin = "1970-01-01 00:00:00",
+                            tz = "UTC")
+            attributes(t)$tzone <- tzone
+        } else {
+            t <- ymd_hms(paste(d_start, t_start), tz = tzone)
+        }
+        
+        if(is.null(increment)){
+            increment <- duration(num = time_params$increment,
+                                  units = "seconds")
+        } else {
+            increment <- duration(num = increment, units = "seconds")
+        }
+        
+        # default interval is 10*increment (~10 steps)
+        if(is.null(interval)){
+            limit <- t + (increment * 10)
+            if(limit < tstamp_last) {
+                interval <- increment * 10
+            } else {
+                message("Loading full trajectory, because it is shorter than 10 steps.")
+                interval <- tstamp_last - t
+            }
+        } else {
+            interval <- duration(num = interval, units = "seconds")
+        }
+        
         # Get initial set of trajectories
         st <- get_step_window(conn, schema, view, t, interval,
                               FALSE)
@@ -185,7 +265,7 @@ pgtrajPlotter <-
                     x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
                 }
             } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime + duration(hour = increment)
+                timeOut$currTime <- timeOut$currTime + increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                            interval, input$step_mode)
             }
@@ -203,7 +283,7 @@ pgtrajPlotter <-
                     x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
                 }
             } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime - duration(hour = increment)
+                timeOut$currTime <- timeOut$currTime - increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                            interval, input$step_mode)
             }
@@ -214,7 +294,7 @@ pgtrajPlotter <-
         output$tstamp <- renderText({
             paste(format(timeOut$currTime, usetz = TRUE),
                   "—",
-                  format(timeOut$currTime + duration(hour = interval), usetz = TRUE))
+                  format(timeOut$currTime + interval, usetz = TRUE))
         })
         
         # Report current burst name and count
