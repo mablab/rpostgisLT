@@ -13,4 +13,4 @@ library(rpostgisLT)
 
 stork_2004 <- pgtraj2ltraj(conn, schema = "stork_traj", pgtraj = "2004")
 ltraj2pgtraj(conn_local, ltraj = stork_2004, schema = "stork_traj",
-             overwrite = TRUE)
+             pgtraj = "2004", overwrite = TRUE)
