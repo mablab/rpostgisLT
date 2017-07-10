@@ -135,8 +135,6 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     return(cbind(time_params, tzone))
 }
 
-# time_params <- get_traj_defaults(conn, schema, view, pgtraj)
-
 # Shiny App----------------------------------------------------------------
 
 
@@ -164,6 +162,10 @@ pgtrajPlotter <-
             t <- as.POSIXct(time_params$tstamp_start,
                             origin = "1970-01-01 00:00:00",
                             tz = "UTC")
+            # R uses time zone abbreviation to print time stamps,
+            # thus get_step_window while pgtraj stores the "long" time zone
+            # format (e.g. America/New_York instead of EDT). Thus the warning
+            # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
             attributes(t)$tzone <- tzone
         } else {
             t <- ymd_hms(paste(d_start, t_start), tz = tzone)
@@ -190,8 +192,7 @@ pgtrajPlotter <-
         }
         
         # Get initial set of trajectories
-        st <- get_step_window(conn, schema, view, t, interval,
-                              FALSE)
+        st <- get_step_window(conn, schema, view, t, interval, FALSE)
         
         # Get full traj
         st.1 <- get_full_traj(conn, schema, view)
@@ -234,6 +235,20 @@ pgtrajPlotter <-
                 h4(strong("Burst")),
                 h5(textOutput("burst_name")),
                 h5(textOutput("burst_counter")),
+                # numericInput("interval", "Interval:", value = interval@.Data),
+                # selectInput("interval_unit", label = NULL, 
+                #             choices = c("month" = "month",
+                #                                "week" = "week",
+                #                                "day" = "day",
+                #                                "hour" = "hour",
+                #                                "minute" = "minute",
+                #                                "second" = "second"),
+                #             selected = "second"),
+                sliderInput("range", "Time window:", min = t, max = tstamp_last,
+                            value = c(t, t + interval), step = increment,
+                            timezone = tzone),
+                actionButton("submit_range", "Set range"),
+                h5(textOutput("increment")),
                 actionButton("b", "Back"),
                 actionButton("n", "Next"),
                 h5("press B or N")
@@ -245,13 +260,24 @@ pgtrajPlotter <-
         )
     )
     
-    server <- function(input, output) {
+    server <- function(input, output, session) {
         
         w <- reactiveValues(data = st.1)
         x <- reactiveValues(currStep = st, counter = 0, burst_counter = 0,
                             burst_name = "")
         # get current time window and the next
-        timeOut <- reactiveValues(currTime = t)
+        timeOut <- reactiveValues(currTime = t, interval = interval)
+        
+        observeEvent(input$submit_range, {
+            timeOut$currTime <- input$range[1]
+            timeOut$interval <- as.duration(input$range[2] - input$range[1])
+            # print(input$range[1])
+            # print(input$range[2])
+            # print(timeOut$interval)
+            x$counter <- x$counter + 1
+            x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
+                                          timeOut$interval, input$step_mode)
+        })
         
         # Only update timestamp on click
         observeEvent(input$n, {
@@ -267,7 +293,7 @@ pgtrajPlotter <-
             } else if (input$step_burst == "step") {
                 timeOut$currTime <- timeOut$currTime + increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
-                                           interval, input$step_mode)
+                                           timeOut$interval, input$step_mode)
             }
         })
         
@@ -285,7 +311,7 @@ pgtrajPlotter <-
             } else if (input$step_burst == "step") {
                 timeOut$currTime <- timeOut$currTime - increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
-                                           interval, input$step_mode)
+                                              timeOut$interval, input$step_mode)
             }
 
         })
@@ -294,7 +320,11 @@ pgtrajPlotter <-
         output$tstamp <- renderText({
             paste(format(timeOut$currTime, usetz = TRUE),
                   "—",
-                  format(timeOut$currTime + interval, usetz = TRUE))
+                  format(timeOut$currTime + timeOut$interval, usetz = TRUE))
+        })
+        
+        output$increment <- renderText({
+            paste("Increment is", increment)
         })
         
         # Report current burst name and count
@@ -349,6 +379,11 @@ pgtrajPlotter <-
             } else {
                 proxy %>% clearGroup("traj")
             }
+            
+            # update time window slider
+            updateSliderInput(session, "range",
+                              value = c(timeOut$currTime,
+                                        timeOut$currTime + timeOut$interval))
         })
         
     }
