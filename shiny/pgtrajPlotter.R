@@ -247,7 +247,7 @@ pgtrajPlotter <-
                 sliderInput("range", "Time window:", min = t, max = tstamp_last,
                             value = c(t, t + interval), step = increment,
                             timezone = tzone),
-                actionButton("submit_range", "Set range"),
+                # actionButton("submit_range", "Set range"),
                 h5(textOutput("increment")),
                 actionButton("b", "Back"),
                 actionButton("n", "Next"),
@@ -268,12 +268,9 @@ pgtrajPlotter <-
         # get current time window and the next
         timeOut <- reactiveValues(currTime = t, interval = interval)
         
-        observeEvent(input$submit_range, {
+        observeEvent(input$range, {
             timeOut$currTime <- input$range[1]
             timeOut$interval <- as.duration(input$range[2] - input$range[1])
-            # print(input$range[1])
-            # print(input$range[2])
-            # print(timeOut$interval)
             x$counter <- x$counter + 1
             x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                           timeOut$interval, input$step_mode)
@@ -319,7 +316,7 @@ pgtrajPlotter <-
         # Report current timestamp
         output$tstamp <- renderText({
             paste(format(timeOut$currTime, usetz = TRUE),
-                  "—",
+                  "-",
                   format(timeOut$currTime + timeOut$interval, usetz = TRUE))
         })
         
