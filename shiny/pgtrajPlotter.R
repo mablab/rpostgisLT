@@ -235,19 +235,21 @@ pgtrajPlotter <-
                 h4(strong("Burst")),
                 h5(textOutput("burst_name")),
                 h5(textOutput("burst_counter")),
-                # numericInput("interval", "Interval:", value = interval@.Data),
-                # selectInput("interval_unit", label = NULL, 
-                #             choices = c("month" = "month",
-                #                                "week" = "week",
-                #                                "day" = "day",
-                #                                "hour" = "hour",
-                #                                "minute" = "minute",
-                #                                "second" = "second"),
-                #             selected = "second"),
+                numericInput("increment", "Increment:", value = increment@.Data),
+                numericInput("interval", "Interval:", value = interval@.Data),
+                selectInput("unit", label = NULL,
+                            choices = c("years" = "years",
+                                        "months" = "months",
+                                               "weeks" = "weeks",
+                                               "days" = "days",
+                                               "hours" = "hours",
+                                               "minutes" = "minutes",
+                                               "seconds" = "seconds"),
+                            selected = "seconds"),
+                actionButton("set_i", "Set"),
                 sliderInput("range", "Time window:", min = t, max = tstamp_last,
                             value = c(t, t + interval), step = increment,
                             timezone = tzone),
-                # actionButton("submit_range", "Set range"),
                 h5(textOutput("increment")),
                 actionButton("b", "Back"),
                 actionButton("n", "Next"),
@@ -266,7 +268,47 @@ pgtrajPlotter <-
         x <- reactiveValues(currStep = st, counter = 0, burst_counter = 0,
                             burst_name = "")
         # get current time window and the next
-        timeOut <- reactiveValues(currTime = t, interval = interval)
+        timeOut <- reactiveValues(currTime = t, interval = interval,
+                                  increment = increment)
+        
+        observeEvent(input$set_i, {
+            if (input$unit == "months") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "years")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "years")
+            } else if (input$unit == "months") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "months")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "months")
+            } else if (input$unit == "weeks") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "weeks")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "weeks")
+            } else if (input$unit == "days") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "days")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "days")
+            } else if (input$unit == "hours") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "hours")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "hours")
+            } else if (input$unit == "minutes") {
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "minutes")
+                timeOut$interval <- duration(num = input$interval,
+                                             units = "minutes")
+            } else if (input$unit == "seconds"){
+                timeOut$increment <- duration(num = input$increment,
+                                              units = "seconds")
+                timeOut$interval <- duration(num = input$interval,
+                                              units = "seconds")
+            }
+        })
         
         observeEvent(input$range, {
             timeOut$currTime <- input$range[1]
@@ -275,6 +317,8 @@ pgtrajPlotter <-
             x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                           timeOut$interval, input$step_mode)
         })
+        
+
         
         # Only update timestamp on click
         observeEvent(input$n, {
@@ -288,7 +332,7 @@ pgtrajPlotter <-
                     x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
                 }
             } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime + increment
+                timeOut$currTime <- timeOut$currTime + timeOut$increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                            timeOut$interval, input$step_mode)
             }
@@ -306,7 +350,7 @@ pgtrajPlotter <-
                     x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
                 }
             } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime - increment
+                timeOut$currTime <- timeOut$currTime - timeOut$increment
                 x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
                                               timeOut$interval, input$step_mode)
             }
@@ -380,7 +424,8 @@ pgtrajPlotter <-
             # update time window slider
             updateSliderInput(session, "range",
                               value = c(timeOut$currTime,
-                                        timeOut$currTime + timeOut$interval))
+                                        timeOut$currTime + timeOut$interval),
+                              step = timeOut$increment)
         })
         
     }
