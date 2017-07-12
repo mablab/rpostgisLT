@@ -6,7 +6,7 @@ library(dplyr)
 library(DBI)
 library(htmltools)
 library(mapview)
-library(testthat)
+library(shinyWidgets)
 
 
 # Queries ------------------------------------------------------------
@@ -52,7 +52,7 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode){
 }
 
 # Get list of bursts in step_geometry view
-get_burst_list <- function(conn, schema, view){
+get_bursts_df <- function(conn, schema, view){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
@@ -63,8 +63,19 @@ get_burst_list <- function(conn, schema, view){
     return(dbGetQuery(conn, sql_query))
 }
 
-# Get geometry of a single burst linestring
-get_burst_geom <- function(conn, schema, view, burst_name){
+# Get geometry of bursts as linestring
+getBurstGeom <- function(conn, schema, view, burst_name){
+    # accepts a character vector of variable length
+    
+    if (is.null(burst_name) | length(burst_name) == 0){
+        return()
+    } else if (length(burst_name) == 1) {
+        burst_sql <- dbQuoteString(conn, burst_name)
+    } else if (length(burst_name) > 1) {
+        sql_array <- paste(a$burst_name, collapse = "','")
+        burst_sql <- paste0("ANY(ARRAY['",sql_array,"'])")
+    }
+    
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
@@ -78,7 +89,7 @@ get_burst_geom <- function(conn, schema, view, burst_name){
                         FROM
                             ",schema_q,".", view_q,"
                         WHERE
-                            burst_name = ", dbQuoteString(conn, burst_name),"
+                            burst_name = ", burst_sql, "
                         GROUP BY
                             burst_name,
                             animal_name;")
@@ -141,11 +152,7 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
 pgtrajPlotter <-
     function(conn,
              schema,
-             pgtraj,
-             d_start=NULL,
-             t_start=NULL,
-             increment=NULL,
-             interval=NULL) {
+             pgtraj) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -153,282 +160,318 @@ pgtrajPlotter <-
         tzone <- time_params$time_zone
         
         tstamp_last <- as.POSIXct(time_params$tstamp_last,
-                                 origin = "1970-01-01 00:00:00",
-                                 tz = "UTC")
+                                  origin = "1970-01-01 00:00:00",
+                                  tz = "UTC")
         attributes(t)$tzone <- tzone
         
-        if(is.null(d_start)){
-            expect_null(t_start)
-            t <- as.POSIXct(time_params$tstamp_start,
-                            origin = "1970-01-01 00:00:00",
-                            tz = "UTC")
-            # R uses time zone abbreviation to print time stamps,
-            # thus get_step_window while pgtraj stores the "long" time zone
-            # format (e.g. America/New_York instead of EDT). Thus the warning
-            # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-            attributes(t)$tzone <- tzone
-        } else {
-            t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-        }
+        t <- as.POSIXct(time_params$tstamp_start,
+                        origin = "1970-01-01 00:00:00",
+                        tz = "UTC")
+        # R uses time zone abbreviation to print time stamps,
+        # thus get_step_window while pgtraj stores the "long" time zone
+        # format (e.g. America/New_York instead of EDT). Thus the warning
+        # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
+        attributes(t)$tzone <- tzone
         
-        if(is.null(increment)){
-            increment <- duration(num = time_params$increment,
-                                  units = "seconds")
-        } else {
-            increment <- duration(num = increment, units = "seconds")
-        }
+        increment <- duration(num = time_params$increment,
+                              units = "seconds")
         
         # default interval is 10*increment (~10 steps)
-        if(is.null(interval)){
-            limit <- t + (increment * 10)
-            if(limit < tstamp_last) {
-                interval <- increment * 10
-            } else {
-                message("Loading full trajectory, because it is shorter than 10 steps.")
-                interval <- tstamp_last - t
-            }
+        limit <- t + (increment * 10)
+        if (limit < tstamp_last) {
+            interval <- increment * 10
         } else {
-            interval <- duration(num = interval, units = "seconds")
+            message("Loading full trajectory, because it is shorter than 10 steps.")
+            interval <- tstamp_last - t
         }
         
         # Get initial set of trajectories
-        st <- get_step_window(conn, schema, view, t, interval, FALSE)
+        st <-
+            get_step_window(conn, schema, view, t, interval, FALSE)
         
         # Get full traj
-        st.1 <- get_full_traj(conn, schema, view)
+        st_1 <- get_full_traj(conn, schema, view)
         
         # color by animal_name
         # factpal <- colorFactor(topo.colors(4), st$animal_name)
         
         # get burst list for burst mode
-        burst_list <- get_burst_list(conn, schema, view)
-        burst_len <- nrow(burst_list)
+        bursts_df <- get_bursts_df(conn, schema, view)
+        burst_len <- nrow(bursts_df)
         
         # TODO: add validation for burst_len >= 1
         
-    ui <- fluidPage(
-        # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-        titlePanel(paste("pgtraj name:", pgtraj)),
-        
-        sidebarLayout(
-            
-            sidebarPanel(
-                tags$script('$(document).on("keydown",
-                    function (e) {
-                        var d = new Date(); 
-                        if(e.which == 66) {
+        ui <-
+            fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+                titlePanel(paste("pgtraj name:", pgtraj)),
+                
+                sidebarLayout(
+                    sidebarPanel(
+                        tags$script(
+                            '$(document).on("keydown",
+                            function (e) {
+                            var d = new Date();
+                            if(e.which == 66) {
                             Shiny.onInputChange("b",
-                                Math.round((d.getMilliseconds()+251) / 500) );
-                        } else if (e.which == 78) {
+                            Math.round((d.getMilliseconds()+251) / 500) );
+                            } else if (e.which == 78) {
                             Shiny.onInputChange("n",
-                                Math.round((d.getMilliseconds()+251) / 500) );
-                        }
-                    });
-                    '),
-                radioButtons("step_burst", label = h4(strong("Increment")),
-                             choices = list("Bursts" = "burst",
-                                            "Steps" = "step"),
-                             selected = "step"),
-                checkboxInput("step_mode", label = "Step mode", value = FALSE),
-                h4(strong("Steps")),
-                h5(textOutput("tstamp")),
-                h4(strong("Burst")),
-                h5(textOutput("burst_name")),
-                h5(textOutput("burst_counter")),
-                numericInput("increment", "Increment:", value = increment@.Data),
-                numericInput("interval", "Interval:", value = interval@.Data),
-                selectInput("unit", label = NULL,
-                            choices = c("years" = "years",
-                                        "months" = "months",
-                                               "weeks" = "weeks",
-                                               "days" = "days",
-                                               "hours" = "hours",
-                                               "minutes" = "minutes",
-                                               "seconds" = "seconds"),
-                            selected = "seconds"),
-                actionButton("set_i", "Set"),
-                sliderInput("range", "Time window:", min = t, max = tstamp_last,
-                            value = c(t, t + interval), step = increment,
-                            timezone = tzone),
-                h5(textOutput("increment")),
-                actionButton("b", "Back"),
-                actionButton("n", "Next"),
-                h5("press B or N")
-            ),
-            
-            mainPanel(
-                leafletOutput("map")
-            )
-        )
-    )
-    
-    server <- function(input, output, session) {
+                            Math.round((d.getMilliseconds()+251) / 500) );
+                            }
+                            });
+                            '
+                    ),
+                    switchInput(
+                        inputId = "step_mode",
+                        label = "Step mode",
+                        value = FALSE
+                    ),
+                    h4(strong("Steps")),
+                    h5(textOutput("tstamp")),
+                    pickerInput(
+                        inputId = "burst_picker",
+                        label = "Bursts",
+                        choices = bursts_df$burst_name,
+                        options = list(`actions-box` = TRUE),
+                        multiple = TRUE
+                    ),
+                    numericInput("increment", "Increment:", value = increment@.Data),
+                    numericInput("interval", "Interval:", value = interval@.Data),
+                    selectInput(
+                        "unit",
+                        label = NULL,
+                        choices = c(
+                            "years" = "years",
+                            "months" = "months",
+                            "weeks" = "weeks",
+                            "days" = "days",
+                            "hours" = "hours",
+                            "minutes" = "minutes",
+                            "seconds" = "seconds"
+                        ),
+                        selected = "seconds"
+                    ),
+                    actionButton("set_i", "Set"),
+                    sliderInput(
+                        "range",
+                        "Time window:",
+                        min = t,
+                        max = tstamp_last,
+                        value = c(t, t + interval),
+                        step = increment,
+                        timezone = tzone
+                    ),
+                    actionButton("b", "Back"),
+                    actionButton("n", "Next"),
+                    h5("press B or N")
+                    ),
+                    
+                    mainPanel(leafletOutput("map"))
+            ))
         
-        w <- reactiveValues(data = st.1)
-        x <- reactiveValues(currStep = st, counter = 0, burst_counter = 0,
-                            burst_name = "")
-        # get current time window and the next
-        timeOut <- reactiveValues(currTime = t, interval = interval,
-                                  increment = increment)
-        
-        observeEvent(input$set_i, {
-            if (input$unit == "months") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "years")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "years")
-            } else if (input$unit == "months") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "months")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "months")
-            } else if (input$unit == "weeks") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "weeks")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "weeks")
-            } else if (input$unit == "days") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "days")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "days")
-            } else if (input$unit == "hours") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "hours")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "hours")
-            } else if (input$unit == "minutes") {
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "minutes")
-                timeOut$interval <- duration(num = input$interval,
-                                             units = "minutes")
-            } else if (input$unit == "seconds"){
-                timeOut$increment <- duration(num = input$increment,
-                                              units = "seconds")
-                timeOut$interval <- duration(num = input$interval,
-                                              units = "seconds")
-            }
-        })
-        
-        observeEvent(input$range, {
-            timeOut$currTime <- input$range[1]
-            timeOut$interval <- as.duration(input$range[2] - input$range[1])
-            x$counter <- x$counter + 1
-            x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
-                                          timeOut$interval, input$step_mode)
-        })
-        
-
-        
-        # Only update timestamp on click
-        observeEvent(input$n, {
-            # for assigning alternating group names
-            x$counter <- x$counter + 1
-            
-            if(input$step_burst == "burst") {
-                if(x$burst_counter < burst_len) {
-                    x$burst_counter <- x$burst_counter + 1
-                    x$burst_name <- burst_list[x$burst_counter, "burst_name"]
-                    x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
-                }
-            } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime + timeOut$increment
-                x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
-                                           timeOut$interval, input$step_mode)
-            }
-        })
-        
-        observeEvent(input$b, {
-            # for assigning alternating group names
-            x$counter <- x$counter + 1
-            
-            if(input$step_burst == "burst") {
-
-                if(x$burst_counter > 1){
-                    x$burst_counter <- x$burst_counter - 1
-                    x$burst_name <- burst_list[x$burst_counter, "burst_name"]
-                    x$currStep <- get_burst_geom(conn, schema, view, x$burst_name)
-                }
-            } else if (input$step_burst == "step") {
-                timeOut$currTime <- timeOut$currTime - timeOut$increment
-                x$currStep <- get_step_window(conn, schema, view, timeOut$currTime,
-                                              timeOut$interval, input$step_mode)
-            }
-
-        })
-        
-        # Report current timestamp
-        output$tstamp <- renderText({
-            paste(format(timeOut$currTime, usetz = TRUE),
-                  "-",
-                  format(timeOut$currTime + timeOut$interval, usetz = TRUE))
-        })
-        
-        output$increment <- renderText({
-            paste("Increment is", increment)
-        })
-        
-        # Report current burst name and count
-        output$burst_name <- renderText({
-            x$burst_name
-        })
-        
-        output$burst_counter <- renderText({
-            paste0(x$burst_counter, "/", burst_len)
-        })
-        
-        # Leaflet base map, and starting view centered at the trajectories
-        output$map <- renderLeaflet({
-            if (is.null(w$data)) {
-                return()
-            } else {
-                map <- leaflet() %>%
-                    addTiles(group = "OSM (default)") %>%
-                    addPolylines(
-                        data = w$data,
-                        group = "trajfull",
-                        fillOpacity = .5,
-                        opacity = .5,
-                        color = "blue", #~factpal(animal_name),
-                        weight = 2
-                    ) %>%
-                    addLayersControl(
-                        overlayGroups = c("OSM (default)", "trajfull"),
-                        options = layersControlOptions(collapsed = FALSE)
-                    )
-            }
-        })
-        
-        observe({
-            if (x$counter %% 2 == 0) {
-                gname <- "traj"
-            } else {
-                gname <- "trajnew"
-            }
-            proxy <- leafletProxy("map") %>%
-                addPolylines(
-                    data = x$currStep,
-                    group = gname,
-                    fillOpacity = 1,
-                    opacity = 1,
-                    color = "red", #~factpal(animal_name),
-                    weight = 4,
-                    popup = mapview::popupTable(x$currStep)
+        server <- function(input, output, session) {
+            w <- reactiveValues(data = st_1)
+            x <-
+                reactiveValues(
+                    currStep = st,
+                    counter = 0,
+                    burst_counter = 0,
+                    burst_name = NULL,
+                    bursts = NULL
                 )
-            if (x$counter %% 2 == 0) {
-                proxy %>% clearGroup("trajnew")
-            } else {
-                proxy %>% clearGroup("traj")
-            }
+            # get current time window and the next
+            timeOut <- reactiveValues(currTime = t,
+                                      interval = interval,
+                                      increment = increment)
             
-            # update time window slider
-            updateSliderInput(session, "range",
-                              value = c(timeOut$currTime,
-                                        timeOut$currTime + timeOut$interval),
-                              step = timeOut$increment)
-        })
-        
-    }
-    shinyApp(ui, server)
-}
+            observeEvent(input$set_i, {
+                if (input$unit == "years") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "years")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "years")
+                } else if (input$unit == "months") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "months")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "months")
+                } else if (input$unit == "weeks") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "weeks")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "weeks")
+                } else if (input$unit == "days") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "days")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "days")
+                } else if (input$unit == "hours") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "hours")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "hours")
+                } else if (input$unit == "minutes") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "minutes")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "minutes")
+                } else if (input$unit == "seconds") {
+                    timeOut$increment <- duration(num = input$increment,
+                                                  units = "seconds")
+                    timeOut$interval <- duration(num = input$interval,
+                                                 units = "seconds")
+                }
+            })
+            
+            observeEvent(input$range, {
+                timeOut$currTime <- input$range[1]
+                timeOut$interval <-
+                    as.duration(input$range[2] - input$range[1])
+                x$counter <- x$counter + 1
+                x$currStep <-
+                    get_step_window(conn,
+                                    schema,
+                                    view,
+                                    timeOut$currTime,
+                                    timeOut$interval,
+                                    input$step_mode)
+            })
+            
+            # Only update timestamp on click
+            observeEvent(input$n, {
+                # for assigning alternating group names
+                x$counter <- x$counter + 1
+                
+                timeOut$currTime <- timeOut$currTime + timeOut$increment
+                x$currStep <-
+                    get_step_window(
+                        conn,
+                        schema,
+                        view,
+                        timeOut$currTime,
+                        timeOut$interval,
+                        input$step_mode
+                    )
+            })
+            
+            observeEvent(input$b, {
+                # for assigning alternating group names
+                x$counter <- x$counter + 1
+
+                timeOut$currTime <- timeOut$currTime - timeOut$increment
+                x$currStep <-
+                    get_step_window(
+                        conn,
+                        schema,
+                        view,
+                        timeOut$currTime,
+                        timeOut$interval,
+                        input$step_mode
+                    )
+            })
+            
+            # Report current timestamp
+            output$tstamp <- renderText({
+                paste(
+                    format(timeOut$currTime, usetz = TRUE),
+                    "-",
+                    format(timeOut$currTime + timeOut$interval, usetz = TRUE)
+                )
+            })
+            
+            # Leaflet base map, and starting view centered at the trajectories
+            output$map <- renderLeaflet({
+                if (is.null(w$data)) {
+                    return()
+                } else {
+                    map <- leaflet() %>%
+                        addTiles(group = "OSM (default)") %>%
+                        addPolylines(
+                            data = w$data,
+                            group = "trajfull",
+                            fillOpacity = .5,
+                            opacity = .5,
+                            color = "blue",
+                            #~factpal(animal_name),
+                            weight = 2
+                        ) %>%
+                        addLayersControl(
+                            overlayGroups = c("OSM (default)", "trajfull",
+                                              "bursts"),
+                            options = layersControlOptions(collapsed = FALSE)
+                        )
+                }
+            })
+            
+            # add burst to map only when the burst picker is updated, and 
+            # only add/remove what is neccessary
+            observeEvent(input$burst_picker, {
+                burst_get <- setdiff(input$burst_picker, x$burst_name)
+                burst_remove <- setdiff(x$burst_name, input$burst_picker)
+
+                # first remove obsolete burst on map
+                proxy <- leafletProxy("map") %>%
+                    removeShape(burst_remove)
+                x$burst_name <- input$burst_picker
+                
+                if (length(burst_get) > 0) {
+                    x$bursts <- getBurstGeom(conn, schema, view, burst_get)
+                    proxy %>% addPolylines(
+                        data = x$bursts,
+                        group = "bursts",
+                        layerId = burst_get,
+                        fillOpacity = 1,
+                        opacity = 1,
+                        color = "yellow",
+                        #~factpal(animal_name),
+                        weight = 4,
+                        popup = mapview::popupTable(x$bursts)
+                    )
+                } 
+            })
+            
+            observe({
+                if (x$counter %% 2 == 0) {
+                    gname <- "traj"
+                } else {
+                    gname <- "trajnew"
+                }
+                proxy <- leafletProxy("map") %>%
+                    addPolylines(
+                        data = x$currStep,
+                        group = gname,
+                        fillOpacity = 1,
+                        opacity = 1,
+                        color = "red",
+                        #~factpal(animal_name),
+                        weight = 4,
+                        popup = mapview::popupTable(x$currStep)
+                    )
+                if (x$counter %% 2 == 0) {
+                    proxy %>% clearGroup("trajnew")
+                } else {
+                    proxy %>% clearGroup("traj")
+                }
+                
+                # update time window slider
+                updateSliderInput(
+                    session,
+                    "range",
+                    value = c(
+                        timeOut$currTime,
+                        timeOut$currTime + timeOut$interval
+                    ),
+                    step = timeOut$increment
+                )
+                
+                # because observeEven doesn't pass value when all burst are
+                # deselected
+                if (is.null(input$burst_picker)) {
+                    proxy %>% clearGroup("bursts")
+                }
+            })
+            
+        }
+        shinyApp(ui, server)
+        }
 
