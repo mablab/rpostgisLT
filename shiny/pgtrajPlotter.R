@@ -63,8 +63,19 @@ get_bursts_df <- function(conn, schema, view){
     return(dbGetQuery(conn, sql_query))
 }
 
-# Get geometry of a single burst linestring
-get_burst_geom <- function(conn, schema, view, burst_name){
+# Get geometry of bursts as linestring
+getBurstGeom <- function(conn, schema, view, burst_name){
+    # accepts a character vector of variable length
+    
+    if (is.null(burst_name)){
+        return()
+    } else if (length(burst_name) == 1) {
+        burst_sql <- dbQuoteString(conn, burst_name)
+    } else if (length(burst_name) > 1) {
+        sql_array <- paste(a$burst_name, collapse = "','")
+        burst_sql <- paste0("ANY(ARRAY['",sql_array,"'])")
+    }
+    
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
@@ -78,31 +89,7 @@ get_burst_geom <- function(conn, schema, view, burst_name){
                         FROM
                             ",schema_q,".", view_q,"
                         WHERE
-                            burst_name = ", dbQuoteString(conn, burst_name),"
-                        GROUP BY
-                            burst_name,
-                            animal_name;")
-    return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
-}
-
-# Get geometry of a single burst linestring
-getBurstsDFGeom <- function(conn, schema, view, bursts_df){
-    schema_q <- dbQuoteIdentifier(conn, schema)
-    view_q <- dbQuoteIdentifier(conn, view)
-    stopifnot("burst_name" %in% colnames(bursts_df))
-    sql_array <- paste(a$burst_name, collapse = "','")
-    sql_query <- paste0("
-                        SELECT
-                            st_makeline(step_geom)::geometry(
-                                linestring,
-                                4326
-                            ) AS burst_geom,
-                            burst_name,
-                            animal_name
-                        FROM
-                            ",schema_q,".", view_q,"
-                        WHERE
-                            burst_name = ANY(ARRAY['",sql_array,"'])
+                            burst_name = ", burst_sql, "
                         GROUP BY
                             burst_name,
                             animal_name;")
@@ -371,7 +358,7 @@ pgtrajPlotter <-
                         x$burst_name <-
                             bursts_df[x$burst_counter, "burst_name"]
                         x$currStep <-
-                            get_burst_geom(conn, schema, view, x$burst_name)
+                            getBurstGeom(conn, schema, view, x$burst_name)
                     }
                 } else if (input$step_burst == "step") {
                     timeOut$currTime <- timeOut$currTime + timeOut$increment
@@ -397,7 +384,7 @@ pgtrajPlotter <-
                         x$burst_name <-
                             bursts_df[x$burst_counter, "burst_name"]
                         x$currStep <-
-                            get_burst_geom(conn, schema, view, x$burst_name)
+                            getBurstGeom(conn, schema, view, x$burst_name)
                     }
                 } else if (input$step_burst == "step") {
                     timeOut$currTime <- timeOut$currTime - timeOut$increment
@@ -488,6 +475,8 @@ pgtrajPlotter <-
                     ),
                     step = timeOut$increment
                 )
+                
+                print(input$burst_picker)
             })
             
         }
