@@ -6,7 +6,6 @@ library(dplyr)
 library(DBI)
 library(htmltools)
 library(mapview)
-library(testthat)
 library(shinyWidgets)
 
 
@@ -142,11 +141,7 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
 pgtrajPlotter <-
     function(conn,
              schema,
-             pgtraj,
-             d_start=NULL,
-             t_start=NULL,
-             increment=NULL,
-             interval=NULL) {
+             pgtraj) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -158,38 +153,25 @@ pgtrajPlotter <-
                                  tz = "UTC")
         attributes(t)$tzone <- tzone
         
-        if(is.null(d_start)){
-            expect_null(t_start)
-            t <- as.POSIXct(time_params$tstamp_start,
-                            origin = "1970-01-01 00:00:00",
-                            tz = "UTC")
-            # R uses time zone abbreviation to print time stamps,
-            # thus get_step_window while pgtraj stores the "long" time zone
-            # format (e.g. America/New_York instead of EDT). Thus the warning
-            # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-            attributes(t)$tzone <- tzone
-        } else {
-            t <- ymd_hms(paste(d_start, t_start), tz = tzone)
-        }
+        t <- as.POSIXct(time_params$tstamp_start,
+                        origin = "1970-01-01 00:00:00",
+                        tz = "UTC")
+        # R uses time zone abbreviation to print time stamps,
+        # thus get_step_window while pgtraj stores the "long" time zone
+        # format (e.g. America/New_York instead of EDT). Thus the warning
+        # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
+        attributes(t)$tzone <- tzone
         
-        if(is.null(increment)){
-            increment <- duration(num = time_params$increment,
-                                  units = "seconds")
-        } else {
-            increment <- duration(num = increment, units = "seconds")
-        }
+        increment <- duration(num = time_params$increment,
+                              units = "seconds")
         
         # default interval is 10*increment (~10 steps)
-        if(is.null(interval)){
-            limit <- t + (increment * 10)
-            if(limit < tstamp_last) {
-                interval <- increment * 10
-            } else {
-                message("Loading full trajectory, because it is shorter than 10 steps.")
-                interval <- tstamp_last - t
-            }
+        limit <- t + (increment * 10)
+        if(limit < tstamp_last) {
+            interval <- increment * 10
         } else {
-            interval <- duration(num = interval, units = "seconds")
+            message("Loading full trajectory, because it is shorter than 10 steps.")
+            interval <- tstamp_last - t
         }
         
         # Get initial set of trajectories
