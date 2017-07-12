@@ -210,13 +210,10 @@ pgtrajPlotter <-
                         tags$script(
                             '$(document).on("keydown",
                             function (e) {
-                            var d = new Date();
                             if(e.which == 66) {
-                            Shiny.onInputChange("b",
-                            Math.round((d.getMilliseconds()+251) / 500) );
+                            Shiny.onInputChange("b", new Date() );
                             } else if (e.which == 78) {
-                            Shiny.onInputChange("n",
-                            Math.round((d.getMilliseconds()+251) / 500) );
+                            Shiny.onInputChange("n", new Date() );
                             }
                             });
                             '
