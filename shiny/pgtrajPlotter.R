@@ -67,7 +67,7 @@ get_bursts_df <- function(conn, schema, view){
 getBurstGeom <- function(conn, schema, view, burst_name){
     # accepts a character vector of variable length
     
-    if (is.null(burst_name)){
+    if (is.null(burst_name) | length(burst_name) == 0){
         return()
     } else if (length(burst_name) == 1) {
         burst_sql <- dbQuoteString(conn, burst_name)
@@ -221,14 +221,6 @@ pgtrajPlotter <-
                             });
                             '
                     ),
-                    radioButtons(
-                        "step_burst",
-                        label = h4(strong("Increment")),
-                        choices = list("Bursts" = "burst",
-                                       "Steps" = "step"),
-                        selected = "step"
-                    ),
-                    # checkboxInput("step_mode", label = "Step mode", value = FALSE),
                     switchInput(
                         inputId = "step_mode",
                         label = "Step mode",
@@ -236,9 +228,6 @@ pgtrajPlotter <-
                     ),
                     h4(strong("Steps")),
                     h5(textOutput("tstamp")),
-                    h4(strong("Burst")),
-                    h5(textOutput("burst_name")),
-                    h5(textOutput("burst_counter")),
                     pickerInput(
                         inputId = "burst_picker",
                         label = "Bursts",
@@ -287,7 +276,8 @@ pgtrajPlotter <-
                     currStep = st,
                     counter = 0,
                     burst_counter = 0,
-                    burst_name = ""
+                    burst_name = NULL,
+                    bursts = NULL
                 )
             # get current time window and the next
             timeOut <- reactiveValues(currTime = t,
@@ -352,53 +342,32 @@ pgtrajPlotter <-
                 # for assigning alternating group names
                 x$counter <- x$counter + 1
                 
-                if (input$step_burst == "burst") {
-                    if (x$burst_counter < burst_len) {
-                        x$burst_counter <- x$burst_counter + 1
-                        x$burst_name <-
-                            bursts_df[x$burst_counter, "burst_name"]
-                        x$currStep <-
-                            getBurstGeom(conn, schema, view, x$burst_name)
-                    }
-                } else if (input$step_burst == "step") {
-                    timeOut$currTime <- timeOut$currTime + timeOut$increment
-                    x$currStep <-
-                        get_step_window(
-                            conn,
-                            schema,
-                            view,
-                            timeOut$currTime,
-                            timeOut$interval,
-                            input$step_mode
-                        )
-                }
+                timeOut$currTime <- timeOut$currTime + timeOut$increment
+                x$currStep <-
+                    get_step_window(
+                        conn,
+                        schema,
+                        view,
+                        timeOut$currTime,
+                        timeOut$interval,
+                        input$step_mode
+                    )
             })
             
             observeEvent(input$b, {
                 # for assigning alternating group names
                 x$counter <- x$counter + 1
-                
-                if (input$step_burst == "burst") {
-                    if (x$burst_counter > 1) {
-                        x$burst_counter <- x$burst_counter - 1
-                        x$burst_name <-
-                            bursts_df[x$burst_counter, "burst_name"]
-                        x$currStep <-
-                            getBurstGeom(conn, schema, view, x$burst_name)
-                    }
-                } else if (input$step_burst == "step") {
-                    timeOut$currTime <- timeOut$currTime - timeOut$increment
-                    x$currStep <-
-                        get_step_window(
-                            conn,
-                            schema,
-                            view,
-                            timeOut$currTime,
-                            timeOut$interval,
-                            input$step_mode
-                        )
-                }
-                
+
+                timeOut$currTime <- timeOut$currTime - timeOut$increment
+                x$currStep <-
+                    get_step_window(
+                        conn,
+                        schema,
+                        view,
+                        timeOut$currTime,
+                        timeOut$interval,
+                        input$step_mode
+                    )
             })
             
             # Report current timestamp
@@ -408,15 +377,6 @@ pgtrajPlotter <-
                     "-",
                     format(timeOut$currTime + timeOut$interval, usetz = TRUE)
                 )
-            })
-            
-            # Report current burst name and count
-            output$burst_name <- renderText({
-                x$burst_name
-            })
-            
-            output$burst_counter <- renderText({
-                paste0(x$burst_counter, "/", burst_len)
             })
             
             # Leaflet base map, and starting view centered at the trajectories
@@ -436,10 +396,38 @@ pgtrajPlotter <-
                             weight = 2
                         ) %>%
                         addLayersControl(
-                            overlayGroups = c("OSM (default)", "trajfull"),
+                            overlayGroups = c("OSM (default)", "trajfull",
+                                              "bursts"),
                             options = layersControlOptions(collapsed = FALSE)
                         )
                 }
+            })
+            
+            # add burst to map only when the burst picker is updated, and 
+            # only add/remove what is neccessary
+            observeEvent(input$burst_picker, {
+                burst_get <- setdiff(input$burst_picker, x$burst_name)
+                burst_remove <- setdiff(x$burst_name, input$burst_picker)
+
+                # first remove obsolete burst on map
+                proxy <- leafletProxy("map") %>%
+                    removeShape(burst_remove)
+                x$burst_name <- input$burst_picker
+                
+                if (length(burst_get) > 0) {
+                    x$bursts <- getBurstGeom(conn, schema, view, burst_get)
+                    proxy %>% addPolylines(
+                        data = x$bursts,
+                        group = "bursts",
+                        layerId = burst_get,
+                        fillOpacity = 1,
+                        opacity = 1,
+                        color = "yellow",
+                        #~factpal(animal_name),
+                        weight = 4,
+                        popup = mapview::popupTable(x$bursts)
+                    )
+                } 
             })
             
             observe({
@@ -476,7 +464,11 @@ pgtrajPlotter <-
                     step = timeOut$increment
                 )
                 
-                print(input$burst_picker)
+                # because observeEven doesn't pass value when all burst are
+                # deselected
+                if (is.null(input$burst_picker)) {
+                    proxy %>% clearGroup("bursts")
+                }
             })
             
         }
