@@ -41,16 +41,16 @@ makeShinyView(conn, schema, pgtraj)
 
 # Run ---------------------------------------------------------------------
 
-# pgtraj from database
-pgtrajPlotter(conn,
-              schema,
-              pgtraj,
-              d_start,
-              t_start,
-              tzone,
-              increment,
-              nr_increment,
-              interval)
+# # pgtraj from database
+# pgtrajPlotter(conn,
+#               schema,
+#               pgtraj,
+#               d_start,
+#               t_start,
+#               tzone,
+#               increment,
+#               nr_increment,
+#               interval)
 # plot with default parameters
 pgtrajPlotter(conn,
               schema,

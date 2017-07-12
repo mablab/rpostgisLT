@@ -7,6 +7,7 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(testthat)
+library(shinyWidgets)
 
 
 # Queries ------------------------------------------------------------
@@ -229,7 +230,8 @@ pgtrajPlotter <-
                              choices = list("Bursts" = "burst",
                                             "Steps" = "step"),
                              selected = "step"),
-                checkboxInput("step_mode", label = "Step mode", value = FALSE),
+                # checkboxInput("step_mode", label = "Step mode", value = FALSE),
+                switchInput(inputId = "step_mode", label = "Step mode", value = FALSE),
                 h4(strong("Steps")),
                 h5(textOutput("tstamp")),
                 h4(strong("Burst")),
