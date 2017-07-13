@@ -14,9 +14,9 @@ library(shinyWidgets)
 # Get steps within a temporal window
 get_step_window <- function(conn, schema, view, time, interval, step_mode){
     stopifnot(is.period(interval))
-    i <- as.period(interval, unit = "seconds")
+    i <- period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
-    t_interval <- dbQuoteString(conn, paste(i@.Data, "seconds"))
+    t_interval <- dbQuoteString(conn, paste(i, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     if(step_mode){
@@ -234,15 +234,12 @@ pgtrajPlotter <-
                         options = list(`actions-box` = TRUE),
                         multiple = TRUE
                     ),
-                    numericInput("increment", "Increment:", value = increment@.Data),
-                    numericInput("interval", "Interval:", value = interval@.Data),
                     selectInput(
                         "unit",
                         label = NULL,
                         choices = c(
                             "years" = "years",
                             "months" = "months",
-                            "weeks" = "weeks",
                             "days" = "days",
                             "hours" = "hours",
                             "minutes" = "minutes",
@@ -250,6 +247,8 @@ pgtrajPlotter <-
                         ),
                         selected = unit_init
                     ),
+                    numericInput("increment", "Increment:", value = increment@.Data),
+                    numericInput("interval", "Interval:", value = interval@.Data),
                     actionButton("set_i", "Set"),
                     sliderInput(
                         "range",
@@ -286,13 +285,51 @@ pgtrajPlotter <-
                                       unit = unit_init)
             
             observeEvent(input$unit, {
-                # # current unit
+                # current unit
                 # print(timeOut$unit)
-                # timeOut$unit <- input$unit
+                timeOut$unit <- input$unit
                 # print(timeOut$unit)
-                # 
-                # # as.period(b, unit = "minutes")
-                # 
+
+                timeOut$increment <- as.period(timeOut$increment,
+                                               unit = input$unit)
+                timeOut$interval <- as.period(timeOut$interval,
+                                              unit = input$unit)
+                
+                if (input$unit == "years") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@year)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@year)
+                } else if (input$unit == "months") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@month)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@month)
+                } else if (input$unit == "days") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@day)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@day)
+                } else if (input$unit == "hours") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@hour)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@hour)
+                } else if (input$unit == "minutes") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@minute)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@minute)
+                } else if (input$unit == "seconds") {
+                    updateNumericInput(session, "increment",
+                                       value = timeOut$increment@.Data)
+                    updateNumericInput(session, "interval",
+                                       value = timeOut$interval@.Data)
+                }
+                
+                
+
+
                 # print(class(timeOut$increment))
                 # print(class(timeOut$interval))
                 
@@ -309,11 +346,6 @@ pgtrajPlotter <-
                                                   units = "months")
                     timeOut$interval <- period(num = input$interval,
                                                  units = "months")
-                } else if (input$unit == "weeks") {
-                    timeOut$increment <- period(num = input$increment,
-                                                  units = "weeks")
-                    timeOut$interval <- period(num = input$interval,
-                                                 units = "weeks")
                 } else if (input$unit == "days") {
                     timeOut$increment <- period(num = input$increment,
                                                   units = "days")
@@ -339,8 +371,6 @@ pgtrajPlotter <-
             
             observeEvent(input$range, {
                 timeOut$currTime <- input$range[1]
-                
-                # print(as.period(as.period(input$range[2] - input$range[1]), unit = "seconds"))
                 
                 timeOut$interval <-
                     as.period(input$range[2] - input$range[1])
