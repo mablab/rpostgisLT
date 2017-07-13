@@ -276,10 +276,18 @@ pgtrajPlotter <-
                     burst_name = NULL,
                     bursts = NULL
                 )
+            
             # get current time window and the next
             timeOut <- reactiveValues(currTime = t,
                                       interval = interval,
-                                      increment = increment)
+                                      increment = increment,
+                                      unit = input$unit)
+            
+            observeEvent(input$unit, {
+                print(timeOut$unit)
+                timeOut$unit <- input$unit
+                print(timeOut$unit)
+            })
             
             observeEvent(input$set_i, {
                 if (input$unit == "years") {
