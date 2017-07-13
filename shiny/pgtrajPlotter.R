@@ -7,17 +7,15 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(shinyWidgets)
-library(testthat)
-
 
 # Queries ------------------------------------------------------------
 
 # Get steps within a temporal window
 get_step_window <- function(conn, schema, view, time, interval, step_mode){
-    stopifnot(expect_true(is.duration(interval)))
-    
+    stopifnot(is.period(interval))
+    i <- period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
-    t_interval <- dbQuoteString(conn, paste(interval@.Data, "seconds"))
+    t_interval <- dbQuoteString(conn, paste(i, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     if(step_mode){
@@ -147,6 +145,52 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     return(cbind(time_params, tzone))
 }
 
+updateNumericTimeInput <- function(session, inputUnit, input_type, reactiveTime){
+    if (inputUnit == "years") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@year)
+    } else if (inputUnit == "months") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@month)
+    } else if (inputUnit == "days") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@day)
+    } else if (inputUnit == "hours") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@hour)
+    } else if (inputUnit == "minutes") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@minute)
+    } else if (inputUnit == "seconds") {
+        updateNumericInput(session, input_type,
+                           value = reactiveTime@.Data)
+    }
+}
+
+setTimeInput <- function(inputUnit, inputTime, reactiveTime){
+    if (inputUnit == "years") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "years")
+    } else if (inputUnit == "months") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "months")
+    } else if (inputUnit == "days") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "days")
+    } else if (inputUnit == "hours") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "hours")
+    } else if (inputUnit == "minutes") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "minutes")
+    } else if (inputUnit == "seconds") {
+        reactiveTime <- period(num = inputTime,
+                                    units = "seconds")
+    }
+    
+    return(reactiveTime)
+}
+
 # Shiny App----------------------------------------------------------------
 
 
@@ -174,7 +218,7 @@ pgtrajPlotter <-
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
         attributes(t)$tzone <- tzone
         
-        increment <- duration(num = time_params$increment,
+        increment <- period(num = time_params$increment,
                               units = "seconds")
         
         # default interval is 10*increment (~10 steps)
@@ -199,6 +243,8 @@ pgtrajPlotter <-
         # get burst list for burst mode
         bursts_df <- get_bursts_df(conn, schema, view)
         burst_len <- nrow(bursts_df)
+        
+        unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
         
@@ -231,25 +277,49 @@ pgtrajPlotter <-
                         label = "Bursts",
                         choices = bursts_df$burst_name,
                         options = list(`actions-box` = TRUE),
-                        multiple = TRUE
+                        multiple = TRUE,
+                        width = "50%"
                     ),
-                    numericInput("increment", "Increment:", value = increment@.Data),
-                    numericInput("interval", "Interval:", value = interval@.Data),
-                    selectInput(
-                        "unit",
-                        label = NULL,
-                        choices = c(
-                            "years" = "years",
-                            "months" = "months",
-                            "weeks" = "weeks",
-                            "days" = "days",
-                            "hours" = "hours",
-                            "minutes" = "minutes",
-                            "seconds" = "seconds"
+                    fluidRow(
+                        column(6,
+                        numericInput("increment", "Increment",
+                                value = increment@.Data,
+                                width = "100%"),
+                        numericInput("interval", "Interval",
+                                value = interval@.Data,
+                                width = "100%")
                         ),
-                        selected = "seconds"
+                        column(6,
+                           selectInput(
+                               "increment_unit",
+                               label = "units",
+                               choices = c(
+                                   "years" = "years",
+                                   "months" = "months",
+                                   "days" = "days",
+                                   "hours" = "hours",
+                                   "minutes" = "minutes",
+                                   "seconds" = "seconds"
+                               ),
+                               selected = unit_init,
+                               width = "100%"
+                           ),
+                           selectInput(
+                               "interval_unit",
+                               label = "units",
+                               choices = c(
+                                   "years" = "years",
+                                   "months" = "months",
+                                   "days" = "days",
+                                   "hours" = "hours",
+                                   "minutes" = "minutes",
+                                   "seconds" = "seconds"
+                               ),
+                               selected = unit_init,
+                               width = "100%"
+                           )
+                        )
                     ),
-                    actionButton("set_i", "Set"),
                     sliderInput(
                         "range",
                         "Time window:",
@@ -277,54 +347,63 @@ pgtrajPlotter <-
                     burst_name = NULL,
                     bursts = NULL
                 )
+            
             # get current time window and the next
             timeOut <- reactiveValues(currTime = t,
                                       interval = interval,
-                                      increment = increment)
+                                      increment = increment,
+                                      increment_unit = unit_init,
+                                      interval_unit = unit_init)
             
-            observeEvent(input$set_i, {
-                if (input$unit == "years") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "years")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "years")
-                } else if (input$unit == "months") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "months")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "months")
-                } else if (input$unit == "weeks") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "weeks")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "weeks")
-                } else if (input$unit == "days") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "days")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "days")
-                } else if (input$unit == "hours") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "hours")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "hours")
-                } else if (input$unit == "minutes") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "minutes")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "minutes")
-                } else if (input$unit == "seconds") {
-                    timeOut$increment <- duration(num = input$increment,
-                                                  units = "seconds")
-                    timeOut$interval <- duration(num = input$interval,
-                                                 units = "seconds")
+            # convert values in Increment to the selected unit
+            observeEvent(input$increment_unit, {
+                if(is.null(input$increment) | is.logical(input$increment)){
+                    return()
                 }
+                timeOut$increment <- as.period(timeOut$increment,
+                                               unit = input$increment_unit)
+                
+                updateNumericTimeInput(session, input$increment_unit,
+                                       "increment", timeOut$increment)
             })
             
+            # convert values in Interval to the selected unit
+            observeEvent(input$interval_unit, {
+                if(is.null(input$interval) | is.logical(input$interval)){
+                    return()
+                }
+                timeOut$interval <- as.period(timeOut$interval,
+                                              unit = input$interval_unit)
+                
+                updateNumericTimeInput(session, input$interval_unit,
+                                       "interval", timeOut$interval)
+            })
+            
+            # set Increment from input field
+            observeEvent(input$increment, {
+                if(is.null(input$increment) | is.logical(input$increment)){
+                    return()
+                }
+                timeOut$increment <- setTimeInput(input$increment_unit,
+                                                 input$increment,
+                                                    timeOut$increment)
+            })
+            
+            # set Interval from input field
+            observeEvent(input$interval, {
+                if(is.null(input$interval) | is.logical(input$interval)){
+                    return()
+                }
+                timeOut$interval <- setTimeInput(input$interval_unit, input$interval,
+                             timeOut$interval)
+            })
+            
+            # set Interval and Time Window from slider
             observeEvent(input$range, {
                 timeOut$currTime <- input$range[1]
+                
                 timeOut$interval <-
-                    as.duration(input$range[2] - input$range[1])
+                    as.period(input$range[2] - input$range[1])
                 x$counter <- x$counter + 1
                 x$currStep <-
                     get_step_window(conn,
@@ -341,6 +420,7 @@ pgtrajPlotter <-
                 x$counter <- x$counter + 1
                 
                 timeOut$currTime <- timeOut$currTime + timeOut$increment
+                
                 x$currStep <-
                     get_step_window(
                         conn,
@@ -357,6 +437,7 @@ pgtrajPlotter <-
                 x$counter <- x$counter + 1
 
                 timeOut$currTime <- timeOut$currTime - timeOut$increment
+                
                 x$currStep <-
                     get_step_window(
                         conn,

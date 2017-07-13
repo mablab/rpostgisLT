@@ -52,6 +52,7 @@ makeShinyView(conn, schema, pgtraj)
 #               nr_increment,
 #               interval)
 # plot with default parameters
+source("./shiny/pgtrajPlotter.R")
 pgtrajPlotter(conn,
               schema,
               pgtraj)
