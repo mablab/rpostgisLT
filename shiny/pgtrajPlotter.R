@@ -7,16 +7,16 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(shinyWidgets)
-
+# library(testthat)
 
 # Queries ------------------------------------------------------------
 
 # Get steps within a temporal window
 get_step_window <- function(conn, schema, view, time, interval, step_mode){
-    stopifnot(expect_true(is.duration(interval)))
-    
+    stopifnot(is.period(interval))
+    i <- as.period(interval, unit = "seconds")
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
-    t_interval <- dbQuoteString(conn, paste(interval@.Data, "seconds"))
+    t_interval <- dbQuoteString(conn, paste(i@.Data, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     if(step_mode){
@@ -173,7 +173,7 @@ pgtrajPlotter <-
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
         attributes(t)$tzone <- tzone
         
-        increment <- duration(num = time_params$increment,
+        increment <- period(num = time_params$increment,
                               units = "seconds")
         
         # default interval is 10*increment (~10 steps)
@@ -198,6 +198,8 @@ pgtrajPlotter <-
         # get burst list for burst mode
         bursts_df <- get_bursts_df(conn, schema, view)
         burst_len <- nrow(bursts_df)
+        
+        unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
         
@@ -246,7 +248,7 @@ pgtrajPlotter <-
                             "minutes" = "minutes",
                             "seconds" = "seconds"
                         ),
-                        selected = "seconds"
+                        selected = unit_init
                     ),
                     actionButton("set_i", "Set"),
                     sliderInput(
@@ -281,57 +283,67 @@ pgtrajPlotter <-
             timeOut <- reactiveValues(currTime = t,
                                       interval = interval,
                                       increment = increment,
-                                      unit = input$unit)
+                                      unit = unit_init)
             
             observeEvent(input$unit, {
-                print(timeOut$unit)
-                timeOut$unit <- input$unit
-                print(timeOut$unit)
+                # # current unit
+                # print(timeOut$unit)
+                # timeOut$unit <- input$unit
+                # print(timeOut$unit)
+                # 
+                # # as.period(b, unit = "minutes")
+                # 
+                # print(class(timeOut$increment))
+                # print(class(timeOut$interval))
+                
             })
             
             observeEvent(input$set_i, {
                 if (input$unit == "years") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "years")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "years")
                 } else if (input$unit == "months") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "months")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "months")
                 } else if (input$unit == "weeks") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "weeks")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "weeks")
                 } else if (input$unit == "days") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "days")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "days")
                 } else if (input$unit == "hours") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "hours")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "hours")
                 } else if (input$unit == "minutes") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "minutes")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "minutes")
                 } else if (input$unit == "seconds") {
-                    timeOut$increment <- duration(num = input$increment,
+                    timeOut$increment <- period(num = input$increment,
                                                   units = "seconds")
-                    timeOut$interval <- duration(num = input$interval,
+                    timeOut$interval <- period(num = input$interval,
                                                  units = "seconds")
                 }
             })
             
             observeEvent(input$range, {
                 timeOut$currTime <- input$range[1]
+                
+                # print(as.period(as.period(input$range[2] - input$range[1]), unit = "seconds"))
+                
                 timeOut$interval <-
-                    as.duration(input$range[2] - input$range[1])
+                    as.period(input$range[2] - input$range[1])
                 x$counter <- x$counter + 1
                 x$currStep <-
                     get_step_window(conn,
@@ -348,6 +360,7 @@ pgtrajPlotter <-
                 x$counter <- x$counter + 1
                 
                 timeOut$currTime <- timeOut$currTime + timeOut$increment
+                
                 x$currStep <-
                     get_step_window(
                         conn,
@@ -364,6 +377,7 @@ pgtrajPlotter <-
                 x$counter <- x$counter + 1
 
                 timeOut$currTime <- timeOut$currTime - timeOut$increment
+                
                 x$currStep <-
                     get_step_window(
                         conn,

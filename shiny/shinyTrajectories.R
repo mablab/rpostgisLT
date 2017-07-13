@@ -57,7 +57,7 @@ pgtrajPlotter(conn,
               schema,
               pgtraj)
 
-# ltraj-sf from R
+tty# ltraj-sf from R
 ltrajPlotter(
     pgtraj_sf = roe_sf,
     d_start = "2005-10-22",
