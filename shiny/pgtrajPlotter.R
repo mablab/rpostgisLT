@@ -39,13 +39,14 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode){
                                 linestring,
                                 4326
                             ) AS step_geom,
+                            a.burst_name,
                             a.animal_name
                         FROM ", schema_q, ".", view_q, " a
                         WHERE a.relocation_time >= ",t,"::timestamptz
                         AND a.relocation_time < (",t,"::timestamptz + ",
                             t_interval, "::INTERVAL)
                         AND a.step_geom IS NOT NULL
-                        GROUP BY a.animal_name;")
+                        GROUP BY a.burst_name, a.animal_name;")
     }
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
 }
@@ -57,6 +58,18 @@ get_bursts_df <- function(conn, schema, view){
     sql_query <- paste0("
                         SELECT
                             DISTINCT burst_name
+                        FROM
+                            ",schema_q,".", view_q,";")
+    return(dbGetQuery(conn, sql_query))
+}
+
+# Get list of animals in step_geometry view
+getAnimalsDf <- function(conn, schema, view){
+    schema_q <- dbQuoteIdentifier(conn, schema)
+    view_q <- dbQuoteIdentifier(conn, view)
+    sql_query <- paste0("
+                        SELECT
+                            DISTINCT animal_name
                         FROM
                             ",schema_q,".", view_q,";")
     return(dbGetQuery(conn, sql_query))
@@ -240,9 +253,18 @@ pgtrajPlotter <-
         # color by animal_name
         # factpal <- colorFactor(topo.colors(4), st$animal_name)
         
+        # get animal list
+        animals_df <- getAnimalsDf(conn, schema, view)
+        colors_animal <- colorFactor(topo.colors(nrow(animals_df)),
+                                     animals_df$animal_name,
+                                     na.color = "#808080")
+        
         # get burst list for burst mode
         bursts_df <- get_bursts_df(conn, schema, view)
         burst_len <- nrow(bursts_df)
+        colors_burst <- colorFactor(topo.colors(burst_len),
+                                    bursts_df$burst_name,
+                                    na.color = "#808080")
         
         unit_init <- "seconds"
         
@@ -270,15 +292,19 @@ pgtrajPlotter <-
                         label = "Step mode",
                         value = FALSE
                     ),
-                    h4(strong("Steps")),
-                    h5(textOutput("tstamp")),
+                    radioGroupButtons(inputId = "color_choice", 
+                                      label = "Color",
+                                      choices = c("Animals", "Bursts"),
+                                      selected = "Animals"),
+                    # h4(strong("Steps")),
+                    # h5(textOutput("tstamp")),
                     pickerInput(
                         inputId = "burst_picker",
                         label = "Bursts",
                         choices = bursts_df$burst_name,
                         options = list(`actions-box` = TRUE),
                         multiple = TRUE,
-                        width = "50%"
+                        width = "100%"
                     ),
                     fluidRow(
                         column(6,
@@ -449,14 +475,14 @@ pgtrajPlotter <-
                     )
             })
             
-            # Report current timestamp
-            output$tstamp <- renderText({
-                paste(
-                    format(timeOut$currTime, usetz = TRUE),
-                    "-",
-                    format(timeOut$currTime + timeOut$interval, usetz = TRUE)
-                )
-            })
+            # # Report current timestamp
+            # output$tstamp <- renderText({
+            #     paste(
+            #         format(timeOut$currTime, usetz = TRUE),
+            #         "-",
+            #         format(timeOut$currTime + timeOut$interval, usetz = TRUE)
+            #     )
+            # })
             
             # Leaflet base map, and starting view centered at the trajectories
             output$map <- renderLeaflet({
@@ -493,6 +519,13 @@ pgtrajPlotter <-
                     removeShape(burst_remove)
                 x$burst_name <- input$burst_picker
                 
+                # colors
+                if(input$color_choice == "Bursts"){
+                    colorpal <- ~colors_burst(burst_name)
+                } else {
+                    colorpal <- ~colors_animal(animal_name)
+                }
+                
                 if (length(burst_get) > 0) {
                     x$bursts <- getBurstGeom(conn, schema, view, burst_get)
                     proxy %>% addPolylines(
@@ -501,8 +534,7 @@ pgtrajPlotter <-
                         layerId = burst_get,
                         fillOpacity = 1,
                         opacity = 1,
-                        color = "yellow",
-                        #~factpal(animal_name),
+                        color = colorpal,
                         weight = 4,
                         popup = mapview::popupTable(x$bursts)
                     )
@@ -510,18 +542,26 @@ pgtrajPlotter <-
             })
             
             observe({
+                # counter for adding/removing groups
                 if (x$counter %% 2 == 0) {
                     gname <- "traj"
                 } else {
                     gname <- "trajnew"
                 }
+                # colors
+                if(input$color_choice == "Bursts"){
+                    colorpal <- ~colors_burst(burst_name)
+                } else {
+                    colorpal <- ~colors_animal(animal_name)
+                }
+                # map
                 proxy <- leafletProxy("map") %>%
                     addPolylines(
                         data = x$currStep,
                         group = gname,
                         fillOpacity = 1,
                         opacity = 1,
-                        color = "red",
+                        color = colorpal,
                         #~factpal(animal_name),
                         weight = 4,
                         popup = mapview::popupTable(x$currStep)
