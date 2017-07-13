@@ -84,7 +84,7 @@ getBurstGeom <- function(conn, schema, view, burst_name){
     } else if (length(burst_name) == 1) {
         burst_sql <- dbQuoteString(conn, burst_name)
     } else if (length(burst_name) > 1) {
-        sql_array <- paste(a$burst_name, collapse = "','")
+        sql_array <- paste(burst_name, collapse = "','")
         burst_sql <- paste0("ANY(ARRAY['",sql_array,"'])")
     }
     
