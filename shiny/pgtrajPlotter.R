@@ -7,6 +7,7 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(shinyWidgets)
+library(testthat)
 
 
 # Queries ------------------------------------------------------------
