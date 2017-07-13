@@ -270,8 +270,8 @@ pgtrajPlotter <-
                         label = "Step mode",
                         value = FALSE
                     ),
-                    h4(strong("Steps")),
-                    h5(textOutput("tstamp")),
+                    # h4(strong("Steps")),
+                    # h5(textOutput("tstamp")),
                     pickerInput(
                         inputId = "burst_picker",
                         label = "Bursts",
@@ -449,14 +449,14 @@ pgtrajPlotter <-
                     )
             })
             
-            # Report current timestamp
-            output$tstamp <- renderText({
-                paste(
-                    format(timeOut$currTime, usetz = TRUE),
-                    "-",
-                    format(timeOut$currTime + timeOut$interval, usetz = TRUE)
-                )
-            })
+            # # Report current timestamp
+            # output$tstamp <- renderText({
+            #     paste(
+            #         format(timeOut$currTime, usetz = TRUE),
+            #         "-",
+            #         format(timeOut$currTime + timeOut$interval, usetz = TRUE)
+            #     )
+            # })
             
             # Leaflet base map, and starting view centered at the trajectories
             output$map <- renderLeaflet({
