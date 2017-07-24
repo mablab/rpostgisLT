@@ -7,6 +7,7 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(shinyWidgets)
+library(testthat)
 
 # Queries ------------------------------------------------------------
 
@@ -203,6 +204,55 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
     
     return(reactiveTime)
 }
+
+findGeoType <- function(conn, layers) {
+    expect_true((length(layers) >= 1))
+    geo_type <- data.frame(name = character(), type = character(),
+                           schema = character(), table = character(),
+                           stringsAsFactors = FALSE)
+    geo_type <- list(vect = NULL, rast = NULL)
+    n <- length(layers)
+    for(l in seq_along(layers)) {
+        v <- isVector(conn, l)
+        r <- isRaster(conn, l)
+    }
+}
+
+findGeoType(layers)
+
+# layer: c(schema, table)
+isVector <- function(conn, layer) {
+    sql_query <- paste0("SELECT *
+                        FROM public.geometry_columns
+                        WHERE f_table_schema = ",dbQuoteString(conn, layer[1]),"
+                        AND f_table_name = ",dbQuoteString(conn, layer[2]),
+                        ";")
+    v <- suppressWarnings(dbGetQuery(conn, sql_query))
+    if(nrow(v) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
+isVector(conn, layers[[1]])
+
+# layer: c(schema, table)
+isRaster <- function(conn, layer) {
+    sql_query <- paste0("SELECT *
+                        FROM public.raster_columns
+                        WHERE r_table_schema = ",dbQuoteString(conn, layer[1]),"
+                        AND r_table_name = ",dbQuoteString(conn, layer[2]),
+                        ";")
+    r <- suppressWarnings(dbGetQuery(conn, sql_query))
+    if(nrow(r) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
+isRaster(conn, layers[[1]])
 
 # Shiny App----------------------------------------------------------------
 
