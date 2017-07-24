@@ -57,6 +57,12 @@ pgtrajPlotter(conn,
               schema,
               pgtraj)
 
+# background layers
+
+layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+layers <- list(c("example_data", "county_subdiv"))
+pgtrajPlotter(conn, schema, pgtraj, layers)
+
 # ltraj-sf from R
 ltrajPlotter(
     pgtraj_sf = roe_sf,

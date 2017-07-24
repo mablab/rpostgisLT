@@ -266,7 +266,8 @@ isRaster <- function(conn, layer) {
 pgtrajPlotter <-
     function(conn,
              schema,
-             pgtraj) {
+             pgtraj,
+             layers=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -325,6 +326,32 @@ pgtrajPlotter <-
         unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
+        
+        # Get background layers
+        base <- NULL
+        
+        if(!is.null(layers)){
+            geo_type <- findGeoType(conn, layers)
+            base <- list()
+            if(length(geo_type$vect) > 0) {
+                for(l in seq_along(geo_type$vect)) {
+                    t = geo_type$vect[[l]]
+                    data <- st_read_db(conn, table = t)
+                    # add layer name
+                    # attr(data, "name") <- t[2]
+                    base[t[2]] <- list(data)
+                }
+            } else if(length(geo_type$rast) > 0) {
+                for(l in seq_along(geo_type$rast)) {
+                    t = geo_type$rast[[l]]
+                    # data <- pgGetRast(conn, t)
+                    # base[t[2]] <- list(data)
+                    print("raster layers not implemented yet")
+                }
+            }
+        }
+        
+        
         
         ui <-
             fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
@@ -541,6 +568,29 @@ pgtrajPlotter <-
             # })
             
             # Leaflet base map, and starting view centered at the trajectories
+            # output$map <- renderLeaflet({
+            #     if (is.null(w$data)) {
+            #         return()
+            #     } else {
+            #         map <- leaflet() %>%
+            #             addTiles(group = "OSM (default)") %>%
+            #             addPolylines(
+            #                 data = w$data,
+            #                 group = "trajfull",
+            #                 fillOpacity = .5,
+            #                 opacity = .5,
+            #                 color = "blue",
+            #                 #~factpal(animal_name),
+            #                 weight = 2
+            #             ) %>%
+            #             addLayersControl(
+            #                 overlayGroups = c("OSM (default)", "trajfull",
+            #                                   "bursts"),
+            #                 options = layersControlOptions(collapsed = FALSE)
+            #             )
+            #     }
+            # })
+            # 
             output$map <- renderLeaflet({
                 if (is.null(w$data)) {
                     return()
@@ -553,14 +603,50 @@ pgtrajPlotter <-
                             fillOpacity = .5,
                             opacity = .5,
                             color = "blue",
-                            #~factpal(animal_name),
                             weight = 2
-                        ) %>%
-                        addLayersControl(
-                            overlayGroups = c("OSM (default)", "trajfull",
-                                              "bursts"),
-                            options = layersControlOptions(collapsed = FALSE)
                         )
+                    if(!is.null(base)) {
+                        for(l in names(base)){
+                            geomtype <-  as.character(st_geometry_type(base[[l]])[1])
+                            if(grepl("point", geomtype, ignore.case = TRUE)) {
+                                map %>%
+                                    addMarkers(
+                                        data = base[[l]],
+                                        group = l
+                                    )
+                            } else if(grepl("linestring", geomtype, ignore.case = TRUE)) {
+                                map %>%
+                                    addPolylines(
+                                        data = base[[l]],
+                                        group = l
+                                    )
+                            } else if(grepl("polygon", geomtype, ignore.case = TRUE)) {
+                                map %>%
+                                    addPolygons(
+                                        data = base[[l]],
+                                        group = l
+                                    )
+                            } else if(geomtype == "raster") {
+                                map %>% 
+                                    addRasterImage(
+                                        data = base[[l]],
+                                        project = FALSE 
+                                    )
+                            }
+                        }
+                        if(is.null(w$data)) {
+                            return()
+                        } else{
+                            map %>% 
+                                addLayersControl(
+                                    overlayGroups = c("OSM (default)", "trajfull",
+                                                      "bursts", names(base)),
+                                    options = layersControlOptions(collapsed = FALSE)
+                                )
+                        }
+                    }
+
+
                 }
             })
             
