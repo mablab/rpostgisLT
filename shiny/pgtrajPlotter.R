@@ -205,6 +205,35 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
     return(reactiveTime)
 }
 
+
+getLayers <- function(conn, layers) {
+    geo_type <- findGeoType(conn, layers)
+    base <- list()
+    if(length(geo_type$vect) > 0) {
+        for(l in seq_along(geo_type$vect)) {
+            relation <-  geo_type$vect[[l]]
+            # project to EPSG:4326 for simpler handling
+            data <- st_read_db(conn, table = relation) %>% 
+                st_transform(4326)
+            # add layer name
+            # attr(data, "name") <- t[2]
+            base[relation[2]] <- list(data)
+        }
+    } else if(length(geo_type$rast) > 0) {
+        for(l in seq_along(geo_type$rast)) {
+            relation <- geo_type$rast[[l]]
+            # data <- pgGetRast(conn, relation)
+            # base[relation[2]] <- list(data)
+            print("raster layers not implemented yet")
+        }
+    }
+    
+    return(base)
+}
+
+# layers <- list(c("example_data", "county_subdiv"))
+b <- getLayers(conn, layers)
+
 # layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
 # geo_type$vect[[1]]
 findGeoType <- function(conn, layers) {
@@ -331,26 +360,8 @@ pgtrajPlotter <-
         base <- NULL
         
         if(!is.null(layers)){
-            geo_type <- findGeoType(conn, layers)
-            base <- list()
-            if(length(geo_type$vect) > 0) {
-                for(l in seq_along(geo_type$vect)) {
-                    t = geo_type$vect[[l]]
-                    data <- st_read_db(conn, table = t)
-                    # add layer name
-                    # attr(data, "name") <- t[2]
-                    base[t[2]] <- list(data)
-                }
-            } else if(length(geo_type$rast) > 0) {
-                for(l in seq_along(geo_type$rast)) {
-                    t = geo_type$rast[[l]]
-                    # data <- pgGetRast(conn, t)
-                    # base[t[2]] <- list(data)
-                    print("raster layers not implemented yet")
-                }
-            }
+            base <- getLayers(conn, layers)
         }
-        
         
         
         ui <-
@@ -596,57 +607,52 @@ pgtrajPlotter <-
                     return()
                 } else {
                     map <- leaflet() %>%
-                        addTiles(group = "OSM (default)") %>%
-                        addPolylines(
-                            data = w$data,
-                            group = "trajfull",
-                            fillOpacity = .5,
-                            opacity = .5,
-                            color = "blue",
-                            weight = 2
-                        )
-                    if(!is.null(base)) {
-                        for(l in names(base)){
+                        addTiles(group = "OSM (default)")
+                    
+                    if (!is.null(base)) {
+                        for (l in names(base)) {
                             geomtype <-  as.character(st_geometry_type(base[[l]])[1])
-                            if(grepl("point", geomtype, ignore.case = TRUE)) {
-                                map %>%
-                                    addMarkers(
-                                        data = base[[l]],
-                                        group = l
-                                    )
-                            } else if(grepl("linestring", geomtype, ignore.case = TRUE)) {
-                                map %>%
-                                    addPolylines(
-                                        data = base[[l]],
-                                        group = l
-                                    )
-                            } else if(grepl("polygon", geomtype, ignore.case = TRUE)) {
-                                map %>%
-                                    addPolygons(
-                                        data = base[[l]],
-                                        group = l
-                                    )
-                            } else if(geomtype == "raster") {
-                                map %>% 
-                                    addRasterImage(
-                                        data = base[[l]],
-                                        project = FALSE 
-                                    )
+                            if (grepl("point", geomtype, ignore.case = TRUE)) {
+                                map <- map %>%
+                                    addMarkers(data = base[[l]],
+                                               group = l)
+                            } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
+                                map <- map %>%
+                                    addPolylines(data = base[[l]],
+                                                 group = l)
+                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
+                                map <- map %>%
+                                    addPolygons(data = base[[l]],
+                                                group = l)
+                            } else if (geomtype == "raster") {
+                                map <- map %>%
+                                    addRasterImage(data = base[[l]],
+                                                   project = FALSE)
                             }
                         }
-                        if(is.null(w$data)) {
+                        
+                        if (is.null(w$data)) {
                             return()
-                        } else{
-                            map %>% 
+                        } else {
+                            map %>%
+                                addPolylines(
+                                    data = w$data,
+                                    group = "trajfull",
+                                    fillOpacity = .5,
+                                    opacity = .5,
+                                    color = "orange",
+                                    weight = 2
+                                ) %>% 
                                 addLayersControl(
-                                    overlayGroups = c("OSM (default)", "trajfull",
-                                                      "bursts", names(base)),
+                                    overlayGroups = append(
+                                        c("OSM (default)", "trajfull",
+                                          "bursts"),
+                                        names(base)
+                                    ),
                                     options = layersControlOptions(collapsed = FALSE)
                                 )
                         }
                     }
-
-
                 }
             })
             

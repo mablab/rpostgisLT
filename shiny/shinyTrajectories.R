@@ -60,7 +60,9 @@ pgtrajPlotter(conn,
 # background layers
 
 layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
-layers <- list(c("example_data", "county_subdiv"))
+
+source("./shiny/pgtrajPlotter.R")
+layers <- list(c("example_data", "county_subdiv"), c("example_data", "test_points"))
 pgtrajPlotter(conn, schema, pgtraj, layers)
 
 # ltraj-sf from R
