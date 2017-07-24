@@ -231,6 +231,12 @@ getLayers <- function(conn, layers) {
     return(base)
 }
 
+# ras <- readGDAL(dsn) # Get your file as SpatialGridDataFrame
+# ras2 <- raster(ras,1) # Convert the first Band to Raster
+# plot(ras2)
+# 
+# rast <- pgGetRast(conn, c("public", "florida_dem"))
+
 # layers <- list(c("example_data", "county_subdiv"))
 # b <- getLayers(conn, layers)
 
@@ -296,7 +302,8 @@ pgtrajPlotter <-
     function(conn,
              schema,
              pgtraj,
-             layers=NULL) {
+             layers=NULL,
+             layers_params=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -578,30 +585,6 @@ pgtrajPlotter <-
             #     )
             # })
             
-            # Leaflet base map, and starting view centered at the trajectories
-            # output$map <- renderLeaflet({
-            #     if (is.null(w$data)) {
-            #         return()
-            #     } else {
-            #         map <- leaflet() %>%
-            #             addTiles(group = "OSM (default)") %>%
-            #             addPolylines(
-            #                 data = w$data,
-            #                 group = "trajfull",
-            #                 fillOpacity = .5,
-            #                 opacity = .5,
-            #                 color = "blue",
-            #                 #~factpal(animal_name),
-            #                 weight = 2
-            #             ) %>%
-            #             addLayersControl(
-            #                 overlayGroups = c("OSM (default)", "trajfull",
-            #                                   "bursts"),
-            #                 options = layersControlOptions(collapsed = FALSE)
-            #             )
-            #     }
-            # })
-            # 
             output$map <- renderLeaflet({
                 if (is.null(w$data)) {
                     return()
@@ -612,22 +595,36 @@ pgtrajPlotter <-
                     if (!is.null(base)) {
                         for (l in names(base)) {
                             geomtype <-  as.character(st_geometry_type(base[[l]])[1])
-                            if (grepl("point", geomtype, ignore.case = TRUE)) {
+                            if (geomtype == "raster") {
                                 map <- map %>%
-                                    addMarkers(data = base[[l]],
-                                               group = l)
+                                    addRasterImage(data = base[[l]],
+                                                   project = FALSE)
+                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
+                                # map <- map %>%
+                                #     addPolygons(data = base[[l]],
+                                #                 group = l)
+                                
+                                
+                                map <- do.call(leaflet::addPolygons,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                layers_params[[l]])
+                                               )
                             } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
                                 map <- map %>%
                                     addPolylines(data = base[[l]],
                                                  group = l)
-                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
-                                map <- map %>%
-                                    addPolygons(data = base[[l]],
-                                                group = l)
-                            } else if (geomtype == "raster") {
-                                map <- map %>%
-                                    addRasterImage(data = base[[l]],
-                                                   project = FALSE)
+                            } else if (grepl("point", geomtype, ignore.case = TRUE)) {
+                                # map <- map %>%
+                                #     addMarkers(data = base[[l]],
+                                #                group = l)
+                                map <- do.call(leaflet::addCircleMarkers,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                  layers_params[[l]])
+                                               )
                             }
                         }
                         
