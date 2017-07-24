@@ -232,7 +232,7 @@ getLayers <- function(conn, layers) {
 }
 
 # layers <- list(c("example_data", "county_subdiv"))
-b <- getLayers(conn, layers)
+# b <- getLayers(conn, layers)
 
 # layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
 # geo_type$vect[[1]]
