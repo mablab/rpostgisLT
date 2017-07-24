@@ -205,20 +205,28 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
     return(reactiveTime)
 }
 
+# layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+# geo_type$vect[[1]]
 findGeoType <- function(conn, layers) {
     expect_true((length(layers) >= 1))
-    geo_type <- data.frame(name = character(), type = character(),
-                           schema = character(), table = character(),
-                           stringsAsFactors = FALSE)
-    geo_type <- list(vect = NULL, rast = NULL)
-    n <- length(layers)
-    for(l in seq_along(layers)) {
-        v <- isVector(conn, l)
-        r <- isRaster(conn, l)
+    # geo_type <- data.frame(name = character(), type = character(),
+    #                        schema = character(), table = character(),
+    #                        stringsAsFactors = FALSE)
+    geo_type <- list(vect = list(), rast = list())
+    for(i in seq_along(layers)) {
+        layer <- layers[[i]]
+        v <- isVector(conn, layer)
+        r <- isRaster(conn, layer)
+        if(v){
+            geo_type$vect <- append(geo_type$vect, layers[i])
+        } else {
+            geo_type$rast <- append(geo_type$rast, layers[i])
+        }
     }
+    
+    return(geo_type)
 }
 
-findGeoType(layers)
 
 # layer: c(schema, table)
 isVector <- function(conn, layer) {
@@ -235,7 +243,6 @@ isVector <- function(conn, layer) {
     }
 }
 
-isVector(conn, layers[[1]])
 
 # layer: c(schema, table)
 isRaster <- function(conn, layer) {
@@ -252,7 +259,6 @@ isRaster <- function(conn, layer) {
     }
 }
 
-isRaster(conn, layers[[1]])
 
 # Shiny App----------------------------------------------------------------
 
