@@ -7,6 +7,7 @@ library(DBI)
 library(htmltools)
 library(mapview)
 library(shinyWidgets)
+library(testthat)
 
 # Queries ------------------------------------------------------------
 
@@ -204,13 +205,106 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
     return(reactiveTime)
 }
 
+# layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+# return: list(name=sf object, name2=sf object)
+getLayers <- function(conn, layers) {
+    geo_type <- findGeoType(conn, layers)
+    base <- list()
+    if(length(geo_type$vect) > 0) {
+        for(l in seq_along(geo_type$vect)) {
+            relation <-  geo_type$vect[[l]]
+            # project to EPSG:4326 for simpler handling
+            data <- st_read_db(conn, table = relation) %>% 
+                st_transform(4326)
+            # add layer name
+            # attr(data, "name") <- t[2]
+            base[relation[2]] <- list(data)
+        }
+    } else if(length(geo_type$rast) > 0) {
+        for(l in seq_along(geo_type$rast)) {
+            relation <- geo_type$rast[[l]]
+            # data <- pgGetRast(conn, relation)
+            # base[relation[2]] <- list(data)
+            warning("raster layers not implemented yet")
+        }
+    }
+    
+    return(base)
+}
+
+# ras <- readGDAL(dsn) # Get your file as SpatialGridDataFrame
+# ras2 <- raster(ras,1) # Convert the first Band to Raster
+# plot(ras2)
+# 
+# rast <- pgGetRast(conn, c("public", "florida_dem"))
+
+# layers <- list(c("example_data", "county_subdiv"))
+# b <- getLayers(conn, layers)
+
+# layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+# geo_type$vect[[1]]
+findGeoType <- function(conn, layers) {
+    expect_true((length(layers) >= 1))
+    # geo_type <- data.frame(name = character(), type = character(),
+    #                        schema = character(), table = character(),
+    #                        stringsAsFactors = FALSE)
+    geo_type <- list(vect = list(), rast = list())
+    for(i in seq_along(layers)) {
+        layer <- layers[[i]]
+        v <- isVector(conn, layer)
+        r <- isRaster(conn, layer)
+        if(v){
+            geo_type$vect <- append(geo_type$vect, layers[i])
+        } else {
+            geo_type$rast <- append(geo_type$rast, layers[i])
+        }
+    }
+    
+    return(geo_type)
+}
+
+
+# layer: c(schema, table)
+isVector <- function(conn, layer) {
+    sql_query <- paste0("SELECT *
+                        FROM public.geometry_columns
+                        WHERE f_table_schema = ",dbQuoteString(conn, layer[1]),"
+                        AND f_table_name = ",dbQuoteString(conn, layer[2]),
+                        ";")
+    v <- suppressWarnings(dbGetQuery(conn, sql_query))
+    if(nrow(v) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
+
+# layer: c(schema, table)
+isRaster <- function(conn, layer) {
+    sql_query <- paste0("SELECT *
+                        FROM public.raster_columns
+                        WHERE r_table_schema = ",dbQuoteString(conn, layer[1]),"
+                        AND r_table_name = ",dbQuoteString(conn, layer[2]),
+                        ";")
+    r <- suppressWarnings(dbGetQuery(conn, sql_query))
+    if(nrow(r) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
+
 # Shiny App----------------------------------------------------------------
 
 
 pgtrajPlotter <-
     function(conn,
              schema,
-             pgtraj) {
+             pgtraj,
+             layers=NULL,
+             layers_params=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -269,6 +363,12 @@ pgtrajPlotter <-
         unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
+        
+        # Get background layers
+        base <- NULL
+        if(!is.null(layers)){
+            base <- getLayers(conn, layers)
+        }
         
         ui <-
             fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
@@ -484,27 +584,67 @@ pgtrajPlotter <-
             #     )
             # })
             
-            # Leaflet base map, and starting view centered at the trajectories
             output$map <- renderLeaflet({
                 if (is.null(w$data)) {
                     return()
                 } else {
                     map <- leaflet() %>%
-                        addTiles(group = "OSM (default)") %>%
-                        addPolylines(
-                            data = w$data,
-                            group = "trajfull",
-                            fillOpacity = .5,
-                            opacity = .5,
-                            color = "blue",
-                            #~factpal(animal_name),
-                            weight = 2
-                        ) %>%
-                        addLayersControl(
-                            overlayGroups = c("OSM (default)", "trajfull",
-                                              "bursts"),
-                            options = layersControlOptions(collapsed = FALSE)
-                        )
+                        addTiles(group = "OSM (default)")
+                    
+                    if (!is.null(base)) {
+                        for (l in names(base)) {
+                            geomtype <-  as.character(st_geometry_type(base[[l]])[1])
+                            if (geomtype == "raster") {
+                                # map <- map %>%
+                                #     addRasterImage(data = base[[l]],
+                                #                    project = FALSE)
+                                warning("raster layers not implemented yet")
+                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
+                                map <- do.call(leaflet::addPolygons,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                layers_params[[l]])
+                                               )
+                            } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
+                                map <- do.call(leaflet::addPolylines,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                 layers_params[[l]])
+                                )
+                            } else if (grepl("point", geomtype, ignore.case = TRUE)) {
+                                map <- do.call(leaflet::addCircleMarkers,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                  layers_params[[l]])
+                                               )
+                            }
+                        }
+                    }
+                        
+                    if (is.null(w$data)) {
+                        return()
+                    } else {
+                        map %>%
+                            addPolylines(
+                                data = w$data,
+                                group = "trajfull",
+                                fillOpacity = .5,
+                                opacity = .5,
+                                color = "orange",
+                                weight = 2
+                            ) %>% 
+                            addLayersControl(
+                                overlayGroups = append(
+                                    c("OSM (default)", "trajfull",
+                                      "bursts"),
+                                    names(base)
+                                ),
+                                options = layersControlOptions(collapsed = FALSE)
+                            )
+                    }
                 }
             })
             

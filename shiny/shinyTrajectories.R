@@ -57,6 +57,27 @@ pgtrajPlotter(conn,
               schema,
               pgtraj)
 
+# background layers
+
+layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+
+conn <- do.call(cs, args)
+source("./shiny/pgtrajPlotter.R")
+layers <- list(c("example_data", "county_subdiv"), c("example_data", "test_points"))
+layers_params <- list(test_points=list(color = "red", stroke = FALSE, fillOpacity = 0.5),
+                      county_subdiv=list(color = "grey", fillOpacity = 0.2))
+pgtrajPlotter(conn, schema, pgtraj)
+dbDisconnect(conn)
+
+conn <- do.call(cs, args)
+pgtrajPlotter(conn, schema, pgtraj, layers)
+dbDisconnect(conn)
+
+conn <- do.call(cs, args)
+pgtrajPlotter(conn, schema, pgtraj, layers, layers_params)
+dbDisconnect(conn)
+
+
 # ltraj-sf from R
 ltrajPlotter(
     pgtraj_sf = roe_sf,
