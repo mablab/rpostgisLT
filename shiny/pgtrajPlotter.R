@@ -239,6 +239,18 @@ pgtrajPlotter <-
                 }
                 timeOut$interval <- setTimeInput(input$interval_unit, input$interval,
                              timeOut$interval)
+                
+                # update time window slider
+                if(period_to_seconds(timeOut$interval) > period(0)) {
+                    updateSliderInput(
+                        session,
+                        "range",
+                        value = c(timeOut$currTime,
+                                  timeOut$currTime + timeOut$interval),
+                        step = timeOut$increment
+                    )
+                }
+            
             })
             
             # set Interval and Time Window from slider
@@ -255,6 +267,10 @@ pgtrajPlotter <-
                                     timeOut$currTime,
                                     timeOut$interval,
                                     input$step_mode)
+                
+                # update the Interval numeric input
+                # updateNumericTimeInput(session, input$interval_unit,
+                #                        "interval", timeOut$interval)
             })
             
             # Only update timestamp on click
