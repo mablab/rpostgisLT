@@ -198,6 +198,18 @@ pgtrajPlotter <-
                                       increment_unit = unit_init,
                                       interval_unit = unit_init)
             
+            # on step mode switch re-render current traj
+            observeEvent(input$step_mode, {
+                x$counter <- x$counter + 1
+                x$currStep <-
+                    get_step_window(conn,
+                                    schema,
+                                    view,
+                                    timeOut$currTime,
+                                    timeOut$interval,
+                                    input$step_mode)
+            })
+            
             # convert values in Increment to the selected unit
             observeEvent(input$increment_unit, {
                 if(is.null(input$increment) | is.logical(input$increment)){
