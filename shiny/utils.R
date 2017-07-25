@@ -15,16 +15,10 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode){
     view_q <- dbQuoteIdentifier(conn, view)
     if(step_mode){
         sql_query <- paste0("
-                            SELECT
-                            a.step_id,
-                            a.step_geom,
-                            a.relocation_time,
-                            a.burst_name,
-                            a.animal_name,
-                            a.pgtraj_name
+                            SELECT *
                             FROM ", schema_q, ".", view_q, " a
-                            WHERE a.relocation_time >= ",t,"::timestamptz
-                            AND a.relocation_time < (",t,"::timestamptz + ",
+                            WHERE a.date >= ",t,"::timestamptz
+                            AND a.date < (",t,"::timestamptz + ",
                             t_interval, "::INTERVAL)
                             AND a.step_geom IS NOT NULL;")
     } else {
@@ -37,8 +31,8 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode){
                             a.burst_name,
                             a.animal_name
                             FROM ", schema_q, ".", view_q, " a
-                            WHERE a.relocation_time >= ",t,"::timestamptz
-                            AND a.relocation_time < (",t,"::timestamptz + ",
+                            WHERE a.date >= ",t,"::timestamptz
+                            AND a.date < (",t,"::timestamptz + ",
                             t_interval, "::INTERVAL)
                             AND a.step_geom IS NOT NULL
                             GROUP BY a.burst_name, a.animal_name;")
@@ -128,24 +122,20 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     # default increment is the median step duration
     sql_query <- paste0("
                         SELECT
-                        EXTRACT(
-                        epoch
-                        FROM
-                        MIN( relocation_time )
-                        ) AS tstamp_start,
-                        EXTRACT(
-                        epoch
-                        FROM
-                        MAX( relocation_time )
-                        ) AS tstamp_last,
-                        EXTRACT(
-                        epoch
-                        FROM
-                        PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
-                        ORDER BY
-                        dt
-                        )
-                        ) AS increment
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MIN( DATE )
+                            ) AS tstamp_start,
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MAX( DATE )
+                            ) AS tstamp_last,
+                            PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
+                            ORDER BY
+                                dt
+                            ) AS increment
                         FROM ",schema_q,".", view_q,";")
     
     time_params <- dbGetQuery(conn, sql_query)

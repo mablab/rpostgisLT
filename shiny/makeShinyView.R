@@ -9,30 +9,29 @@ makeShinyView <- function(conn, schema, pgtraj) {
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
     sql_query <- paste0("
         CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
-         SELECT
-            s.id AS step_id,
-            st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(linestring, 4326) AS step_geom,
-            r1.relocation_time,
-            s.dt::interval,
-            s.r_rowname,
-            ab.burst_name,
-            ab.animal_name,
-            p.pgtraj_name,
-            ab.id AS ab_id
-           FROM step s
-             JOIN relocation r1 ON s.relocation_id_1 = r1.id
-             JOIN relocation r2 ON s.relocation_id_2 = r2.id
-             JOIN s_b_rel rel ON rel.step_id = s.id
-             JOIN animal_burst ab ON ab.id = rel.animal_burst_id
-             JOIN pgtraj p ON p.id = ab.pgtraj_id
-          WHERE p.pgtraj_name = ",dbQuoteString(conn, pgtraj),"::text
-          AND st_makeline(r1.geom, r2.geom) NOTNULL
-          ORDER BY ab.id, s.id;
+            SELECT
+                p.step_id,
+                st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(LineString,4326) AS step_geom,
+                r1.relocation_time AS date,
+                p.dx,
+                p.dy,
+                p.dist,
+                p.dt,
+                p.abs_angle,
+                p.rel_angle,
+                p.animal_name,
+                p.burst AS burst_name,
+                p.pgtraj AS pgtraj_name
+            FROM parameters_",pgtraj," p
+                JOIN step s ON p.step_id = s.id
+                 JOIN relocation r1 ON s.relocation_id_1 = r1.id
+                 JOIN relocation r2 ON s.relocation_id_2 = r2.id
+            WHERE st_makeline(r1.geom, r2.geom) NOTNULL;
         
         CREATE
-            INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_reloc_time_idx ON
+            INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_date_idx ON
             ", view, "
-                USING btree(relocation_time);
+                USING btree(date);
         
         CREATE
             INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_step_geom_idx ON
