@@ -262,34 +262,37 @@ pgtrajPlotter <-
                 # for assigning alternating group names
                 x$counter <- x$counter + 1
                 
-                timeOut$currTime <- timeOut$currTime + timeOut$increment
+                # timeOut$currTime <- timeOut$currTime + timeOut$increment
+                nt <- timeOut$currTime + timeOut$increment
                 
-                x$currStep <-
-                    get_step_window(
-                        conn,
-                        schema,
-                        view,
-                        timeOut$currTime,
-                        timeOut$interval,
-                        input$step_mode
-                    )
+                # update time window slider
+                updateSliderInput(
+                    session,
+                    "range",
+                    value = c(
+                        nt,
+                        nt + timeOut$interval
+                    ),
+                    step = timeOut$increment
+                )
             })
             
             observeEvent(input$b, {
                 # for assigning alternating group names
                 x$counter <- x$counter + 1
 
-                timeOut$currTime <- timeOut$currTime - timeOut$increment
+                nt <- timeOut$currTime - timeOut$increment
                 
-                x$currStep <-
-                    get_step_window(
-                        conn,
-                        schema,
-                        view,
-                        timeOut$currTime,
-                        timeOut$interval,
-                        input$step_mode
-                    )
+                # update time window slider
+                updateSliderInput(
+                    session,
+                    "range",
+                    value = c(
+                        nt,
+                        nt + timeOut$interval
+                    ),
+                    step = timeOut$increment
+                )
             })
             
             # # Report current timestamp
@@ -428,17 +431,6 @@ pgtrajPlotter <-
                 } else {
                     proxy %>% clearGroup("traj")
                 }
-                
-                # update time window slider
-                updateSliderInput(
-                    session,
-                    "range",
-                    value = c(
-                        timeOut$currTime,
-                        timeOut$currTime + timeOut$interval
-                    ),
-                    step = timeOut$increment
-                )
                 
                 # because observeEven doesn't pass value when all burst are
                 # deselected
