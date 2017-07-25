@@ -205,7 +205,8 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
     return(reactiveTime)
 }
 
-
+# layers <- list(c("example_data", "county_subdiv"), c("public", "florida_dem"))
+# return: list(name=sf object, name2=sf object)
 getLayers <- function(conn, layers) {
     geo_type <- findGeoType(conn, layers)
     base <- list()
@@ -224,7 +225,7 @@ getLayers <- function(conn, layers) {
             relation <- geo_type$rast[[l]]
             # data <- pgGetRast(conn, relation)
             # base[relation[2]] <- list(data)
-            print("raster layers not implemented yet")
+            warning("raster layers not implemented yet")
         }
     }
     
@@ -365,11 +366,9 @@ pgtrajPlotter <-
         
         # Get background layers
         base <- NULL
-        
         if(!is.null(layers)){
             base <- getLayers(conn, layers)
         }
-        
         
         ui <-
             fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
@@ -596,15 +595,11 @@ pgtrajPlotter <-
                         for (l in names(base)) {
                             geomtype <-  as.character(st_geometry_type(base[[l]])[1])
                             if (geomtype == "raster") {
-                                map <- map %>%
-                                    addRasterImage(data = base[[l]],
-                                                   project = FALSE)
-                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
                                 # map <- map %>%
-                                #     addPolygons(data = base[[l]],
-                                #                 group = l)
-                                
-                                
+                                #     addRasterImage(data = base[[l]],
+                                #                    project = FALSE)
+                                warning("raster layers not implemented yet")
+                            } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addPolygons,
                                                c(list(map=map,
                                                       data=base[[l]],
@@ -612,13 +607,13 @@ pgtrajPlotter <-
                                                 layers_params[[l]])
                                                )
                             } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
-                                map <- map %>%
-                                    addPolylines(data = base[[l]],
-                                                 group = l)
+                                map <- do.call(leaflet::addPolylines,
+                                               c(list(map=map,
+                                                      data=base[[l]],
+                                                      group = l),
+                                                 layers_params[[l]])
+                                )
                             } else if (grepl("point", geomtype, ignore.case = TRUE)) {
-                                # map <- map %>%
-                                #     addMarkers(data = base[[l]],
-                                #                group = l)
                                 map <- do.call(leaflet::addCircleMarkers,
                                                c(list(map=map,
                                                       data=base[[l]],
@@ -627,28 +622,28 @@ pgtrajPlotter <-
                                                )
                             }
                         }
+                    }
                         
-                        if (is.null(w$data)) {
-                            return()
-                        } else {
-                            map %>%
-                                addPolylines(
-                                    data = w$data,
-                                    group = "trajfull",
-                                    fillOpacity = .5,
-                                    opacity = .5,
-                                    color = "orange",
-                                    weight = 2
-                                ) %>% 
-                                addLayersControl(
-                                    overlayGroups = append(
-                                        c("OSM (default)", "trajfull",
-                                          "bursts"),
-                                        names(base)
-                                    ),
-                                    options = layersControlOptions(collapsed = FALSE)
-                                )
-                        }
+                    if (is.null(w$data)) {
+                        return()
+                    } else {
+                        map %>%
+                            addPolylines(
+                                data = w$data,
+                                group = "trajfull",
+                                fillOpacity = .5,
+                                opacity = .5,
+                                color = "orange",
+                                weight = 2
+                            ) %>% 
+                            addLayersControl(
+                                overlayGroups = append(
+                                    c("OSM (default)", "trajfull",
+                                      "bursts"),
+                                    names(base)
+                                ),
+                                options = layersControlOptions(collapsed = FALSE)
+                            )
                     }
                 }
             })
