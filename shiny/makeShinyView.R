@@ -1,25 +1,6 @@
 
-# check if there are infolocs for a pgtraj
-checkInfolocs <- function(conn, schema, infolocs_table) {
-    schema_s <- dbQuoteString(conn, schema)
-    table_s <- dbQuoteString(conn, infolocs_table)
-    
-    sql_query <- paste0("
-                        SELECT table_name
-                        FROM information_schema.tables
-                        WHERE table_schema = ",schema_s,"
-                        AND table_name = ",table_s,";")
-    x <- dbGetQuery(conn, sql_query)
-    
-    if(nrow(x) == 1){
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
-}
-
 # get all columns in the infolocs table but the step_id
-getInfolcsColumns <- function(conn, schema, infolocs_table){
+getInfolocsColumns <- function(conn, schema, infolocs_table){
     schema_s <- dbQuoteString(conn, schema)
     table_s <- dbQuoteString(conn, infolocs_table)
     
@@ -41,11 +22,25 @@ makeShinyView <- function(conn, schema, pgtraj) {
                         dbQuoteIdentifier(conn, schema), ",public;")
     invisible(dbExecute(conn, sql_query))
     
-    infolocs_table <- paste0("infolocs_", pgtraj)
-    info_true <- checkInfolocs(conn, schema, infolocs_table)
-    
-    ## Create view
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
+    
+    infolocs_table <- paste0("infolocs_", pgtraj)
+    info_cols <- getInfolocsColumns(conn, schema, infolocs_table)
+    
+    # if there is an infolocs table
+    if(nrow(info_cols) > 0) {
+        cols <- paste(paste(paste0("i.",
+                                   info_cols$column_name
+                                   ),
+                            collapse = ", "
+                           ),
+                      ",")
+        join <- paste0("JOIN ", infolocs_table," i ON p.step_id = i.step_id")
+    } else {
+        cols <- NULL
+        join <- NULL
+    }
+    
     sql_query <- paste0("
         CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
             SELECT
@@ -58,6 +53,7 @@ makeShinyView <- function(conn, schema, pgtraj) {
                 p.dt,
                 p.abs_angle,
                 p.rel_angle,
+                ",cols,"
                 p.animal_name,
                 p.burst AS burst_name,
                 p.pgtraj AS pgtraj_name
@@ -65,6 +61,7 @@ makeShinyView <- function(conn, schema, pgtraj) {
                 JOIN step s ON p.step_id = s.id
                  JOIN relocation r1 ON s.relocation_id_1 = r1.id
                  JOIN relocation r2 ON s.relocation_id_2 = r2.id
+                ",join,"
             WHERE st_makeline(r1.geom, r2.geom) NOTNULL;
         
         CREATE

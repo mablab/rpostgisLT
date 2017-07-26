@@ -1,4 +1,5 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
+library(rpostgisLT)
 source("./utility/connect_db.R")
 source("./shiny/makeShinyView.R")
 source("./shiny/pgtrajPlotter.R")
@@ -24,6 +25,7 @@ pgtraj <- "2004"
 # Roe deer
 schema <- "roe_traj"
 pgtraj <- "bondone"
+pgtraj <- "rendena"
 
 
 # Need to create a new View in DB with EPSG:4326, because that's what Leaflet
