@@ -1,7 +1,7 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
 library(rpostgisLT)
 source("./utility/connect_db.R")
-source("./shiny/makeShinyView.R")
+source("./shiny/createShinyView.R")
 source("./shiny/pgtrajPlotter.R")
 source("./shiny/ltrajPlotter.R")
 data("roe_sf")
@@ -33,7 +33,7 @@ pgtraj <- "rendena"
 # Keep in mind that the current version of makeShinyView materializes the views
 
 # However, the storks dataset is in EPSG:4326 already
-makeShinyView(conn, schema, pgtraj)
+createShinyView(conn, schema, pgtraj)
 
 
 # Run ---------------------------------------------------------------------

@@ -10,6 +10,7 @@ library(shinyWidgets)
 library(testthat)
 
 source("./shiny/utils.R")
+source("./shiny/createShinyView.R")
 
 
 
@@ -56,7 +57,7 @@ pgtrajPlotter <-
         
         # Get initial set of trajectories
         st <-
-            get_step_window(conn, schema, view, t, interval, FALSE)
+            get_step_window(conn, schema, view, t, interval, FALSE, info_cols)
         
         # Get full traj
         st_1 <- get_full_traj(conn, schema, view)
@@ -87,6 +88,15 @@ pgtrajPlotter <-
             base <- getLayers(conn, layers)
         }
         
+        # infolocs columns
+        infolocs_table <- paste0("infolocs_", pgtraj)
+        ic <- getInfolocsColumns(conn, schema, infolocs_table)
+        if(nrow(ic) > 0) {
+            info_cols <- paste(paste(ic$column_name, collapse = ", "), ",")
+        } else {
+            info_cols <- NULL
+        }
+            
         ui <-
             fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
                 titlePanel(paste("pgtraj name:", pgtraj)),
@@ -207,7 +217,8 @@ pgtrajPlotter <-
                                     view,
                                     timeOut$currTime,
                                     timeOut$interval,
-                                    input$step_mode)
+                                    input$step_mode,
+                                    info_cols)
             })
             
             # convert values in Increment to the selected unit
@@ -278,7 +289,8 @@ pgtrajPlotter <-
                                     view,
                                     timeOut$currTime,
                                     timeOut$interval,
-                                    input$step_mode)
+                                    input$step_mode,
+                                    info_cols)
                 
                 # update the Interval numeric input
                 # updateNumericTimeInput(session, input$interval_unit,
@@ -423,8 +435,8 @@ pgtrajPlotter <-
                         fillOpacity = 1,
                         opacity = 1,
                         color = colorpal,
-                        weight = 4,
-                        popup = mapview::popupTable(x$bursts)
+                        weight = 4
+                        # popup = mapview::popupTable(x$bursts)
                     )
                 } 
             })
@@ -451,8 +463,8 @@ pgtrajPlotter <-
                         opacity = 1,
                         color = colorpal,
                         #~factpal(animal_name),
-                        weight = 4,
-                        popup = mapview::popupTable(x$currStep)
+                        weight = 4
+                        # popup = mapview::popupTable(x$currStep)
                     )
                 if (x$counter %% 2 == 0) {
                     proxy %>% clearGroup("trajnew")
