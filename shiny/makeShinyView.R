@@ -1,9 +1,48 @@
+
+# check if there are infolocs for a pgtraj
+checkInfolocs <- function(conn, schema, infolocs_table) {
+    schema_s <- dbQuoteString(conn, schema)
+    table_s <- dbQuoteString(conn, infolocs_table)
+    
+    sql_query <- paste0("
+                        SELECT table_name
+                        FROM information_schema.tables
+                        WHERE table_schema = ",schema_s,"
+                        AND table_name = ",table_s,";")
+    x <- dbGetQuery(conn, sql_query)
+    
+    if(nrow(x) == 1){
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
+# get all columns in the infolocs table but the step_id
+getInfolcsColumns <- function(conn, schema, infolocs_table){
+    schema_s <- dbQuoteString(conn, schema)
+    table_s <- dbQuoteString(conn, infolocs_table)
+    
+    sql_query <- paste0("
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_schema = ",schema_s,"
+                        AND table_name = ",table_s,"
+                        AND column_name != 'step_id';")
+    
+    return(dbGetQuery(conn, sql_query))
+}
+
+
 makeShinyView <- function(conn, schema, pgtraj) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ",
                         dbQuoteIdentifier(conn, schema), ",public;")
     invisible(dbExecute(conn, sql_query))
+    
+    infolocs_table <- paste0("infolocs_", pgtraj)
+    info_true <- checkInfolocs(conn, schema, infolocs_table)
     
     ## Create view
     view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
