@@ -435,8 +435,8 @@ pgtrajPlotter <-
                         fillOpacity = 1,
                         opacity = 1,
                         color = colorpal,
-                        weight = 4
-                        # popup = mapview::popupTable(x$bursts)
+                        weight = 4,
+                        popup = mapview::popupTable(x$bursts)
                     )
                 } 
             })
@@ -463,8 +463,8 @@ pgtrajPlotter <-
                         opacity = 1,
                         color = colorpal,
                         #~factpal(animal_name),
-                        weight = 4
-                        # popup = mapview::popupTable(x$currStep)
+                        weight = 4,
+                        popup = mapview::popupTable(x$currStep)
                     )
                 if (x$counter %% 2 == 0) {
                     proxy %>% clearGroup("trajnew")
