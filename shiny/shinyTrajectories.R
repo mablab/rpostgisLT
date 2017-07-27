@@ -34,7 +34,8 @@ pgtraj <- "rendena"
 # Keep in mind that the current version of makeShinyView materializes the views
 
 # However, the storks dataset is in EPSG:4326 already
-createShinyView(conn, schema, pgtraj)
+createShinyStepsView(conn, schema, pgtraj)
+createShinyBurstsView(conn, schema)
 
 
 # Run ---------------------------------------------------------------------
