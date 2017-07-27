@@ -23,3 +23,13 @@ as_pgtraj(conn, relocations_table = c("example_data", "stork_gps"),
           bursts = "burst", info_cols = "gps_data_animals_id",
           relocations = "geom", timestamps = "acquisition_time",
           rids = "gps_data_animals_id")
+
+# another one with 0 SRID
+cap <- as.ltraj(xy = capreochiz[,c("x","y")], date = capreochiz$date,
+                id = "Roe.Deer", typeII = TRUE, infolocs = capreochiz[,4:8])
+ltraj2pgtraj(conn, cap, schema = "cap_traj", pgtraj = "cap")
+schema <- "cap_traj"
+pgtraj <- "cap"
+createShinyView(conn, schema, pgtraj)
+
+
