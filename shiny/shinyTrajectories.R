@@ -1,5 +1,6 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
 library(rpostgisLT)
+library(rpostgis)
 source("./utility/connect_db.R")
 source("./shiny/createShinyView.R")
 source("./shiny/pgtrajPlotter.R")
