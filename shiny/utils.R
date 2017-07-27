@@ -38,33 +38,22 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
                             AND a.step_geom IS NOT NULL;")
     } else {
         sql_query <- paste0("
-                            WITH line AS(
-                                SELECT
-                                    st_makeline(step_geom)::geometry(
-                                        linestring,
-                                        4326
-                                    ) AS step_geom,
-                                    burst_name
-                                FROM
-                                    ", schema_q, ".", view_q, "
-                                WHERE
-                                    date >= ",t,"::timestamptz
-                                    AND date < (",t,"::timestamptz + ",
-                                                t_interval, "::INTERVAL)
-                                GROUP BY
-                                    burst_name
-                            ) SELECT
-                                a.step_geom,
-                                b.burst_name,
-                                b.num_relocations,
-                                b.num_na,
-                                b.date_begin,
-                                b.date_end,
-                                b.animal_name
+                            SELECT
+                                st_makeline(step_geom)::geometry(
+                                    linestring,
+                                    4326
+                                ) AS step_geom,
+                                burst_name,
+                                animal_name
                             FROM
-                                line a
-                            JOIN ", schema_q, ".", view_q, " b ON
-                                a.burst_name = b.burst_name;")
+                                ", schema_q, ".", view_q, "
+                            WHERE
+                                date >= ",t,"::timestamptz
+                                AND date < (",t,"::timestamptz + ",
+                            t_interval, "::INTERVAL)
+                            GROUP BY
+                                burst_name, animal_name;")
+        
     }
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
     }
