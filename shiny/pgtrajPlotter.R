@@ -462,7 +462,6 @@ pgtrajPlotter <-
                         fillOpacity = 1,
                         opacity = 1,
                         color = colorpal,
-                        #~factpal(animal_name),
                         weight = 4,
                         popup = mapview::popupTable(x$currStep)
                     )

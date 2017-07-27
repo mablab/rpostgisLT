@@ -97,21 +97,33 @@ getBurstGeom <- function(conn, schema, view, burst_name){
     
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
+    
     sql_query <- paste0("
-                        SELECT
-                        st_makeline(step_geom)::geometry(
-                        linestring,
-                        4326
-                        ) AS burst_geom,
-                        burst_name,
-                        animal_name
-                        FROM
-                        ",schema_q,".", view_q,"
-                        WHERE
-                        burst_name = ", burst_sql, "
-                        GROUP BY
-                        burst_name,
-                        animal_name;")
+                        WITH line AS(
+                            SELECT
+                                st_makeline(step_geom)::geometry(
+                                    linestring,
+                                    4326
+                                ) AS burst_geom,
+                                burst_name
+                            FROM
+                                ", schema_q, ".", view_q, "
+                            WHERE burst_name = ", burst_sql, "
+                            GROUP BY
+                                burst_name
+                            ) SELECT
+                                a.burst_geom,
+                                b.burst_name,
+                                b.num_relocations,
+                                b.num_na,
+                                b.date_begin,
+                                b.date_end,
+                                b.animal_name
+                            FROM
+                                line a
+                            JOIN ", schema_q, ".", view_q, " b ON
+                                a.burst_name = b.burst_name;")
+    
     return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
 }
 
