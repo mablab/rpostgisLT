@@ -40,21 +40,18 @@ createShinyView <- function(conn, schema, pgtraj) {
         join <- NULL
     }
     
-    # In case the relocations are not projected
+    # Stop in case the relocations are not projected, because Leaflet cannot plot them
     sql_query <- paste0("SELECT proj4string FROM pgtraj WHERE pgtraj_name = ", pgtraj_s,";")
     srid <- dbGetQuery(conn, sql_query)$proj4string
-    
     if(is.na(srid)) {
-        step_geom <- "st_makeline(r1.geom, r2.geom) AS step_geom"
-    } else {
-        step_geom <- "st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(LineString,4326) AS step_geom"
+        stop("Cannot plot unprojected geometries (0 SRID). Not creating MATERIALIZED VIEW.")
     }
     
     sql_query <- paste0("
         CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
             SELECT
                 p.step_id,
-                ",step_geom,",
+                st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(LineString,4326) AS step_geom,
                 r1.relocation_time AS date,
                 p.dx,
                 p.dy,
