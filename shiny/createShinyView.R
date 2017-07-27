@@ -30,9 +30,10 @@ createShinyView <- function(conn, schema, pgtraj) {
     
     # if there is an infolocs table
     if (nrow(info_cols) > 0) {
-        cols <- paste(paste0("i.",
+        cols <- paste(paste(paste0("i.",
                              dbQuoteIdentifier(conn, info_cols$column_name)),
-                      collapse = ", ")
+                      collapse = ", "),
+                      ",")
         join <-
             paste0("JOIN ", infolocs_table, " i ON p.step_id = i.step_id")
     } else {
@@ -59,7 +60,7 @@ createShinyView <- function(conn, schema, pgtraj) {
                 p.dt,
                 p.abs_angle,
                 p.rel_angle,
-                ",cols,",
+                ",cols,"
                 p.animal_name,
                 p.burst AS burst_name,
                 p.pgtraj AS pgtraj_name
