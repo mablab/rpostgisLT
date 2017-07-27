@@ -30,9 +30,12 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     
     # if there is an infolocs table
     if (nrow(info_cols) > 0) {
-        cols <- paste(paste0("i.",
-                             dbQuoteIdentifier(conn, info_cols$column_name)),
-                      collapse = ", ")
+        cols <- paste(paste(paste0(
+            "i.",
+            dbQuoteIdentifier(conn, info_cols$column_name)
+        ),
+        collapse = ", "),
+        ",")
         join <-
             paste0("JOIN ", infolocs_table, " i ON p.step_id = i.step_id")
     } else {
@@ -59,7 +62,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
                 p.dt,
                 p.abs_angle,
                 p.rel_angle,
-                ",cols,",
+                ",cols,"
                 p.animal_name,
                 p.burst AS burst_name,
                 p.pgtraj AS pgtraj_name
@@ -169,7 +172,11 @@ createShinyBurstsView <- function(conn, schema) {
                                 ab.burst_name
                             ORDER BY
                                 p.id,
-                                ab.id;")
+                                ab.id;
+                        
+            CREATE
+            INDEX IF NOT EXISTS all_burst_summary_shiny_burst_name_idx ON
+            all_burst_summary_shiny USING btree(burst_name);")
     
     create_sql_query <- gsub(pattern = '\\s', replacement = " ",
                              x = sql_query)
