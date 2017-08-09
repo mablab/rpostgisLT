@@ -78,19 +78,16 @@ test_that("pgtraj and schema defaults", {
 
 if(can_con(conn)) {
     # Clean up
-    try(suppressWarnings(
+    try(suppressMessages(
         rpostgis::dbDrop(conn, "traj_min", type = "schema", cascade = TRUE,
                          display = FALSE)
         ),
         silent = TRUE)
-    try(suppressWarnings(
+    try(suppressMessages(
         rpostgis::dbDrop(conn, "traj", type = "schema", cascade = TRUE,
                          display = FALSE)
         ),
         silent = TRUE)
-    try(RPostgreSQL::dbDisconnect(conn),
-        silent = TRUE)
-    
     Sys.sleep(2)
 }
 

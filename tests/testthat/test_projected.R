@@ -1,16 +1,5 @@
 context("rpostgisLT: projected")
 
-source_test_helpers(path = "tests/testthat", env = test_env())
-
-# if(!isTRUE(rpostgis::dbSchema(conn, "traj", exec = FALSE))){
-#     rpostgis::dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-# }
-# 
-# if(!isTRUE(rpostgis::dbSchema(conn, "traj_I", exec = FALSE))){
-#     rpostgis::dbDrop(conn, "traj_I", type = "schema", cascade = TRUE)
-# }
-
-
 test_that("test CRS on ibexraw", {
     skip_if_not(can_con(conn), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(
@@ -127,11 +116,11 @@ test_that("ibexraw type I arbitrary crs", {
 
 if(can_con(conn)) {
     # Clean up
-    try(rpostgis::dbDrop(conn, "traj", type = "schema", cascade = TRUE),
+    try(rpostgis::dbDrop(conn, "traj", type = "schema", cascade = TRUE,
+                         display = FALSE),
         silent = TRUE)
-    try(rpostgis::dbDrop(conn, "type_I", type = "schema", cascade = TRUE),
-        silent = TRUE)
-    try(RPostgreSQL::dbDisconnect(conn),
+    try(rpostgis::dbDrop(conn, "type_I", type = "schema", cascade = TRUE,
+                         display = FALSE),
         silent = TRUE)
 }
 
