@@ -1,0 +1,32 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
+language: r
+cache: packages
+sudo: false
+
+r:
+  - oldrel
+  - release
+
+dist: trusty
+
+branches:
+  only:
+    - dev
+    - /release.*/
+    - master
+
+# set up postgres
+services:
+  - postgresql
+addons:
+  postgresql: "9.5"
+  apt:
+    packages:
+      - postgresql-9.5-postgis-2.3
+
+before_script:
+  - createdb rpglt_empty
+  - psql -d rpglt_empty -c "create extension postgis;"
+
+
