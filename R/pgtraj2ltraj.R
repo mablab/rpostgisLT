@@ -1,10 +1,10 @@
 # pgtraj2ltraj
 
 #' Import a pgtraj into an ltraj.
-#' 
-#' \code{pgtraj2ltraj} imports a single pgtraj from a database into an 
+#'
+#' \code{pgtraj2ltraj} imports a single pgtraj from a database into an
 #' ltraj object.
-#' 
+#'
 #' @param conn Connection object created with RPostgreSQL
 #' @param pgtraj String. Name of the pgtraj
 #' @param schema String. Name of the schema storing the pgtraj
@@ -13,15 +13,14 @@
 #' @importFrom sp CRS
 #' @aliases readTraj
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-#' @export 
-#' @examples 
+#' @export
+#' @examples
 #' \dontrun{
 #'  # create ltraj from pgtraj named "ibex" in schema "traj_t2"
 #'  ibex<-pgtraj2ltraj(conn, "ibex", "traj_t2")
 #' }
 
 pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
-    
     ## check PostgreSQL connection
     rpostgis:::dbConnCheck(conn)
     # sanitize schema name
@@ -34,28 +33,41 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     info <- NULL
     if (rpostgis:::dbExistsTable(conn, c(schema, paste0("infolocs_", pgtraj)))) {
         # check for column names
-        info_info <- dbTableInfo(conn, c(schema, paste0("infolocs_", 
-            pgtraj)))$column_name
+        info_info <-
+            dbTableInfo(conn, c(schema, paste0("infolocs_",
+                                               pgtraj)))$column_name
         if (length(info_info) > 1 && "step_id" %in% info_info) {
             info <- getPgtrajWithInfo(conn, pgtraj, schema)
         }
     }
     
     # get ltraj data from parameters view
-    DF <- invisible(dbGetQuery(conn, paste0("SELECT * FROM ",
-                                            schema_q,".",view_q,";")))
+    DF <- invisible(dbGetQuery(conn, paste0(
+        "SELECT * FROM ",
+        schema_q, ".", view_q, ";"
+    )))
     # remove step_id column
     DF$step_id <- NULL
     
     # Get time zone
-    sql_query <- paste0("SELECT time_zone FROM ", schema_q, ".pgtraj WHERE pgtraj_name = ", 
-        dbQuoteString(conn, pgtraj), ";")
+    sql_query <-
+        paste0(
+            "SELECT time_zone FROM ",
+            schema_q,
+            ".pgtraj WHERE pgtraj_name = ",
+            dbQuoteString(conn, pgtraj),
+            ";"
+        )
     tz <- dbGetQuery(conn, sql_query)[1, 1]
     
     # Get proj4string
-    sql_query <- paste0("SELECT proj4string FROM ", schema_q, 
-        ".pgtraj WHERE pgtraj_name = ", dbQuoteString(conn, pgtraj), 
-        ";")
+    sql_query <- paste0(
+        "SELECT proj4string FROM ",
+        schema_q,
+        ".pgtraj WHERE pgtraj_name = ",
+        dbQuoteString(conn, pgtraj),
+        ";"
+    )
     proj4string <- dbGetQuery(conn, sql_query)[1, 1]
     
     # Rename and prepare data frame for conversion to ltraj
@@ -64,7 +76,7 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
     names(DF)[names(DF) == "rel_angle"] <- "rel.angle"
     names(DF)[names(DF) == "animal_name"] <- "id"
     
-    DF <- DF[, -which(names(DF) == "pgtraj")]
+    DF <- DF[,-which(names(DF) == "pgtraj")]
     
     # TYPE I – insert 1 for 'dt'
     if (all(is.na(DF$date))) {
@@ -81,20 +93,20 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
         names(DF)[names(DF) == "r_rowname"] <- "r.row.names"
         # TYPE I (date = r.row.names column)
         if (all(is.na(DF$date))) {
-          DF$date <- as.integer(DF$r.row.names)
+            DF$date <- as.integer(DF$r.row.names)
         }
     } else {
-        DF <- DF[, -which(names(DF) == "r_rowname")]
+        DF <- DF[,-which(names(DF) == "r_rowname")]
         # TYPE I (date = row.names(DF))
         if (all(is.na(DF$date))) {
-          DF$date <- as.integer(row.names(DF))
+            DF$date <- as.integer(row.names(DF))
         }
     }
     
     
     # Set time zone
     if (!class(DF$date)[1] == "integer") {
-      attr(DF$date, "tzone") <- tz
+        attr(DF$date, "tzone") <- tz
     }
     
     # Cast into ltraj
@@ -115,8 +127,8 @@ pgtraj2ltraj <- function(conn, pgtraj, schema = "traj") {
         attr(ltraj, "proj4string") <- sp::CRS(proj4string)
     }
     
-    message(paste0("Ltraj successfully created from ", pgtraj, 
-        "."))
+    message(paste0("Ltraj successfully created from ", pgtraj,
+                   "."))
     
     return(ltraj)
 }
