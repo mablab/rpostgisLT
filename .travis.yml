@@ -12,9 +12,7 @@ dist: trusty
 
 branches:
   only:
-    - dev
-    - /release.*/
-    - master
+    - feature/ci
 
 # set up postgres
 services:
