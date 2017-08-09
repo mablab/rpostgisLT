@@ -38,36 +38,46 @@ test_that("minimal ltraj transfer is equal and identical", {
     
     ib_min <-
         dl(ld(ibexraw[1])[1:10,]) # note that step parameters are recomputed on purpose
-    rpostgisLT::ltraj2pgtraj(conn,
+    ltraj2pgtraj(conn,
                  ltraj = ib_min,
                  schema = "traj_min",
                  pgtraj = "ib_min")
-    ib_min_re <-
-        rpostgisLT::pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
+    ib_min_re <- pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
     expect_true(all.equal(ib_min, ib_min_re))
-    expect_true(identical(ib_min, ib_min_re))
+    expect_false(identical(ib_min, ib_min_re))
+    expect_true(pgtrajDrop(conn, "ib_min", "traj_min"))
 })
 
 
-# 
-# ### overwrite fail test
-# try(ltraj2pgtraj(conn,
-#                  ltraj = ib_min,
-#                  schema = "traj_min",
-#                  pgtraj = "ib_min"))
-# 
-# ### null proj4string test
-# attr(ib_min, "proj4string") <- NULL
-# ltraj2pgtraj(
-#     conn,
-#     ltraj = ib_min,
-#     schema = "traj_min",
-#     pgtraj = "ib_min",
-#     overwrite = TRUE
-# )
-# 
-# dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
+
+test_that("overwrite with null proj4string", {
+    ib_min <- dl(ld(ibexraw[1])[1:10, ])
+    expect_true(ltraj2pgtraj(
+        conn,
+        ltraj = ib_min,
+        schema = "traj_min",
+        pgtraj = "ib_min"
+    ))
+    
+    attr(ib_min, "proj4string") <- NULL
+    expect_true(
+        ltraj2pgtraj(
+            conn,
+            ltraj = ib_min,
+            schema = "traj_min",
+            pgtraj = "ib_min",
+            overwrite = TRUE
+        )
+    )
+    
+    expect_true(pgtrajDrop(conn, "ib_min", "traj_min"))
+})
+
+
+rpostgis::dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
 # rm(ib_min_re, ib_min)
+
+
 # 
 # ib_min_srs <- dl(ld(ibexraw[2])[1:10,], proj4string = srs)
 # # note that step parameters are recomputed on purpose
