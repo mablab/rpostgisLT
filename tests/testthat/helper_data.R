@@ -65,4 +65,5 @@ ibex_int_space <- redisltraj(ibex_4h, 400, type = "space")
 # a factor (but should be probably be a character)
 ibex_int_time <- redisltraj(na.omit(ibex), 14400, type = "time")
 
-
+# cut ltraj
+ibex_cut <- suppressWarnings(adehabitatLT::cutltraj(ibex, "dist > 3000"))

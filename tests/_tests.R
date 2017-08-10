@@ -41,297 +41,297 @@ tryCatch({
         srs <- CRS("+init=epsg:3395")
         srs2 <- CRS("+init=epsg:4326")
         
-        ##############################################################################
-        ### Minimal test
-        
-        ib_min <-
-            dl(ld(ibexraw[1])[1:10,]) # note that step parameters are recomputed on purpose
-        ltraj2pgtraj(conn,
-                     ltraj = ib_min,
-                     schema = "traj_min",
-                     pgtraj = "ib_min")
-        ib_min_re <-
-            pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
-        all.equal(ib_min, ib_min_re)
-        Sys.sleep(2)
-        identical(ib_min, ib_min_re)
-        
-        ### overwrite fail test
-        try(ltraj2pgtraj(conn,
-                         ltraj = ib_min,
-                         schema = "traj_min",
-                         pgtraj = "ib_min"))
-        
-        ### null proj4string test
-        attr(ib_min, "proj4string") <- NULL
-        ltraj2pgtraj(
-            conn,
-            ltraj = ib_min,
-            schema = "traj_min",
-            pgtraj = "ib_min",
-            overwrite = TRUE
-        )
-        
-        dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
-        rm(ib_min_re, ib_min)
-        
-        ib_min_srs <- dl(ld(ibexraw[2])[1:10,], proj4string = srs)
-        # note that step parameters are recomputed on purpose
-        ltraj2pgtraj(conn,
-                     ltraj = ib_min_srs,
-                     schema = "traj_min",
-                     pgtraj = "ib_min_3395")
-        ib_min_srs_re <-
-            pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min_3395")
-        all.equal(ib_min_srs, ib_min_srs_re)
-        Sys.sleep(2)
-        
-        dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
-        rm(ib_min_srs, ib_min_srs_re)
-        
-        
-        ### Basic ltraj
-        ibexraw                                 # No infolocs in ibexraw.
-        is.regular(ibexraw)
-        # FALSE
-        
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE) # Default should be in schema
-        # 'traj' and use ltraj name
-        # ('ibex') as pgtraj name.
-        ibexTest <-
-            pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
-        # 'traj' schema.
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-        rm(ibexTest)
-        
-        ### More basic ltraj
-        
-        ## Set projections for testing
-        attr(ibexraw, 'proj4string') <- srs
-        attr(puechcirc, 'proj4string') <- srs2
-        attr(albatross, 'proj4string') <- srs
-        attr(porpoise, 'proj4string') <- srs2
-        ## Type I
-        attr(porpoise_I, 'proj4string') <- srs2
-        attr(albatross_I, 'proj4string') <- srs
-        attr(ibexraw_I, 'proj4string') <- srs
-        
-        ltraj2pgtraj(conn,
-                     ltraj = ibexraw,
-                     note = "test CRS on ibexraw",
-                     overwrite = TRUE)
-        ltraj2pgtraj(conn,
-                     ltraj = puechcirc,
-                     note = "test CRS on puechcirc",
-                     overwrite = TRUE)
-        ltraj2pgtraj(conn,
-                     ltraj = albatross,
-                     note = "test CRS on albatross",
-                     overwrite = TRUE)
-        ltraj2pgtraj(conn,
-                     ltraj = porpoise,
-                     note = "test CRS on porpoise",
-                     overwrite = TRUE)
-        
-        ## pgtrajDrop test
-        ltraj2pgtraj(conn,
-                     ltraj = porpoise,
-                     note = "test CRS on porpoise",
-                     overwrite = TRUE)
-        pgtrajDrop(conn)
-        
-        ## Type I
-        ltraj2pgtraj(conn,
-                     ltraj = porpoise_I,
-                     schema = "type_I",
-                     note = "arbitrary CRS")
-        ltraj2pgtraj(conn,
-                     ltraj = albatross_I,
-                     schema = "type_I",
-                     note = "arbitrary CRS")
-        ltraj2pgtraj(conn,
-                     ltraj = ibexraw_I,
-                     schema = "type_I",
-                     note = "arbitrary CRS")
-        
-        ibexraw_re <-
-            pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
-        puechcirc_re <-
-            pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
-        albatross_re <-
-            pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross')
-        porpoise_re <-
-            pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
-        ## Type I
-        porpoise_I_re <-
-            pgtraj2ltraj(conn, schema = "type_I", pgtraj = "porpoise_I")
-        albatross_I_re <-
-            pgtraj2ltraj(conn, schema = "type_I", pgtraj = "albatross_I")
-        ibexraw_I_re <-
-            pgtraj2ltraj(conn, schema = "type_I", pgtraj = "ibexraw_I")
-        
-        ### Testing for equality
-        all.equal(ibexraw, ibexraw_re)
-        all.equal(puechcirc, puechcirc_re)
-        all.equal(albatross, albatross_re)
-        all.equal(porpoise, porpoise_re)
-        ## Type I
-        all.equal(ibexraw_I, ibexraw_I_re)
-        all.equal(porpoise_I, porpoise_I_re)
-        all.equal(albatross_I, albatross_I_re)
-        Sys.sleep(2)
-        
-        
-        ### Clean up
-        dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-        dbDrop(conn, "type_I", type = "schema", cascade = TRUE)
-        rm(
-            ibexraw_re,
-            puechcirc_re,
-            albatross_re,
-            porpoise_re,
-            ibexraw_I_re,
-            albatross_I_re,
-            porpoise_I_re
-        )
-        
-        ##############################################################################
-        ### Manipulating ltraj-es
-        
-        ### Missing relocations
-        refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
-                          tz = "Europe/Paris")
-        ibex <- setNA(ibex, refda, 4, units = "hour")
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        # TRUE
-        dbDrop(conn, "traj", type = "schema", cascade = TRUE)
-        rm(ibexTest)
-        
-        ### Rounding timestamps
-        ibex <- sett0(ibex, refda, 4, units = "hour")
-        ibex.ref <-
-            ibex                        # At this stage, 'ibex' is our
-        # reference data
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        # TRUE
-        Sys.sleep(2)
-        
-        
-        ### Interpolation
-        
-        ## 1. In space
-        summary(ld(ibex)$dist)
-        ibex <-
-            redisltraj(ibex, 400, type = "space")      # Note that 'redisltraj'
-        # creates an 'infolocs'
-        # attribute, which is
-        # a factor (but should be probably be a character)
-        
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest) # not TRUE... date rounding
-        Sys.sleep(2)
-        
-        # time rounding causing all.equal == FALSE
-        # ibexTest[[1]]$date == ibex[[1]]$date
-        # all.equal(as.integer(ibex[[1]]$date),as.integer(ibexTest[[1]]$date))
-        
-        ## 2. In time
-        ibex <- ibex.ref
-        ibex <- redisltraj(na.omit(ibex), 14400, type = "time")
-        
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        ## test infolocs name change of step_id
-        infolocs(ibex)[[1]]$step_id <- 1
-        infolocs(ibex)[[2]]$step_id <- 1
-        infolocs(ibex)[[3]]$step_id <- 1
-        infolocs(ibex)[[4]]$step_id <- 1
-        
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        # Infolocs name step_id is changed due to conflict
-        
-        # add infolocs column DB manually
-        dbColumn(conn,
-                 c("traj", "infolocs_ibex"),
-                 colname = "test",
-                 coltype = "text")
-        dbExecute(conn, "UPDATE traj.infolocs_ibex SET test = 'foo';")
-        
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        # Infolocs name step_id is changed due to conflict, manually added column 'test' is imported
-        
-        
-        ### Subset
-        
-        ## 1. Subset on given parameters
-        ibex <- ibex.ref
-        ## We work on the data frame from the trajectory, which we subset, and
-        ## then rebuild the ltraj without recomputing trajectory parameters;
-        ## this is essentially what 'hab::subset' does.
-        ## Note that the steps are not continuous any more.
-        ibex <- ld(ibex)
-        ibex <- droplevels(ibex[ibex$dist < 400 & !is.na(ibex$dist),])
-        ibex <- dl(ibex)
-        
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        ## 2. Subsample on the temporal sequence
-        ibex <- ibex.ref
-        ibex <- subsample(ibex, 14400 * 2)
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        
-        ### Cut, bind bursts
-        
-        ## 1. Cut if there is a step greater than 3000 m
-        ibex <- ibex.ref
-        ibex <- cutltraj(ibex, "dist > 3000")
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        ## 2. Bind back by individual:
-        ibex <- bindltraj(ibex)
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
-        
-        
-        ## Combine trajectories
-        ibex <- ibex.ref
-        ibex2 <- ibex
-        burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
-        ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))]
-        attr(ibex, "proj4string") <-
-            CRS() # proj4string attributes needs to be added
-        ltraj2pgtraj(conn, ibex, overwrite = TRUE)
-        ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
-        all.equal(ibex, ibexTest)
-        Sys.sleep(2)
+        # ##############################################################################
+        # ### Minimal test
+        # 
+        # ib_min <-
+        #     dl(ld(ibexraw[1])[1:10,]) # note that step parameters are recomputed on purpose
+        # ltraj2pgtraj(conn,
+        #              ltraj = ib_min,
+        #              schema = "traj_min",
+        #              pgtraj = "ib_min")
+        # ib_min_re <-
+        #     pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min")
+        # all.equal(ib_min, ib_min_re)
+        # Sys.sleep(2)
+        # identical(ib_min, ib_min_re)
+        # 
+        # ### overwrite fail test
+        # try(ltraj2pgtraj(conn,
+        #                  ltraj = ib_min,
+        #                  schema = "traj_min",
+        #                  pgtraj = "ib_min"))
+        # 
+        # ### null proj4string test
+        # attr(ib_min, "proj4string") <- NULL
+        # ltraj2pgtraj(
+        #     conn,
+        #     ltraj = ib_min,
+        #     schema = "traj_min",
+        #     pgtraj = "ib_min",
+        #     overwrite = TRUE
+        # )
+        # 
+        # dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
+        # rm(ib_min_re, ib_min)
+        # 
+        # ib_min_srs <- dl(ld(ibexraw[2])[1:10,], proj4string = srs)
+        # # note that step parameters are recomputed on purpose
+        # ltraj2pgtraj(conn,
+        #              ltraj = ib_min_srs,
+        #              schema = "traj_min",
+        #              pgtraj = "ib_min_3395")
+        # ib_min_srs_re <-
+        #     pgtraj2ltraj(conn, schema = "traj_min", pgtraj = "ib_min_3395")
+        # all.equal(ib_min_srs, ib_min_srs_re)
+        # Sys.sleep(2)
+        # 
+        # dbDrop(conn, "traj_min", type = "schema", cascade = TRUE)
+        # rm(ib_min_srs, ib_min_srs_re)
+        # 
+        # 
+        # ### Basic ltraj
+        # ibexraw                                 # No infolocs in ibexraw.
+        # is.regular(ibexraw)
+        # # FALSE
+        # 
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE) # Default should be in schema
+        # # 'traj' and use ltraj name
+        # # ('ibex') as pgtraj name.
+        # ibexTest <-
+        #     pgtraj2ltraj(conn, pgtraj = "ibex")     # Default should look into
+        # # 'traj' schema.
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+        # rm(ibexTest)
+        # 
+        # ### More basic ltraj
+        # 
+        # ## Set projections for testing
+        # attr(ibexraw, 'proj4string') <- srs
+        # attr(puechcirc, 'proj4string') <- srs2
+        # attr(albatross, 'proj4string') <- srs
+        # attr(porpoise, 'proj4string') <- srs2
+        # ## Type I
+        # attr(porpoise_I, 'proj4string') <- srs2
+        # attr(albatross_I, 'proj4string') <- srs
+        # attr(ibexraw_I, 'proj4string') <- srs
+        # 
+        # ltraj2pgtraj(conn,
+        #              ltraj = ibexraw,
+        #              note = "test CRS on ibexraw",
+        #              overwrite = TRUE)
+        # ltraj2pgtraj(conn,
+        #              ltraj = puechcirc,
+        #              note = "test CRS on puechcirc",
+        #              overwrite = TRUE)
+        # ltraj2pgtraj(conn,
+        #              ltraj = albatross,
+        #              note = "test CRS on albatross",
+        #              overwrite = TRUE)
+        # ltraj2pgtraj(conn,
+        #              ltraj = porpoise,
+        #              note = "test CRS on porpoise",
+        #              overwrite = TRUE)
+        # 
+        # ## pgtrajDrop test
+        # ltraj2pgtraj(conn,
+        #              ltraj = porpoise,
+        #              note = "test CRS on porpoise",
+        #              overwrite = TRUE)
+        # pgtrajDrop(conn)
+        # 
+        # ## Type I
+        # ltraj2pgtraj(conn,
+        #              ltraj = porpoise_I,
+        #              schema = "type_I",
+        #              note = "arbitrary CRS")
+        # ltraj2pgtraj(conn,
+        #              ltraj = albatross_I,
+        #              schema = "type_I",
+        #              note = "arbitrary CRS")
+        # ltraj2pgtraj(conn,
+        #              ltraj = ibexraw_I,
+        #              schema = "type_I",
+        #              note = "arbitrary CRS")
+        # 
+        # ibexraw_re <-
+        #     pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'ibexraw')
+        # puechcirc_re <-
+        #     pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'puechcirc')
+        # albatross_re <-
+        #     pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'albatross')
+        # porpoise_re <-
+        #     pgtraj2ltraj(conn, schema = 'traj', pgtraj = 'porpoise')
+        # ## Type I
+        # porpoise_I_re <-
+        #     pgtraj2ltraj(conn, schema = "type_I", pgtraj = "porpoise_I")
+        # albatross_I_re <-
+        #     pgtraj2ltraj(conn, schema = "type_I", pgtraj = "albatross_I")
+        # ibexraw_I_re <-
+        #     pgtraj2ltraj(conn, schema = "type_I", pgtraj = "ibexraw_I")
+        # 
+        # ### Testing for equality
+        # all.equal(ibexraw, ibexraw_re)
+        # all.equal(puechcirc, puechcirc_re)
+        # all.equal(albatross, albatross_re)
+        # all.equal(porpoise, porpoise_re)
+        # ## Type I
+        # all.equal(ibexraw_I, ibexraw_I_re)
+        # all.equal(porpoise_I, porpoise_I_re)
+        # all.equal(albatross_I, albatross_I_re)
+        # Sys.sleep(2)
+        # 
+        # 
+        # ### Clean up
+        # dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+        # dbDrop(conn, "type_I", type = "schema", cascade = TRUE)
+        # rm(
+        #     ibexraw_re,
+        #     puechcirc_re,
+        #     albatross_re,
+        #     porpoise_re,
+        #     ibexraw_I_re,
+        #     albatross_I_re,
+        #     porpoise_I_re
+        # )
+        # 
+        # ##############################################################################
+        # ### Manipulating ltraj-es
+        # 
+        # ### Missing relocations
+        # refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
+        #                   tz = "Europe/Paris")
+        # ibex <- setNA(ibex, refda, 4, units = "hour")
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # # TRUE
+        # dbDrop(conn, "traj", type = "schema", cascade = TRUE)
+        # rm(ibexTest)
+        # 
+        # ### Rounding timestamps
+        # ibex <- sett0(ibex, refda, 4, units = "hour")
+        # ibex.ref <-
+        #     ibex                        # At this stage, 'ibex' is our
+        # # reference data
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # # TRUE
+        # Sys.sleep(2)
+        # 
+        # 
+        # ### Interpolation
+        # 
+        # ## 1. In space
+        # summary(ld(ibex)$dist)
+        # ibex <-
+        #     redisltraj(ibex, 400, type = "space")      # Note that 'redisltraj'
+        # # creates an 'infolocs'
+        # # attribute, which is
+        # # a factor (but should be probably be a character)
+        # 
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest) # not TRUE... date rounding
+        # Sys.sleep(2)
+        # 
+        # # time rounding causing all.equal == FALSE
+        # # ibexTest[[1]]$date == ibex[[1]]$date
+        # # all.equal(as.integer(ibex[[1]]$date),as.integer(ibexTest[[1]]$date))
+        # 
+        # ## 2. In time
+        # ibex <- ibex.ref
+        # ibex <- redisltraj(na.omit(ibex), 14400, type = "time")
+        # 
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # ## test infolocs name change of step_id
+        # infolocs(ibex)[[1]]$step_id <- 1
+        # infolocs(ibex)[[2]]$step_id <- 1
+        # infolocs(ibex)[[3]]$step_id <- 1
+        # infolocs(ibex)[[4]]$step_id <- 1
+        # 
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE, infolocs = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # # Infolocs name step_id is changed due to conflict
+        # 
+        # # add infolocs column DB manually
+        # dbColumn(conn,
+        #          c("traj", "infolocs_ibex"),
+        #          colname = "test",
+        #          coltype = "text")
+        # dbExecute(conn, "UPDATE traj.infolocs_ibex SET test = 'foo';")
+        # 
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # # Infolocs name step_id is changed due to conflict, manually added column 'test' is imported
+        # 
+        # 
+        # ### Subset
+        # 
+        # ## 1. Subset on given parameters
+        # ibex <- ibex.ref
+        # ## We work on the data frame from the trajectory, which we subset, and
+        # ## then rebuild the ltraj without recomputing trajectory parameters;
+        # ## this is essentially what 'hab::subset' does.
+        # ## Note that the steps are not continuous any more.
+        # ibex <- ld(ibex)
+        # ibex <- droplevels(ibex[ibex$dist < 400 & !is.na(ibex$dist),])
+        # ibex <- dl(ibex)
+        # 
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # ## 2. Subsample on the temporal sequence
+        # ibex <- ibex.ref
+        # ibex <- subsample(ibex, 14400 * 2)
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # 
+        # ### Cut, bind bursts
+        # 
+        # ## 1. Cut if there is a step greater than 3000 m
+        # ibex <- ibex.ref
+        # ibex <- cutltraj(ibex, "dist > 3000")
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # ## 2. Bind back by individual:
+        # ibex <- bindltraj(ibex)
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
+        # 
+        # 
+        # ## Combine trajectories
+        # ibex <- ibex.ref
+        # ibex2 <- ibex
+        # burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")
+        # ibex <- c(ibex, ibex2)[order(id(c(ibex, ibex2)))]
+        # attr(ibex, "proj4string") <-
+        #     CRS() # proj4string attributes needs to be added
+        # ltraj2pgtraj(conn, ibex, overwrite = TRUE)
+        # ibexTest <- pgtraj2ltraj(conn, pgtraj = "ibex")
+        # all.equal(ibex, ibexTest)
+        # Sys.sleep(2)
         
         ##############################################################################
         ### Test database import
