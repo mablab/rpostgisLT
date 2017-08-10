@@ -44,3 +44,25 @@ attr(porpoise_srs, 'proj4string') <- srs2
 attr(porpoise_I_srs, 'proj4string') <- srs2
 attr(albatross_I_srs, 'proj4string') <- srs
 attr(ibexraw_I_srs, 'proj4string') <- srs
+
+# refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
+#                   tz = "Europe/Paris")
+# ibex_4h <- adehabitatLT::sett0(ibex, refda, 4, units = "hour")
+# ibex_na <- adehabitatLT::setNA(ibex, refda, 4, units = "hour")
+# ibex_int_time <- adehabitatLT::redisltraj(na.omit(ibex_4h), 14400, type = "time")
+
+refda <- strptime("2003-06-01 00:00", "%Y-%m-%d %H:%M",
+                  tz = "Europe/Paris")
+# set missing relocations
+ibex_na <- setNA(ibex, refda, 4, units = "hour")
+# time rounding
+ibex_4h <- sett0(ibex_na, refda, 4, units = "hour")
+# interpolate in space and time
+ibex_int_space <- redisltraj(ibex_4h, 400, type = "space")
+# Note that 'redisltraj'
+# creates an 'infolocs'
+# attribute, which is
+# a factor (but should be probably be a character)
+ibex_int_time <- redisltraj(na.omit(ibex), 14400, type = "time")
+
+

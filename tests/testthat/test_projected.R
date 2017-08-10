@@ -114,13 +114,3 @@ test_that("ibexraw type I arbitrary crs", {
     expect_equal(ibexraw_I_srs, ibexraw_I_re)
 })
 
-if(can_con(conn)) {
-    # Clean up
-    try(rpostgis::dbDrop(conn, "traj", type = "schema", cascade = TRUE,
-                         display = FALSE),
-        silent = TRUE)
-    try(rpostgis::dbDrop(conn, "type_I", type = "schema", cascade = TRUE,
-                         display = FALSE),
-        silent = TRUE)
-}
-
