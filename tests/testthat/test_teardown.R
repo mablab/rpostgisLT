@@ -1,5 +1,5 @@
-if(can_con(conn)) {
-    # try(RPostgreSQL::dbSendQuery(conn,
+if(can_con(conn_empty)) {
+    # try(RPostgreSQL::dbSendQuery(conn_empty,
     #                              paste(
     #                                  "SET log_error_verbosity TO",
     #                                  DBI::dbQuoteString(pg_verbosity)
@@ -7,7 +7,7 @@ if(can_con(conn)) {
     #     silent = TRUE)
     # Clean up
     try(suppressMessages(rpostgis::dbDrop(
-        conn,
+        conn_empty,
         "traj_min",
         type = "schema",
         cascade = TRUE,
@@ -15,7 +15,7 @@ if(can_con(conn)) {
     )),
     silent = TRUE)
     try(suppressMessages(rpostgis::dbDrop(
-        conn,
+        conn_empty,
         "traj",
         type = "schema",
         cascade = TRUE,
@@ -23,12 +23,16 @@ if(can_con(conn)) {
     )),
     silent = TRUE)
     try(rpostgis::dbDrop(
-        conn,
+        conn_empty,
         "type_I",
         type = "schema",
         cascade = TRUE,
         display = FALSE
     ),
     silent = TRUE)
-    try(RPostgreSQL::dbDisconnect(conn))
+    try(RPostgreSQL::dbDisconnect(conn_empty))
+}
+
+if(can_con(conn_data)) {
+    try(RPostgreSQL::dbDisconnect(conn_data))
 }
