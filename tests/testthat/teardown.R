@@ -34,5 +34,37 @@ if(can_con(conn_empty)) {
 }
 
 if(can_con(conn_data)) {
+    try(rpostgis::dbDrop(
+        conn_data,
+        "traj_db_t1",
+        type = "schema",
+        cascade = TRUE,
+        display = FALSE
+    ),
+    silent = TRUE)
+    try(rpostgis::dbDrop(
+        conn_data,
+        "traj_db_t2",
+        type = "schema",
+        cascade = TRUE,
+        display = FALSE
+    ),
+    silent = TRUE)
+    try(rpostgis::dbDrop(
+        conn_data,
+        "traj_t2",
+        type = "schema",
+        cascade = TRUE,
+        display = FALSE
+    ),
+    silent = TRUE)
+    try(rpostgis::dbDrop(
+        conn_data,
+        "traj_t3",
+        type = "schema",
+        cascade = TRUE,
+        display = FALSE
+    ),
+    silent = TRUE)
     try(RPostgreSQL::dbDisconnect(conn_data))
 }
