@@ -35,6 +35,7 @@ before_script:
   - gzip -dc ./inst/sql/example_data.sql.gz | psql -d rpglt_data
 
 after_success:
+  - Rscript -e 'covr::codecov()'
   - dropdb rpglt_empty
   - dropdb rpglt_data
-  - Rscript -e 'covr::codecov()'
+
