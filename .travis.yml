@@ -18,10 +18,7 @@ branches:
 services:
   - postgresql
 addons:
-  postgresql: "9.5"
-  apt:
-    packages:
-      - postgresql-9.5-postgis-2.3
+  postgresql: "9.6"
 
 before_script:
   - createdb rpglt_empty
