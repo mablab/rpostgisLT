@@ -8,6 +8,9 @@ r:
   - oldrel
   - release
 
+r_github_packages:
+  - jimhester/covr
+
 dist: trusty
 
 branches:
@@ -34,4 +37,4 @@ before_script:
 after_success:
   - dropdb rpglt_empty
   - dropdb rpglt_data
-
+  - Rscript -e 'covr::codecov()'
