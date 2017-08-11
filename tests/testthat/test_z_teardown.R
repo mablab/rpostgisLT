@@ -6,21 +6,25 @@ if(can_con(conn_empty)) {
     #                              )),
     #     silent = TRUE)
     # Clean up
-    try(suppressMessages(rpostgis::dbDrop(
-        conn_empty,
-        "traj_min",
-        type = "schema",
-        cascade = TRUE,
-        display = FALSE
-    )),
+    try(suppressMessages(
+        rpostgis::dbDrop(
+            conn_empty,
+            "traj_min",
+            type = "schema",
+            cascade = TRUE,
+            display = FALSE
+        )
+    ),
     silent = TRUE)
-    try(suppressMessages(rpostgis::dbDrop(
-        conn_empty,
-        "traj",
-        type = "schema",
-        cascade = TRUE,
-        display = FALSE
-    )),
+    try(suppressMessages(
+        rpostgis::dbDrop(
+            conn_empty,
+            "traj",
+            type = "schema",
+            cascade = TRUE,
+            display = FALSE
+        )
+    ),
     silent = TRUE)
     try(rpostgis::dbDrop(
         conn_empty,
@@ -33,7 +37,7 @@ if(can_con(conn_empty)) {
     try(RPostgreSQL::dbDisconnect(conn_empty))
 }
 
-if(can_con(conn_data)) {
+if (can_con(conn_data)) {
     try(rpostgis::dbDrop(
         conn_data,
         "traj_db_t1",
@@ -61,6 +65,14 @@ if(can_con(conn_data)) {
     try(rpostgis::dbDrop(
         conn_data,
         "traj_t3",
+        type = "schema",
+        cascade = TRUE,
+        display = FALSE
+    ),
+    silent = TRUE)
+    try(rpostgis::dbDrop(
+        conn_data,
+        "traj",
         type = "schema",
         cascade = TRUE,
         display = FALSE

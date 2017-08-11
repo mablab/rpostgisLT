@@ -9,6 +9,7 @@ data(ibexraw, package = "adehabitatLT", envir = e)
 data(puechcirc, package = "adehabitatLT", envir = e)
 data(albatross, package = "adehabitatLT", envir = e)
 data(porpoise, package = "adehabitatLT", envir = e)
+data(capreochiz, package = "adehabitatLT", envir = e)
 
 ### Update ltraj with 'proj4string' attribute
 ibex <- rec(get("ibex", envir = e))
@@ -16,6 +17,7 @@ ibexraw <- rec(get("ibexraw", envir = e))
 puechcirc <- rec(get("puechcirc", envir = e))
 albatross <- rec(get("albatross", envir = e))
 porpoise <- rec(get("porpoise", envir = e))
+capreochiz <- get("capreochiz", envir = e)
 
 ibex_srs <- ibex
 ibexraw_srs <- ibexraw
