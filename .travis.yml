@@ -29,7 +29,7 @@ before_script:
   - createdb rpglt_data
   - psql -d rpglt_data -c "create extension postgis;"
   - psql -d rpglt_data -c "create schema example_data;"
-  - gzip -dc ./sql/example_data.sql.gz | psql -d rpglt_data
+  - gzip -dc ./inst/sql/example_data.sql.gz | psql -d rpglt_data
 
 after_success:
   - dropdb rpglt_empty
