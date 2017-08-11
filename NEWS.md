@@ -8,34 +8,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Changed
 - NEWS formatted according to [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+- tests are now based on `testthat`
 
 
 ## [0.5.0] - 2017-06-20
 ### Changed
-
 - example datasets added (Roe deer GPS tracking dataset)
 
 ### Added
-
 - `as_pgtraj`: new argument `tzone` allows for time zone specification, and 
 applies the database time zone if left NULL (formerly used the R (system) time zone)
 
 ### Fixed
-
 - `as_pgtraj`: fixed bug potentially affecting sorting of steps within 
 a burst in `step_geometry` view, and subsequently in imported 
 `ltraj` using `pgtraj2ltraj`.
-
 - `pgtraj2ltraj`: infolocs columns of type `POSIXlt` now re-import time zone 
 attribute correctly
-
 - `ltraj2pgtraj`: fixed bug affecting infolocs factors with commas
 
 ## [0.4] - 2016-11-01
 **INITIAL CRAN RELEASE**
 
 ### Changed
-
 - Added handling of infolocs
 - Added support for Type I (no time recorded) trajectories
 - New pgtraj and burst summary views
@@ -43,7 +38,6 @@ attribute correctly
 
 ## [0.3] - 2016-08-23
 ### Changed
-
 - Add pgTrajVacuum(), pgTrajDrop()
 - Add ltraj2pgtraj(overwrite = TRUE/FALSE)
 - Add dl_opt(rnames=TRUE/FALSE)
