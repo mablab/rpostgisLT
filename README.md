@@ -5,6 +5,11 @@ rpostgisLT
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 ![](http://cranlogs.r-pkg.org/badges/rpostgisLT)
 [![Build Status](https://travis-ci.org/mablab/rpostgisLT.svg?branch=master)](https://travis-ci.org/mablab/rpostgisLT)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mablab/rpostgisLT?branch=master&svg=true)](https://ci.appveyor.com/project/mablab/rpostgisLT)
+[![codecov](https://codecov.io/gh/mablab/rpostgisLT/branch/master/graph/badge.svg)](https://codecov.io/gh/mablab/rpostgisLT)
+
+
+
 
 This is the development area for the package `rpostgisLT`, a companion package to [`rpostgis`](https://github.com/mablab/rpostgis) and [`adehabitatLT`](https://CRAN.R-project.org/package=adehabitatLT), which provides functions to store `ltraj` (the trajectory data object from `adehabitatLT`) in a PostGIS-enabled PostgreSQL database.
 
