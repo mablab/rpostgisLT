@@ -34,7 +34,7 @@ test_script:
 
 branches:
   only:
-    - feature/ci
+    - dev
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*

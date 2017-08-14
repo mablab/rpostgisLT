@@ -15,7 +15,7 @@ dist: trusty
 
 branches:
   only:
-    - feature/ci
+    - dev
 
 # set up postgres
 services:
