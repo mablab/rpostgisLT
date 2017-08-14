@@ -1,0 +1,41 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
+language: r
+cache: packages
+sudo: false
+
+r:
+  - oldrel
+  - release
+
+r_github_packages:
+  - jimhester/covr
+
+dist: trusty
+
+branches:
+  only:
+    - dev
+
+# set up postgres
+services:
+  - postgresql
+addons:
+  postgresql: "9.5"
+  apt:
+    packages:
+      - postgresql-9.5-postgis-2.3
+
+before_script:
+  - createdb rpglt_empty
+  - psql -d rpglt_empty -c "create extension postgis;"
+  - createdb rpglt_data
+  - psql -d rpglt_data -c "create extension postgis;"
+  - psql -d rpglt_data -c "create schema example_data;"
+  - gzip -dc ./inst/sql/example_data.sql.gz | psql -d rpglt_data
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+  - dropdb rpglt_empty
+  - dropdb rpglt_data
+
