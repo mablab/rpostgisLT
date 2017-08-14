@@ -46,3 +46,9 @@ stork_2004_sf <-
 
 save(stork_2004_sf, file = "./data/stork_2004_sf.rda")
 
+
+
+# stork_2004 pgtraj to sf -------------------------------------------------
+
+stork_2004_sf <- st_read_db(conn, table=c("stork_traj", "step_geometry_shiny_2004"),
+                            stringsAsFactors=FALSE)

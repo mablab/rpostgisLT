@@ -1,6 +1,8 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
+library(rpostgisLT)
+library(rpostgis)
 source("./utility/connect_db.R")
-source("./shiny/makeShinyView.R")
+source("./shiny/createShinyView.R")
 source("./shiny/pgtrajPlotter.R")
 source("./shiny/ltrajPlotter.R")
 data("roe_sf")
@@ -16,27 +18,24 @@ data("stork_2004_sf")
 # Ibex
 schema <- "ibex_traj"
 pgtraj <- "ibex"
-# d_start <- "2003-06-01" # first date
-# t_start <- "00:00:00" # first hour
-# tzone <- "Europe/Paris"
-# increment <- 14400 # provide in seconds
-# interval <- 86400 # seconds of time window to load
 
 # Storks
 schema <- "stork_traj"
 pgtraj <- "2004"
-# d_start <- "2004-06-01" # first date
-# t_start <- "00:00:00" # first hour
-# tzone <- "Europe/Amsterdam"
-# increment <- 3600 # provide in seconds
-# interval <- 172800 # seconds of time window to load
+
+# Roe deer
+schema <- "roe_traj"
+pgtraj <- "bondone"
+pgtraj <- "rendena"
+
 
 # Need to create a new View in DB with EPSG:4326, because that's what Leaflet
 # understands by default. Coordinate transformation can be expensive.
 # Keep in mind that the current version of makeShinyView materializes the views
 
 # However, the storks dataset is in EPSG:4326 already
-makeShinyView(conn, schema, pgtraj)
+createShinyStepsView(conn, schema, pgtraj)
+createShinyBurstsView(conn, schema)
 
 
 # Run ---------------------------------------------------------------------
