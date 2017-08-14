@@ -8,10 +8,12 @@ library(htmltools)
 library(mapview)
 library(shinyWidgets)
 library(testthat)
+# raster handling
+library(rgdal)
+library(raster)
 
 source("./shiny/utils.R")
 source("./shiny/createShinyView.R")
-
 
 
 # Shiny App----------------------------------------------------------------
@@ -21,8 +23,10 @@ pgtrajPlotter <-
     function(conn,
              schema,
              pgtraj,
-             layers=NULL,
-             layers_params=NULL) {
+             layers_vector=NULL,
+             layers_params_vector=NULL,
+             layer_raster=NULL,
+             layers_params_raster=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- get_traj_defaults(conn, schema, view, pgtraj)
@@ -84,8 +88,18 @@ pgtrajPlotter <-
         
         # Get background layers
         base <- NULL
-        if(!is.null(layers)){
-            base <- getLayers(conn, layers)
+        if(!is.null(layers_vector)){
+            base <- getLayers(conn, layers_vector)
+        }
+        if(!is.null(layer_raster)){
+            if(class(layer_raster)[1] != "RasterLayer"){
+                warning("Please provide a RasterLayer object for layer_raster. Hint: raster::raster()")
+                layer_raster <- NULL
+            } else {
+                raster_name <- deparse(substitute(layer_raster))
+            }
+        } else {
+            raster_name <- NULL
         }
         
         # infolocs columns
@@ -351,38 +365,50 @@ pgtrajPlotter <-
                     map <- leaflet() %>%
                         addTiles(group = "OSM (default)")
                     
+                    if (!is.null(layer_raster)) {
+                        map <- do.call(leaflet::addRasterImage,
+                                       c(list(map=map,
+                                              x=layer_raster,
+                                              group=raster_name),
+                                         layers_params_raster)
+                                        )
+                    }
+                    
                     if (!is.null(base)) {
                         for (l in names(base)) {
-                            geomtype <-  as.character(st_geometry_type(base[[l]])[1])
+                            geomtype <- as.character(st_geometry_type(base[[l]])[1])
                             if (geomtype == "raster") {
-                                # map <- map %>%
-                                #     addRasterImage(data = base[[l]],
-                                #                    project = FALSE)
-                                warning("raster layers not implemented yet")
+                                warning("Please provide raster base layers as a layer_raster argument.")
                             } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addPolygons,
                                                c(list(map=map,
                                                       data=base[[l]],
                                                       group = l),
-                                                layers_params[[l]])
+                                                layers_params_vector[[l]])
                                                )
                             } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addPolylines,
                                                c(list(map=map,
                                                       data=base[[l]],
                                                       group = l),
-                                                 layers_params[[l]])
+                                                 layers_params_vector[[l]])
                                 )
                             } else if (grepl("point", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addCircleMarkers,
                                                c(list(map=map,
                                                       data=base[[l]],
                                                       group = l),
-                                                  layers_params[[l]])
+                                                  layers_params_vector[[l]])
                                                )
                             }
                         }
                     }
+                    # prepare layer names for layer control (append() doesn't like NULL values)
+                    layer_names <- c("OSM (default)", "trajfull", "bursts")
+                    if(!is.null(raster_name)) {layer_names <- 
+                        append(layer_names, raster_name)}
+                    if(!is.null(base)) {layer_names <- 
+                        append(layer_names, names(base))}
                         
                     if (is.null(w$data)) {
                         return()
@@ -397,11 +423,7 @@ pgtrajPlotter <-
                                 weight = 2
                             ) %>% 
                             addLayersControl(
-                                overlayGroups = append(
-                                    c("OSM (default)", "trajfull",
-                                      "bursts"),
-                                    names(base)
-                                ),
+                                overlayGroups = layer_names,
                                 options = layersControlOptions(collapsed = FALSE)
                             )
                     }
