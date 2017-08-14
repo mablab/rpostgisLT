@@ -153,24 +153,24 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     return(cbind(time_params, tzone))
 }
 
-updateNumericTimeInput <- function(session, inputUnit, input_type, reactiveTime){
+updateNumericTimeInput <- function(session, inputUnit, inputId, reactiveTime){
     if (inputUnit == "years") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@year)
     } else if (inputUnit == "months") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@month)
     } else if (inputUnit == "days") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@day)
     } else if (inputUnit == "hours") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@hour)
     } else if (inputUnit == "minutes") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@minute)
     } else if (inputUnit == "seconds") {
-        updateNumericInput(session, input_type,
+        updateNumericInput(session, inputId,
                            value = reactiveTime@.Data)
     }
 }

@@ -198,6 +198,18 @@ pgtrajPlotter <-
                                       increment_unit = unit_init,
                                       interval_unit = unit_init)
             
+            # on step mode switch re-render current traj
+            observeEvent(input$step_mode, {
+                x$counter <- x$counter + 1
+                x$currStep <-
+                    get_step_window(conn,
+                                    schema,
+                                    view,
+                                    timeOut$currTime,
+                                    timeOut$interval,
+                                    input$step_mode)
+            })
+            
             # convert values in Increment to the selected unit
             observeEvent(input$increment_unit, {
                 if(is.null(input$increment) | is.logical(input$increment)){
@@ -239,6 +251,18 @@ pgtrajPlotter <-
                 }
                 timeOut$interval <- setTimeInput(input$interval_unit, input$interval,
                              timeOut$interval)
+                
+                # update time window slider
+                if(period_to_seconds(timeOut$interval) > period(0)) {
+                    updateSliderInput(
+                        session,
+                        "range",
+                        value = c(timeOut$currTime,
+                                  timeOut$currTime + timeOut$interval),
+                        step = timeOut$increment
+                    )
+                }
+            
             })
             
             # set Interval and Time Window from slider
@@ -255,6 +279,10 @@ pgtrajPlotter <-
                                     timeOut$currTime,
                                     timeOut$interval,
                                     input$step_mode)
+                
+                # update the Interval numeric input
+                # updateNumericTimeInput(session, input$interval_unit,
+                #                        "interval", timeOut$interval)
             })
             
             # Only update timestamp on click
