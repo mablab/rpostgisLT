@@ -6,42 +6,54 @@ library(DBI)
 # Queries ------------------------------------------------------------
 
 # Get steps within a temporal window
-get_step_window <- function(conn, schema, view, time, interval, step_mode){
+get_step_window <- function(conn, schema, view, time, interval, step_mode,
+                            info_cols){
     stopifnot(is.period(interval))
     i <- period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(i, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
+    
     if(step_mode){
         sql_query <- paste0("
                             SELECT
-                            a.step_id,
-                            a.step_geom,
-                            a.relocation_time,
-                            a.burst_name,
-                            a.animal_name,
-                            a.pgtraj_name
+                                step_id,
+                                step_geom,
+                                date,
+                                dx,
+                                dy,
+                                dist,
+                                dt,
+                                abs_angle,
+                                rel_angle,
+                                ",info_cols,"
+                                animal_name,
+                                burst_name,
+                                pgtraj_name
                             FROM ", schema_q, ".", view_q, " a
-                            WHERE a.relocation_time >= ",t,"::timestamptz
-                            AND a.relocation_time < (",t,"::timestamptz + ",
-                            t_interval, "::INTERVAL)
+                            WHERE a.date >= ",t,"::timestamptz
+                            AND a.date < (",t,"::timestamptz + ",
+                                t_interval, "::INTERVAL)
                             AND a.step_geom IS NOT NULL;")
     } else {
         sql_query <- paste0("
                             SELECT
-                            st_makeline(a.step_geom)::geometry(
-                            linestring,
-                            4326
-                            ) AS step_geom,
-                            a.burst_name,
-                            a.animal_name
-                            FROM ", schema_q, ".", view_q, " a
-                            WHERE a.relocation_time >= ",t,"::timestamptz
-                            AND a.relocation_time < (",t,"::timestamptz + ",
+                                st_makeline(step_geom)::geometry(
+                                    linestring,
+                                    4326
+                                ) AS step_geom,
+                                burst_name,
+                                animal_name
+                            FROM
+                                ", schema_q, ".", view_q, "
+                            WHERE
+                                date >= ",t,"::timestamptz
+                                AND date < (",t,"::timestamptz + ",
                             t_interval, "::INTERVAL)
-                            AND a.step_geom IS NOT NULL
-                            GROUP BY a.burst_name, a.animal_name;")
+                            GROUP BY
+                                burst_name, animal_name;")
+        
     }
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
     }
@@ -85,21 +97,12 @@ getBurstGeom <- function(conn, schema, view, burst_name){
     
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
+    
     sql_query <- paste0("
-                        SELECT
-                        st_makeline(step_geom)::geometry(
-                        linestring,
-                        4326
-                        ) AS burst_geom,
-                        burst_name,
-                        animal_name
-                        FROM
-                        ",schema_q,".", view_q,"
-                        WHERE
-                        burst_name = ", burst_sql, "
-                        GROUP BY
-                        burst_name,
-                        animal_name;")
+                        SELECT *
+                        FROM ", schema_q, ".all_burst_summary_shiny
+                        WHERE burst_name = ", burst_sql, ";")
+    
     return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
 }
 
@@ -128,24 +131,20 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     # default increment is the median step duration
     sql_query <- paste0("
                         SELECT
-                        EXTRACT(
-                        epoch
-                        FROM
-                        MIN( relocation_time )
-                        ) AS tstamp_start,
-                        EXTRACT(
-                        epoch
-                        FROM
-                        MAX( relocation_time )
-                        ) AS tstamp_last,
-                        EXTRACT(
-                        epoch
-                        FROM
-                        PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
-                        ORDER BY
-                        dt
-                        )
-                        ) AS increment
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MIN( DATE )
+                            ) AS tstamp_start,
+                            EXTRACT(
+                                epoch
+                            FROM
+                                MAX( DATE )
+                            ) AS tstamp_last,
+                            PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
+                            ORDER BY
+                                dt
+                            ) AS increment
                         FROM ",schema_q,".", view_q,";")
     
     time_params <- dbGetQuery(conn, sql_query)

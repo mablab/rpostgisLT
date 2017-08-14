@@ -16,7 +16,7 @@
 #' recreated.
 #'
 #' The function has its own standalone transaction control.
-#' 
+#'
 #' @param conn Connection object created with RPostgreSQL.
 #' @param schema Character string. Name of the schema that stores or
 #'     will store the pgtraj data model.
@@ -42,37 +42,52 @@ pgtrajSchema <- function(conn, schema = "traj") {
     ## Check and/or create schema
     dbSchema(conn, schema, display = FALSE, exec = TRUE)
     # Is the traj schema in the DB or just created and empty
-    sql_query <- paste0("SELECT tablename FROM pg_tables WHERE schemaname=", 
-        dbQuoteString(conn, schema), ";")
-    dbtables <- dbGetQuery(conn, sql_query, stringsAsFactors = FALSE)
+    sql_query <-
+        paste0(
+            "SELECT tablename FROM pg_tables WHERE schemaname=",
+            dbQuoteString(conn, schema),
+            ";"
+        )
+    dbtables <-
+        dbGetQuery(conn, sql_query, stringsAsFactors = FALSE)
     dbtables <- dbtables$tablename
-    traj_tables <- c("animal_burst", "pgtraj", "step", "s_b_rel", 
-        "relocation")
+    traj_tables <- c("animal_burst", "pgtraj", "step", "s_b_rel",
+                     "relocation")
     if (length(dbtables) == 0) {
         ## In case of empty schema, set DB search path for the schema
         current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-        sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn, 
-            schema), ",public;")
+        sql_query <-
+            paste0("SET search_path TO ",
+                   dbQuoteIdentifier(conn,
+                                     schema),
+                   ",public;")
         invisible(dbExecute(conn, sql_query))
         ## SQL query to set up schema
-        pgtraj_schema_file <- paste0(path.package("rpostgisLT"), 
-            "/sql/traj_schema.sql")
-        psf<-readLines(pgtraj_schema_file, encoding = "UTF-8")
-        psf[psf==""]<-"%SPLITHERE%"
-        psf<-paste(psf, collapse = "\n")
-        sql_query<-unlist(strsplit(psf,"%SPLITHERE%",fixed=TRUE))
+        pgtraj_schema_file <-
+            system.file("sql/traj_schema.sql", package = "rpostgisLT")
+        psf <- readLines(pgtraj_schema_file, encoding = "UTF-8")
+        psf[psf == ""] <- "%SPLITHERE%"
+        psf <- paste(psf, collapse = "\n")
+        sql_query <- unlist(strsplit(psf, "%SPLITHERE%", fixed = TRUE))
         for (sq in sql_query) {
-          invisible(dbExecute(conn, sq))
+            invisible(dbExecute(conn, sq))
         }
         ## create summary views
         trajSummaryViews(conn, schema)
         ## Reset DB search path to the public schema
-        sql_query <- paste0("SET search_path TO ", current_search_path, 
-            ";")
+        sql_query <-
+            paste0("SET search_path TO ", current_search_path,
+                   ";")
         invisible(dbExecute(conn, sql_query))
         ## Commit transaction block
         invisible(dbCommit(conn))
-        message(paste0("The pgtraj schema '", schema, "' was successfully created in the database."))
+        message(
+            paste0(
+                "The pgtraj schema '",
+                schema,
+                "' was successfully created in the database."
+            )
+        )
         return(TRUE)
     } else if (all(traj_tables %in% dbtables)) {
         # All required tables are present in the schema
@@ -82,6 +97,12 @@ pgtrajSchema <- function(conn, schema = "traj") {
         return(TRUE)
     } else {
         invisible(dbRollback(conn))
-        stop(paste0("A schema '", schema, "' already exists in the database, and is not a valid pgtraj schema."))
+        stop(
+            paste0(
+                "A schema '",
+                schema,
+                "' already exists in the database, and is not a valid pgtraj schema."
+            )
+        )
     }
 }

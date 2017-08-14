@@ -15,3 +15,7 @@ adehabitatLT
 inst/doc
 rpostgisLT_rhub.txt
 ibex_traj.gif
+.*~
+*~
+utility/balazs_db.R
+temp_data/usgsdem
