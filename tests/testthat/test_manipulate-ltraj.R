@@ -31,7 +31,7 @@ test_that("interpolate ltraj in space", {
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_int_space"),
                    "successfully")
     expect_match(all.equal(ibex_int_space, ibexTest),
-                   "Component 4: Component 7: Mean relative difference: 1.090947e-05",
+                   "Component 4: Component 7: Mean relative difference:",
                  all = FALSE) # due to date rounding
     # time rounding causing all.equal == FALSE
     # ibexTest[[1]]$date == ibex[[1]]$date
