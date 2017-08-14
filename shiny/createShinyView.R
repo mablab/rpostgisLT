@@ -30,12 +30,10 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     
     # if there is an infolocs table
     if (nrow(info_cols) > 0) {
-        cols <- paste(paste(paste0(
-            "i.",
-            dbQuoteIdentifier(conn, info_cols$column_name)
-        ),
-        collapse = ", "),
-        ",")
+        cols <- paste(paste(paste0("i.",
+                             dbQuoteIdentifier(conn, info_cols$column_name)),
+                      collapse = ", "),
+                      ",")
         join <-
             paste0("JOIN ", infolocs_table, " i ON p.step_id = i.step_id")
     } else {
