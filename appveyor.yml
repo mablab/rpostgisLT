@@ -2,13 +2,13 @@
 
 # Download script file from GitHub
 init:
-  - SET PGUSER=postgres
-  - SET PGPASSWORD=Password12!
-  - SET PATH=C:\Program Files\PostgreSQL\9.6\bin;%PATH%
-  ps: |
+  - ps: |
         $ErrorActionPreference = "Stop"
         Invoke-WebRequest http://raw.github.com/krlmlr/r-appveyor/master/scripts/appveyor-tool.ps1 -OutFile "..\appveyor-tool.ps1"
         Import-Module '..\appveyor-tool.ps1'
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - SET PATH=C:\Program Files\PostgreSQL\9.6\bin;%PATH%
 
 install:
   ps: Bootstrap
@@ -22,6 +22,12 @@ services:
 
 build_script:
   - travis-tool.sh install_deps
+  - createdb rpglt_empty
+  - psql -d rpglt_empty -c "create extension postgis;"
+  - createdb rpglt_data
+  - psql -d rpglt_data -c "create extension postgis;"
+  - psql -d rpglt_data -c "create schema example_data;"
+  - 7z x .\inst\sql\example_data.sql.gz -so | psql -d rpglt_data
 
 test_script:
   - travis-tool.sh run_tests
