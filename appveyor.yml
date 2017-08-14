@@ -2,6 +2,9 @@
 
 # Download script file from GitHub
 init:
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - SET PATH=C:\Program Files\PostgreSQL\9.6\bin;%PATH%
   ps: |
         $ErrorActionPreference = "Stop"
         Invoke-WebRequest http://raw.github.com/krlmlr/r-appveyor/master/scripts/appveyor-tool.ps1 -OutFile "..\appveyor-tool.ps1"
@@ -16,11 +19,6 @@ cache:
 # Adapt as necessary starting from here
 services:
   - postgresql96
-
-init:
-  - SET PGUSER=postgres
-  - SET PGPASSWORD=Password12!
-  - SET PATH=C:\Program Files\PostgreSQL\9.6\bin;%PATH%
 
 build_script:
   - travis-tool.sh install_deps
