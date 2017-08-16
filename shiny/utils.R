@@ -5,7 +5,22 @@ library(DBI)
 
 # Queries ------------------------------------------------------------
 
-# Get steps within a temporal window
+# get_step_window
+
+#' Get steps within a temporal window
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#' @param view String. View name.
+#' @param time String of the start time of the time window. Including time zone.
+#' @param interval lubridate::Period object of the time window
+#' @param step_mode Boolean. Detailed step info (TRUE) or aggregate
+#' @param info_cols Character vector of the infolocs columns of the pgtraj.
+#'
+#' @return A simple feature object of the steps.
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+
 get_step_window <- function(conn, schema, view, time, interval, step_mode,
                             info_cols){
     stopifnot(is.period(interval))
