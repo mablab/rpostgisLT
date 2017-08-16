@@ -299,19 +299,18 @@ pgtrajPlotter <-
             
             # set Interval and Time Window from slider
             observeEvent(input$range, {
-                print(paste("input$range is", input$range))
                 # the time window must be "open" in order to increment the time stamp
                 # do nothing if the start and end times are equal
                 stime <- input$range[1]
                 etime <- input$range[2]
                 
                 print(paste("input$range stime, etime", c(stime, etime)))
+                print(paste("stime < etime", stime < etime))
                 
-                if(TRUE) {
-                    timeOut$currTime <- input$range[1]
+                if(stime < etime) {
+                    timeOut$currTime <- stime
                     
-                    timeOut$interval <-
-                        as.period(input$range[2] - input$range[1])
+                    timeOut$interval <- as.period(etime - stime)
                     x$counter <- x$counter + 1
                     x$currStep <-
                         get_step_window(conn,
@@ -337,47 +336,49 @@ pgtrajPlotter <-
                 stime <- timeOut$currTime + timeOut$increment
                 etime <- stime + timeOut$interval
                 print(paste("input$n stime, etime", c(stime, etime)))
-                print(identical(stime, etime))
+                # print(identical(stime, etime))
                 
-                if(TRUE) {
+                if(stime < etime) {
                     # for assigning alternating group names
                     x$counter <- x$counter + 1
-                    
-                    # timeOut$currTime <- timeOut$currTime + timeOut$increment
-                    nt <- timeOut$currTime + timeOut$increment
                     
                     # update time window slider
                     updateSliderInput(
                         session,
                         "range",
                         value = c(
-                            nt,
-                            nt + timeOut$interval
+                            stime,
+                            etime
                         ),
                         step = timeOut$increment
                     )
                 } else {
-                    print("nothing")
+                    message("time window out of range")
                 }
             })
             
             observeEvent(input$b, {
-                # for assigning alternating group names
-                x$counter <- x$counter + 1
-
-                nt <- timeOut$currTime - timeOut$increment
-                print(nt)
+                stime <- timeOut$currTime - timeOut$increment
+                etime <- stime + timeOut$interval
+                print(paste("input$b stime, etime", c(stime, etime)))
                 
-                # update time window slider
-                updateSliderInput(
-                    session,
-                    "range",
-                    value = c(
-                        nt,
-                        nt + timeOut$interval
-                    ),
-                    step = timeOut$increment
-                )
+                if(stime < etime) {
+                    # for assigning alternating group names
+                    x$counter <- x$counter + 1
+                    
+                    # update time window slider
+                    updateSliderInput(
+                        session,
+                        "range",
+                        value = c(
+                            stime,
+                            etime
+                        ),
+                        step = timeOut$increment
+                    )
+                } else {
+                    message("time window out of range")
+                }
             })
             
             # # Report current timestamp
