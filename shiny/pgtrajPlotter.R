@@ -33,32 +33,31 @@ pgtrajPlotter <-
         tstamp_last <- as.POSIXct(time_params$tstamp_last,
                                   origin = "1970-01-01 00:00:00",
                                   tz = "UTC")
-        attributes(t)$tzone <- tzone
         
-        t <- as.POSIXct(time_params$tstamp_start,
+        tstamp_start <- as.POSIXct(time_params$tstamp_start,
                         origin = "1970-01-01 00:00:00",
                         tz = "UTC")
         # R uses time zone abbreviation to print time stamps,
-        # thus get_step_window while pgtraj stores the "long" time zone
+        # and also get_step_window. On the other hand, pgtraj stores the "long" time zone
         # format (e.g. America/New_York instead of EDT). Thus the warning
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-        attributes(t)$tzone <- tzone
+        attributes(tstamp_start)$tzone <- tzone
         
         increment <- period(num = time_params$increment,
                               units = "seconds")
         
         # default interval is 10*increment (~10 steps)
-        limit <- t + (increment * 10)
+        limit <- tstamp_start + (increment * 10)
         if (limit < tstamp_last) {
             interval <- increment * 10
         } else {
             message("Loading full trajectory, because it is shorter than 10 steps.")
-            interval <- tstamp_last - t
+            interval <- tstamp_last - tstamp_start
         }
         
         # Get initial set of trajectories
         st <-
-            get_step_window(conn, schema, view, t, interval, FALSE, info_cols)
+            get_step_window(conn, schema, view, tstamp_start, interval, FALSE, info_cols)
         
         # Get full traj
         st_1 <- get_full_traj(conn, schema, view)
@@ -187,9 +186,9 @@ pgtrajPlotter <-
                     sliderInput(
                         "range",
                         "Time window:",
-                        min = t,
+                        min = tstamp_start,
                         max = tstamp_last,
-                        value = c(t, t + interval),
+                        value = c(tstamp_start, tstamp_start + interval),
                         step = increment,
                         timezone = tzone
                     ),
@@ -213,7 +212,7 @@ pgtrajPlotter <-
                 )
             
             # get current time window and the next
-            timeOut <- reactiveValues(currTime = t,
+            timeOut <- reactiveValues(currTime = tstamp_start,
                                       interval = interval,
                                       increment = increment,
                                       increment_unit = unit_init,
@@ -300,43 +299,66 @@ pgtrajPlotter <-
             
             # set Interval and Time Window from slider
             observeEvent(input$range, {
-                timeOut$currTime <- input$range[1]
+                print(paste("input$range is", input$range))
+                # the time window must be "open" in order to increment the time stamp
+                # do nothing if the start and end times are equal
+                stime <- input$range[1]
+                etime <- input$range[2]
                 
-                timeOut$interval <-
-                    as.period(input$range[2] - input$range[1])
-                x$counter <- x$counter + 1
-                x$currStep <-
-                    get_step_window(conn,
-                                    schema,
-                                    view,
-                                    timeOut$currTime,
-                                    timeOut$interval,
-                                    input$step_mode,
-                                    info_cols)
+                print(paste("input$range stime, etime", c(stime, etime)))
                 
-                # update the Interval numeric input
-                # updateNumericTimeInput(session, input$interval_unit,
-                #                        "interval", timeOut$interval)
+                if(TRUE) {
+                    timeOut$currTime <- input$range[1]
+                    
+                    timeOut$interval <-
+                        as.period(input$range[2] - input$range[1])
+                    x$counter <- x$counter + 1
+                    x$currStep <-
+                        get_step_window(conn,
+                                        schema,
+                                        view,
+                                        timeOut$currTime,
+                                        timeOut$interval,
+                                        input$step_mode,
+                                        info_cols)
+                    
+                    # update the Interval numeric input
+                    # updateNumericTimeInput(session, input$interval_unit,
+                    #                        "interval", timeOut$interval)
+                } else {
+                    print("ignore")
+                }
             })
             
             # Only update timestamp on click
             observeEvent(input$n, {
-                # for assigning alternating group names
-                x$counter <- x$counter + 1
+                # the time window must be "open" in order to increment the time stamp
+                # do nothing if the start and end times are equal
+                stime <- timeOut$currTime + timeOut$increment
+                etime <- stime + timeOut$interval
+                print(paste("input$n stime, etime", c(stime, etime)))
+                print(identical(stime, etime))
                 
-                # timeOut$currTime <- timeOut$currTime + timeOut$increment
-                nt <- timeOut$currTime + timeOut$increment
-                
-                # update time window slider
-                updateSliderInput(
-                    session,
-                    "range",
-                    value = c(
-                        nt,
-                        nt + timeOut$interval
-                    ),
-                    step = timeOut$increment
-                )
+                if(TRUE) {
+                    # for assigning alternating group names
+                    x$counter <- x$counter + 1
+                    
+                    # timeOut$currTime <- timeOut$currTime + timeOut$increment
+                    nt <- timeOut$currTime + timeOut$increment
+                    
+                    # update time window slider
+                    updateSliderInput(
+                        session,
+                        "range",
+                        value = c(
+                            nt,
+                            nt + timeOut$interval
+                        ),
+                        step = timeOut$increment
+                    )
+                } else {
+                    print("nothing")
+                }
             })
             
             observeEvent(input$b, {
@@ -344,6 +366,7 @@ pgtrajPlotter <-
                 x$counter <- x$counter + 1
 
                 nt <- timeOut$currTime - timeOut$increment
+                print(nt)
                 
                 # update time window slider
                 updateSliderInput(
