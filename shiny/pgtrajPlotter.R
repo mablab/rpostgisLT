@@ -8,9 +8,6 @@ library(htmltools)
 library(mapview)
 library(shinyWidgets)
 library(testthat)
-# raster handling
-library(rgdal)
-library(raster)
 
 source("./shiny/utils.R")
 source("./shiny/createShinyView.R")
@@ -261,33 +258,44 @@ pgtrajPlotter <-
             
             # set Increment from input field
             observeEvent(input$increment, {
-                if(is.null(input$increment) | is.logical(input$increment)){
+                # do not update Increment in case the input is 0 or empty
+                if (is.null(input$increment) |
+                    is.logical(input$increment) |
+                    identical(input$increment, as.integer(0))) {
                     return()
                 }
-                timeOut$increment <- setTimeInput(input$increment_unit,
-                                                 input$increment,
-                                                    timeOut$increment)
+                timeOut$increment <-
+                    setTimeInput(input$increment_unit,
+                                 input$increment,
+                                 timeOut$increment)
             })
             
             # set Interval from input field
             observeEvent(input$interval, {
-                if(is.null(input$interval) | is.logical(input$interval)){
+                # do not update Interval in case the input is 0 or empty
+                if (is.null(input$interval) |
+                    is.logical(input$interval) |
+                    identical(input$interval, as.integer(0))) {
                     return()
+                } else {
+                    timeOut$interval <-
+                        setTimeInput(input$interval_unit,
+                                     input$interval,
+                                     timeOut$interval)
+                    
+                    # update time window slider
+                    if (period_to_seconds(timeOut$interval) > period(0)) {
+                        updateSliderInput(
+                            session,
+                            "range",
+                            value = c(
+                                timeOut$currTime,
+                                timeOut$currTime + timeOut$interval
+                            ),
+                            step = timeOut$increment
+                        )
+                    }
                 }
-                timeOut$interval <- setTimeInput(input$interval_unit, input$interval,
-                             timeOut$interval)
-                
-                # update time window slider
-                if(period_to_seconds(timeOut$interval) > period(0)) {
-                    updateSliderInput(
-                        session,
-                        "range",
-                        value = c(timeOut$currTime,
-                                  timeOut$currTime + timeOut$interval),
-                        step = timeOut$increment
-                    )
-                }
-            
             })
             
             # set Interval and Time Window from slider
