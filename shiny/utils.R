@@ -137,9 +137,10 @@ get_full_traj <- function(conn, schema, view){
 #' @param view String. View name.
 #' @param pgtraj String. Pgtraj name
 #'
-#' @return data frame with columns: tstamp_start, tstamp_last, increment, tzone
+#' @return data frame with columns: tstamp_start (epoch), tstamp_last (epoch), increment, tzone
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+
 get_traj_defaults <- function(conn, schema, view, pgtraj){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
@@ -153,16 +154,8 @@ get_traj_defaults <- function(conn, schema, view, pgtraj){
     # default increment is the median step duration
     sql_query <- paste0("
                         SELECT
-                            EXTRACT(
-                                epoch
-                            FROM
-                                MIN( DATE )
-                            ) AS tstamp_start,
-                            EXTRACT(
-                                epoch
-                            FROM
-                                MAX( DATE )
-                            ) AS tstamp_last,
+                            MIN( DATE ) AS tstamp_start,
+                            MAX( DATE ) AS tstamp_last,
                             PERCENTILE_CONT( 0.5 ) WITHIN GROUP(
                             ORDER BY
                                 dt

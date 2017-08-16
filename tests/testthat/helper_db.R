@@ -1,5 +1,6 @@
-can_con <- function(x)
+can_con <- function(x) {
     inherits(x, "PostgreSQLConnection")
+}
 conn_empty <- NULL
 test_that("check utils", expect_false(can_con(conn_empty)))
 try(conn_empty <- RPostgreSQL::dbConnect(RPostgreSQL::PostgreSQL(),

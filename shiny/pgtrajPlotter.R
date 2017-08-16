@@ -30,34 +30,34 @@ pgtrajPlotter <-
         
         tzone <- time_params$time_zone
         
-        tstamp_last <- as.POSIXct(time_params$tstamp_last,
-                                  origin = "1970-01-01 00:00:00",
-                                  tz = "UTC")
-        
-        tstamp_start <- as.POSIXct(time_params$tstamp_start,
-                        origin = "1970-01-01 00:00:00",
-                        tz = "UTC")
+        # tstamp_last <- as.POSIXct(time_params$tstamp_last,
+        #                           origin = "1970-01-01 00:00:00",
+        #                           tz = "UTC")
+        # 
+        # tstamp_start <- as.POSIXct(time_params$tstamp_start,
+        #                 origin = "1970-01-01 00:00:00",
+        #                 tz = "UTC")
         # R uses time zone abbreviation to print time stamps,
         # and also get_step_window. On the other hand, pgtraj stores the "long" time zone
         # format (e.g. America/New_York instead of EDT). Thus the warning
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-        attributes(tstamp_start)$tzone <- tzone
+        # attributes(time_params$tstamp_start)$tzone <- tzone
         
         increment <- period(num = time_params$increment,
                               units = "seconds")
         
         # default interval is 10*increment (~10 steps)
-        limit <- tstamp_start + (increment * 10)
-        if (limit < tstamp_last) {
+        limit <- time_params$tstamp_start + (increment * 10)
+        if (limit < time_params$tstamp_last) {
             interval <- increment * 10
         } else {
             message("Loading full trajectory, because it is shorter than 10 steps.")
-            interval <- tstamp_last - tstamp_start
+            interval <- time_params$tstamp_last - time_params$tstamp_start
         }
         
         # Get initial set of trajectories
         st <-
-            get_step_window(conn, schema, view, tstamp_start, interval, FALSE, info_cols)
+            get_step_window(conn, schema, view, time_params$tstamp_start, interval, FALSE, info_cols)
         
         # Get full traj
         st_1 <- get_full_traj(conn, schema, view)
@@ -186,9 +186,9 @@ pgtrajPlotter <-
                     sliderInput(
                         "range",
                         "Time window:",
-                        min = tstamp_start,
-                        max = tstamp_last,
-                        value = c(tstamp_start, tstamp_start + interval),
+                        min = time_params$tstamp_start,
+                        max = time_params$tstamp_last,
+                        value = c(time_params$tstamp_start, time_params$tstamp_start + interval),
                         step = increment,
                         timezone = tzone
                     ),
@@ -212,7 +212,7 @@ pgtrajPlotter <-
                 )
             
             # get current time window and the next
-            timeOut <- reactiveValues(currTime = tstamp_start,
+            timeOut <- reactiveValues(currTime = time_params$tstamp_start,
                                       interval = interval,
                                       increment = increment,
                                       increment_unit = unit_init,
