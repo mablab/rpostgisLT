@@ -14,19 +14,26 @@ library(DBI)
 #' @param interval lubridate::Period object of the time window
 #' @param step_mode Boolean. Detailed step info (TRUE) or aggregate
 #' @param info_cols Character vector of the infolocs columns of the pgtraj.
+#' @param tstamp_start POSIXct with timestamp. First time stamp in view.
+#' @param tstamp_last POSIXct with timestamp. Last time stamp in view.
 #'
-#' @return A simple feature object of the steps.
+#' @return A simple feature object of the steps. NULL when out of range.
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 
 get_step_window <- function(conn, schema, view, time, interval, step_mode,
-                            info_cols){
+                            info_cols, tstamp_start, tstamp_last){
     stopifnot(is.period(interval))
     i <- period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(i, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
+    
+    if(time < tstamp_start | time > tstamp_last) {
+        message("time window out of range")
+        return(NULL)
+    }
     
     if(step_mode){
         sql_query <- paste0("
