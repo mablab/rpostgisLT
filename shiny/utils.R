@@ -5,8 +5,6 @@ library(DBI)
 
 # Queries ------------------------------------------------------------
 
-# get_step_window
-
 #' Get steps within a temporal window
 #'
 #' @param conn DBI::DBIConnection
@@ -132,7 +130,16 @@ get_full_traj <- function(conn, schema, view){
     return(st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
 }
 
-# Get default time parameters
+#' Get default time parameters for steps
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#' @param view String. View name.
+#' @param pgtraj String. Pgtraj name
+#'
+#' @return data frame with columns: tstamp_start, tstamp_last, increment, tzone
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 get_traj_defaults <- function(conn, schema, view, pgtraj){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
