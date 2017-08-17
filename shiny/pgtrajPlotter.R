@@ -298,10 +298,6 @@ pgtrajPlotter <-
                 stime <- input$range[1]
                 etime <- input$range[2]
                 
-                print(paste("input$range stime, etime", c(stime, etime)))
-                print(paste("stime < etime", stime < etime))
-                print(paste("interval", as.period(etime - stime)))
-                
                 if(stime < etime) {
                     timeOut$currTime <- stime
                     
@@ -309,6 +305,7 @@ pgtrajPlotter <-
                     # for assigning alternating group names in order to 
                     # remove the previous step from the plot
                     x$counter <- x$counter + 1
+                    
                     x$currStep <-
                         get_step_window(conn,
                                         schema,
@@ -324,7 +321,7 @@ pgtrajPlotter <-
                     # updateNumericTimeInput(session, input$interval_unit,
                     #                        "interval", timeOut$interval)
                 } else {
-                    print("ignore")
+                    # ignore input
                 }
             })
             
@@ -334,8 +331,6 @@ pgtrajPlotter <-
                 # do nothing if the start and end times are equal
                 stime <- timeOut$currTime + timeOut$increment
                 etime <- stime + timeOut$interval
-                print(paste("input$n stime, etime", c(stime, etime)))
-                print(paste("input$n stime < etime", stime < etime))
                 
                 if(stime < etime) {
                     # update time window slider
@@ -356,8 +351,6 @@ pgtrajPlotter <-
             observeEvent(input$b, {
                 stime <- timeOut$currTime - timeOut$increment
                 etime <- stime + timeOut$interval
-                print(paste("input$b stime, etime", c(stime, etime)))
-                print(paste("input$b stime < etime", stime < etime))
                 
                 if(stime < etime) {
                     # update time window slider
@@ -374,15 +367,6 @@ pgtrajPlotter <-
                     message("time window out of range")
                 }
             })
-            
-            # # Report current timestamp
-            # output$tstamp <- renderText({
-            #     paste(
-            #         format(timeOut$currTime, usetz = TRUE),
-            #         "-",
-            #         format(timeOut$currTime + timeOut$interval, usetz = TRUE)
-            #     )
-            # })
             
             output$map <- renderLeaflet({
                 if (is.null(w$data)) {
@@ -492,7 +476,8 @@ pgtrajPlotter <-
             observe({
                 # don't do anything when there is no geometry to display
                 if(!is.null(x$currStep)) {
-                    # counter for adding/removing groups
+                    # counter for adding/removing the next/previous set of steps
+                    # when plotting a trajectory
                     if (x$counter %% 2 == 0) {
                         gname <- "traj"
                     } else {
@@ -505,27 +490,32 @@ pgtrajPlotter <-
                         colorpal <- ~colors_animal(animal_name)
                     }
                     # map
-                    print(x$currStep)
-                    proxy <- leafletProxy("map") %>%
-                        addPolylines(
-                            data = x$currStep,
-                            group = gname,
-                            fillOpacity = 1,
-                            opacity = 1,
-                            color = colorpal,
-                            weight = 4,
-                            popup = mapview::popupTable(x$currStep)
-                        )
-                    if (x$counter %% 2 == 0) {
-                        proxy %>% clearGroup("trajnew")
+                    if(length(st_geometry(x$currStep)) > 0) {
+                        proxy <- leafletProxy("map") %>%
+                            addPolylines(
+                                data = x$currStep,
+                                group = gname,
+                                fillOpacity = 1,
+                                opacity = 1,
+                                color = colorpal,
+                                weight = 4,
+                                popup = mapview::popupTable(x$currStep)
+                            )
+                        
+                        if (x$counter %% 2 == 0) {
+                            proxy %>% clearGroup("trajnew")
+                        } else {
+                            proxy %>% clearGroup("traj")
+                        }
+                        
+                        # because observeEven doesn't pass value when all burst are
+                        # deselected
+                        if (is.null(input$burst_picker)) {
+                            proxy %>% clearGroup("bursts")
+                        }
+                        
                     } else {
-                        proxy %>% clearGroup("traj")
-                    }
-                    
-                    # because observeEven doesn't pass value when all burst are
-                    # deselected
-                    if (is.null(input$burst_picker)) {
-                        proxy %>% clearGroup("bursts")
+                        # leaflet crashes
                     }
                 }
             })

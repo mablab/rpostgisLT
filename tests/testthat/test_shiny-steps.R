@@ -40,7 +40,7 @@ test_that("get_step_window time ranges", {
             )
     )
     expect_equal(length(st_geometry(s)), 4)
-    expect_message(
+    expect_warning(
         s_out <-
             get_step_window(
                 conn_data,
@@ -53,9 +53,9 @@ test_that("get_step_window time ranges", {
                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
             ),
-        "time window out of range"
+        "Didn't find any steps at"
     )
-    expect_message(
+    expect_warning(
         s_out2 <-
             get_step_window(
                 conn_data,
@@ -68,7 +68,7 @@ test_that("get_step_window time ranges", {
                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
             ),
-        "time window out of range"
+        "Didn't find any steps at"
     )
     expect_silent(
         s_out3 <-
@@ -84,8 +84,8 @@ test_that("get_step_window time ranges", {
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
             )
     )
-    expect_null(s_out)
-    expect_null(s_out2)
+    expect_equal(length(st_geometry(s_out)), 0)
+    expect_equal(length(st_geometry(s_out2)), 0)
     expect_equal(length(st_geometry(s_out3)), 1)
 })
 
@@ -180,23 +180,21 @@ test_that("get_step_window interval", {
         info_cols = NULL,
         tstamp_start = as.POSIXct("2003-06-01 CEST"),
         tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
-    ), "NULL cannot have attributes")
+    ), "Didn't find any steps at")
     expect_equal(length(st_geometry(s_out)), 0)
-    expect_message(
+    expect_warning(
         s_out4 <-
             get_step_window(
                 conn_data,
                 schema,
                 view = view,
                 time = "2003-06-02 CEST",
-                interval = lubridate::period(0.1, units = "seconds"),
+                interval = lubridate::period(0, units = "seconds"),
                 step_mode = FALSE,
                 info_cols = NULL,
                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
-            ),
-        "time window out of range",
-        label = "interval==0"
+            ), "Didn't find any steps at"
     )
     expect_silent(
         s_out4 <-

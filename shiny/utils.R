@@ -30,14 +30,11 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     
-    print(t)
-    print(t_interval)
-    
-    if((time < tstamp_start | time > tstamp_last) |
-       identical(i, 0)) {
-        message("time window out of range")
-        return(NULL)
-    }
+    # if((time < tstamp_start | time > tstamp_last) |
+    #    (i < 1)) {
+    #     message("time window out of range")
+    #     return(NULL)
+    # }
     
     if(step_mode){
         sql_query <- paste0("
@@ -78,8 +75,15 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
                             GROUP BY
                                 burst_name, animal_name;")
     }
-    return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
-    }
+    withCallingHandlers(
+        s <- st_read_db(conn, query = sql_query, geom_column = "step_geom"),
+        warning = function(w) {
+            warning(paste("Didn't find any steps at", time, "+", interval))
+        }
+    )
+    
+    return(s)
+}
 
 # Get list of bursts in step_geometry view
 get_bursts_df <- function(conn, schema, view){
