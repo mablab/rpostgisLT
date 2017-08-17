@@ -1,20 +1,3 @@
-
-# get all columns in the infolocs table but the step_id
-getInfolocsColumns <- function(conn, schema, infolocs_table){
-    schema_s <- dbQuoteString(conn, schema)
-    table_s <- dbQuoteString(conn, infolocs_table)
-    
-    sql_query <- paste0("
-                        SELECT column_name
-                        FROM information_schema.columns
-                        WHERE table_schema = ",schema_s,"
-                        AND table_name = ",table_s,"
-                        AND column_name != 'step_id';")
-    
-    return(dbGetQuery(conn, sql_query))
-}
-
-
 createShinyStepsView <- function(conn, schema, pgtraj) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")

@@ -30,7 +30,8 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     
-    if(time < tstamp_start | time > tstamp_last) {
+    if((time < tstamp_start | time > tstamp_last) |
+       identical(i, 0)) {
         message("time window out of range")
         return(NULL)
     }
@@ -309,3 +310,37 @@ isRaster <- function(conn, layer) {
         return(FALSE)
     }
 }
+
+
+#' Get all columns in the infolocs table but the step_id
+#' 
+#' Gets all the columns names in the infoloc table of the pgtraj and parses
+#' them for inserting into an SQL query, e.g.: "col1 ,col2, col2 ,"
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#' @param pgtraj String. Pgtraj name.
+#'
+#' @return character vector or NULL if there are no infolocs
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+getInfolocsColumns <- function(conn, schema, pgtraj){
+    schema_s <- dbQuoteString(conn, schema)
+    table_s <- dbQuoteString(conn, paste0("infolocs_", pgtraj))
+    
+    sql_query <- paste0("
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_schema = ",schema_s,"
+                        AND table_name = ",table_s,"
+                        AND column_name != 'step_id';")
+    ic <- dbGetQuery(conn, sql_query)
+    
+    if(nrow(ic) > 0) {
+        info_cols <- paste(paste(ic$column_name, collapse = ", "), ",")
+    } else {
+        info_cols <- NULL
+    }
+    return(info_cols)
+}
+

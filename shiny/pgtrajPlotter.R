@@ -56,8 +56,9 @@ pgtrajPlotter <-
         }
         
         # Get initial set of trajectories
-        st <-
-            get_step_window(conn, schema, view, time_params$tstamp_start, interval, FALSE, info_cols)
+        st <- get_step_window(conn, schema, view, time_params$tstamp_start,
+                              interval, FALSE, info_cols,
+                              time_params$tstamp_start, time_params$tstamp_last)
         
         # Get full traj
         st_1 <- get_full_traj(conn, schema, view)
@@ -98,14 +99,7 @@ pgtrajPlotter <-
             raster_name <- NULL
         }
         
-        # infolocs columns
-        infolocs_table <- paste0("infolocs_", pgtraj)
-        ic <- getInfolocsColumns(conn, schema, infolocs_table)
-        if(nrow(ic) > 0) {
-            info_cols <- paste(paste(ic$column_name, collapse = ", "), ",")
-        } else {
-            info_cols <- NULL
-        }
+        info_cols <- getInfolocsColumns(conn, schema, pgtraj)
             
         ui <-
             fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
@@ -228,7 +222,9 @@ pgtrajPlotter <-
                                     timeOut$currTime,
                                     timeOut$interval,
                                     input$step_mode,
-                                    info_cols)
+                                    info_cols,
+                                    time_params$tstamp_start,
+                                    time_params$tstamp_last)
             })
             
             # convert values in Increment to the selected unit
@@ -306,6 +302,7 @@ pgtrajPlotter <-
                 
                 print(paste("input$range stime, etime", c(stime, etime)))
                 print(paste("stime < etime", stime < etime))
+                print(paste("interval", as.period(etime - stime)))
                 
                 if(stime < etime) {
                     timeOut$currTime <- stime
@@ -319,7 +316,9 @@ pgtrajPlotter <-
                                         timeOut$currTime,
                                         timeOut$interval,
                                         input$step_mode,
-                                        info_cols)
+                                        info_cols,
+                                        time_params$tstamp_start,
+                                        time_params$tstamp_last)
                     
                     # update the Interval numeric input
                     # updateNumericTimeInput(session, input$interval_unit,
@@ -336,7 +335,7 @@ pgtrajPlotter <-
                 stime <- timeOut$currTime + timeOut$increment
                 etime <- stime + timeOut$interval
                 print(paste("input$n stime, etime", c(stime, etime)))
-                # print(identical(stime, etime))
+                print(paste("input$n stime < etime", stime < etime))
                 
                 if(stime < etime) {
                     # for assigning alternating group names
@@ -361,6 +360,7 @@ pgtrajPlotter <-
                 stime <- timeOut$currTime - timeOut$increment
                 etime <- stime + timeOut$interval
                 print(paste("input$b stime, etime", c(stime, etime)))
+                print(paste("input$b stime < etime", stime < etime))
                 
                 if(stime < etime) {
                     # for assigning alternating group names
@@ -496,39 +496,43 @@ pgtrajPlotter <-
             })
             
             observe({
-                # counter for adding/removing groups
-                if (x$counter %% 2 == 0) {
-                    gname <- "traj"
-                } else {
-                    gname <- "trajnew"
-                }
-                # colors
-                if(input$color_choice == "Bursts"){
-                    colorpal <- ~colors_burst(burst_name)
-                } else {
-                    colorpal <- ~colors_animal(animal_name)
-                }
-                # map
-                proxy <- leafletProxy("map") %>%
-                    addPolylines(
-                        data = x$currStep,
-                        group = gname,
-                        fillOpacity = 1,
-                        opacity = 1,
-                        color = colorpal,
-                        weight = 4,
-                        popup = mapview::popupTable(x$currStep)
-                    )
-                if (x$counter %% 2 == 0) {
-                    proxy %>% clearGroup("trajnew")
-                } else {
-                    proxy %>% clearGroup("traj")
-                }
-                
-                # because observeEven doesn't pass value when all burst are
-                # deselected
-                if (is.null(input$burst_picker)) {
-                    proxy %>% clearGroup("bursts")
+                # don't do anything when there is no geometry to display
+                if(!is.null(x$currStep)) {
+                    # counter for adding/removing groups
+                    if (x$counter %% 2 == 0) {
+                        gname <- "traj"
+                    } else {
+                        gname <- "trajnew"
+                    }
+                    # colors
+                    if(input$color_choice == "Bursts"){
+                        colorpal <- ~colors_burst(burst_name)
+                    } else {
+                        colorpal <- ~colors_animal(animal_name)
+                    }
+                    # map
+                    print(x$currStep)
+                    proxy <- leafletProxy("map") %>%
+                        addPolylines(
+                            data = x$currStep,
+                            group = gname,
+                            fillOpacity = 1,
+                            opacity = 1,
+                            color = colorpal,
+                            weight = 4,
+                            popup = mapview::popupTable(x$currStep)
+                        )
+                    if (x$counter %% 2 == 0) {
+                        proxy %>% clearGroup("trajnew")
+                    } else {
+                        proxy %>% clearGroup("traj")
+                    }
+                    
+                    # because observeEven doesn't pass value when all burst are
+                    # deselected
+                    if (is.null(input$burst_picker)) {
+                        proxy %>% clearGroup("bursts")
+                    }
                 }
             })
             
