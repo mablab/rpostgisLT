@@ -1316,7 +1316,6 @@ trajSummaryViews<- function(conn, schema) {
 #' @param pgtraj String. Pgtraj name.
 #'
 #' @return nothing
-#' @export
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
@@ -1438,7 +1437,6 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
 #' @param schema String. Schema name.
 #'
 #' @return nothing
-#' @export
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
