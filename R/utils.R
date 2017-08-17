@@ -155,7 +155,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     sql_query <- paste0("SET search_path TO ", schema_q, ",public;")
     invisible(dbExecute(conn, sql_query))
     
-    # Populate 'zgaqtsn_temp'-------------------------------------------------
+    # Populate 'zgaqtsn_temp'
     # Insert relocations if trajectory Type I
     if (is.null(timestamps)) {
         # Relocations provided as point geometry
@@ -353,8 +353,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 #' 
 #' @examples
 #' \dontrun{pgTrajTempT(conn, "traj_1")}
-#' 
-###############################################################################
 pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
     sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = ", dbQuoteString(conn,schema), ";")
@@ -429,7 +427,6 @@ pgTrajTempT <- function(conn, schema) {
 #' 
 #' @keywords internal
 #' 
-##############################################################################
 pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
@@ -1319,6 +1316,7 @@ trajSummaryViews<- function(conn, schema) {
 #' @param pgtraj String. Pgtraj name.
 #'
 #' @return nothing
+#' @export
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
@@ -1440,6 +1438,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
 #' @param schema String. Schema name.
 #'
 #' @return nothing
+#' @export
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal

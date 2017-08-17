@@ -18,7 +18,7 @@ pgtraj2ltraj(conn, pgtraj, schema = "traj")
 an ltraj object
 }
 \description{
-\code{pgtraj2ltraj} imports a single pgtraj from a database into an 
+\code{pgtraj2ltraj} imports a single pgtraj from a database into an
 ltraj object.
 }
 \examples{
