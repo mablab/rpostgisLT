@@ -16,7 +16,44 @@ source("./shiny/createShinyView.R")
 # Shiny App----------------------------------------------------------------
 
 
-pgtrajPlotter <-
+#' Explore a pgtraj interactively in a Shiny app
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name of the pgtraj.
+#' @param pgtraj String. Pgtraj name.
+#' @param layers_vector List of character vectors. As c(schema, table).
+#' @param layers_params_vector Named list of lists. Names need to map to the
+#'  table names in layers_vector. Sub-lists contain parameters passed to
+#'  leaflet::add*. See example.
+#' @param layer_raster raster::RasterLayer object
+#' @param layers_params_raster List. Parameters passed to leaflet::addRasterImage()
+#'
+#' @return nothing
+#' @export
+#' 
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#'
+#' @examples
+#' \dontrun{
+#' # Vectore base layers to include
+#' layers_vector <- list(c("example_data", "county_subdiv"),
+#'                       c("example_data", "test_points")
+#'                       )
+#' layers_params_vector <- list(test_points=list(color = "red",
+#'                                               stroke = FALSE,
+#'                                               fillOpacity = 0.5),
+#'                              county_subdiv=list(color = "grey",
+#'                                                 fillOpacity = 0.2)
+#'                              )
+#' 
+#' # Raster base layers to include
+#' ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
+#' ras2 <- raster::raster(ras, 1)
+#' ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
+#' explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector,
+#'               layer_raster=ras2_leaflet)
+#' }
+explorePgtraj <-
     function(conn,
              schema,
              pgtraj,
@@ -43,7 +80,7 @@ pgtrajPlotter <-
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
         # attributes(time_params$tstamp_start)$tzone <- tzone
         
-        increment <- period(num = time_params$increment,
+        increment <- lubridate::period(num = time_params$increment,
                               units = "seconds")
         
         # default interval is 10*increment (~10 steps)
@@ -230,7 +267,7 @@ pgtrajPlotter <-
                 if(is.null(input$increment) | is.logical(input$increment)){
                     return()
                 }
-                timeOut$increment <- as.period(timeOut$increment,
+                timeOut$increment <- lubridate::as.period(timeOut$increment,
                                                unit = input$increment_unit)
                 
                 updateNumericTimeInput(session, input$increment_unit,
@@ -242,7 +279,7 @@ pgtrajPlotter <-
                 if(is.null(input$interval) | is.logical(input$interval)){
                     return()
                 }
-                timeOut$interval <- as.period(timeOut$interval,
+                timeOut$interval <- lubridate::as.period(timeOut$interval,
                                               unit = input$interval_unit)
                 
                 updateNumericTimeInput(session, input$interval_unit,
@@ -277,7 +314,7 @@ pgtrajPlotter <-
                                      timeOut$interval)
                     
                     # update time window slider
-                    if (period_to_seconds(timeOut$interval) > period(0)) {
+                    if (period_to_seconds(timeOut$interval) > lubridate::period(0)) {
                         updateSliderInput(
                             session,
                             "range",
@@ -301,7 +338,7 @@ pgtrajPlotter <-
                 if(stime < etime) {
                     timeOut$currTime <- stime
                     
-                    timeOut$interval <- as.period(etime - stime)
+                    timeOut$interval <- lubridate::as.period(etime - stime)
                     # for assigning alternating group names in order to 
                     # remove the previous step from the plot
                     x$counter <- x$counter + 1
