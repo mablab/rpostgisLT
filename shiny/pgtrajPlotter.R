@@ -221,7 +221,8 @@ pgtrajPlotter <-
                                     time_params$tstamp_start,
                                     time_params$tstamp_last)
                 print("is step mode on?")
-            })
+            },
+            ignoreInit = TRUE)
             
             # convert values in Increment to the selected unit
             observeEvent(input$increment_unit, {
