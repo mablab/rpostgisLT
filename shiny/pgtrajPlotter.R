@@ -26,7 +26,7 @@ pgtrajPlotter <-
              layers_params_raster=NULL) {
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
-        time_params <- get_traj_defaults(conn, schema, view, pgtraj)
+        time_params <- getTrajDefaults(conn, schema, view, pgtraj)
         
         tzone <- time_params$time_zone
         
@@ -38,7 +38,7 @@ pgtrajPlotter <-
         #                 origin = "1970-01-01 00:00:00",
         #                 tz = "UTC")
         # R uses time zone abbreviation to print time stamps,
-        # and also get_step_window. On the other hand, pgtraj stores the "long" time zone
+        # and also getStepWindow. On the other hand, pgtraj stores the "long" time zone
         # format (e.g. America/New_York instead of EDT). Thus the warning
         # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
         # attributes(time_params$tstamp_start)$tzone <- tzone
@@ -56,7 +56,7 @@ pgtrajPlotter <-
         }
         
         # Get full traj
-        st_1 <- get_full_traj(conn, schema, view)
+        st_1 <- getFullTraj(conn, schema, view)
         
         # color by animal_name
         # factpal <- colorFactor(topo.colors(4), st$animal_name)
@@ -68,7 +68,7 @@ pgtrajPlotter <-
                                      na.color = "#808080")
         
         # get burst list for burst mode
-        bursts_df <- get_bursts_df(conn, schema, view)
+        bursts_df <- getBurstsDF(conn, schema, view)
         burst_len <- nrow(bursts_df)
         colors_burst <- colorFactor(topo.colors(burst_len),
                                     bursts_df$burst_name,
@@ -211,7 +211,7 @@ pgtrajPlotter <-
             observeEvent(input$step_mode, {
                 x$counter <- x$counter + 1
                 x$currStep <-
-                    get_step_window(
+                    getStepWindow(
                         conn,
                         schema,
                         view,
@@ -307,7 +307,7 @@ pgtrajPlotter <-
                     x$counter <- x$counter + 1
                     
                     x$currStep <-
-                        get_step_window(conn,
+                        getStepWindow(conn,
                                         schema,
                                         view,
                                         timeOut$currTime,

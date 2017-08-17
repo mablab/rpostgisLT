@@ -21,7 +21,7 @@ library(DBI)
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 
-get_step_window <- function(conn, schema, view, time, interval, step_mode,
+getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                             info_cols, tstamp_start, tstamp_last){
     stopifnot(is.period(interval))
     i <- period_to_seconds(interval)
@@ -86,7 +86,7 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
 }
 
 # Get list of bursts in step_geometry view
-get_bursts_df <- function(conn, schema, view){
+getBurstsDF <- function(conn, schema, view){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
@@ -134,7 +134,7 @@ getBurstGeom <- function(conn, schema, view, burst_name){
 }
 
 # Get the complete trajectory of an animal as a single linestring
-get_full_traj <- function(conn, schema, view){
+getFullTraj <- function(conn, schema, view){
     sql_query <- paste0("
                         SELECT
                         st_makeline(step_geom)::geometry(linestring, 4326) AS traj_geom,
@@ -155,7 +155,7 @@ get_full_traj <- function(conn, schema, view){
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 
-get_traj_defaults <- function(conn, schema, view, pgtraj){
+getTrajDefaults <- function(conn, schema, view, pgtraj){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     sql_query <- paste0("
