@@ -78,5 +78,13 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    # try(rpostgis::dbDrop(
+    #     conn_data,
+    #     "ibex_traj_materialized_bursts",
+    #     type = "schema",
+    #     cascade = TRUE,
+    #     display = FALSE
+    # ),
+    # silent = TRUE)
     try(RPostgreSQL::dbDisconnect(conn_data))
 }

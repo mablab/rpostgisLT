@@ -1,12 +1,6 @@
 # setwd("/rpostgisLT") # adjust to set working directory to "rpostgisLT"
 library(rpostgisLT)
-library(rpostgis)
 source("./utility/connect_db.R")
-source("./shiny/createShinyView.R")
-source("./shiny/pgtrajPlotter.R")
-source("./shiny/ltrajPlotter.R")
-data("roe_sf")
-data("stork_2004_sf")
 
 # Setup -------------------------------------------------------------------
 
@@ -34,70 +28,37 @@ pgtraj <- "rendena"
 # Keep in mind that the current version of makeShinyView materializes the views
 
 # However, the storks dataset is in EPSG:4326 already
-createShinyStepsView(conn, schema, pgtraj)
-createShinyBurstsView(conn, schema)
-
-
-# Run ---------------------------------------------------------------------
-
-# # pgtraj from database
-# pgtrajPlotter(conn,
-#               schema,
-#               pgtraj,
-#               d_start,
-#               t_start,
-#               tzone,
-#               increment,
-#               nr_increment,
-#               interval)
-# plot with default parameters
-
-pgtrajPlotter(conn,
-              schema,
-              pgtraj)
-
-# background layers
-source("./shiny/pgtrajPlotter.R")
-conn <- do.call(cs, args)
-pgtrajPlotter(conn, schema, pgtraj)
-dbDisconnect(conn)
+rpostgisLT:::createShinyStepsView(conn, schema, pgtraj)
+rpostgisLT:::createShinyBurstsView(conn, schema)
 
 layers_vector <- list(c("example_data", "county_subdiv"), c("example_data", "test_points"))
 layers_params_vector <- list(test_points=list(color = "red", stroke = FALSE, fillOpacity = 0.5),
                       county_subdiv=list(color = "grey", fillOpacity = 0.2))
 
+# Run ---------------------------------------------------------------------
+
+explorePgtraj(conn,
+              schema,
+              pgtraj)
+
+# background layers
 conn <- do.call(cs, args)
-pgtrajPlotter(conn, schema, pgtraj, layers_vector)
+explorePgtraj(conn, schema, pgtraj)
 dbDisconnect(conn)
 
 conn <- do.call(cs, args)
-pgtrajPlotter(conn, schema, pgtraj, layers_vector, layers_params_vector)
+explorePgtraj(conn, schema, pgtraj, layers_vector)
+dbDisconnect(conn)
+
+conn <- do.call(cs, args)
+explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector)
 dbDisconnect(conn)
 
 ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
 ras2 <- raster::raster(ras, 1)
 ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
 conn <- do.call(cs, args)
-pgtrajPlotter(conn, schema, pgtraj, layers_vector, layers_params_vector,
+explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector,
               layer_raster=ras2_leaflet)
 dbDisconnect(conn)
 
-
-# ltraj-sf from R
-ltrajPlotter(
-    pgtraj_sf = roe_sf,
-    d_start = "2005-10-22",
-    t_start = "00:00:00",
-    tzone = "UTC",
-    increment = 4,
-    interval = 48
-)
-
-ltrajPlotter(
-    pgtraj_sf = stork_2004_sf,
-    d_start = "2004-06-01",
-    t_start = "00:00:00",
-    tzone = "Europe/Amsterdam",
-    increment = 24,
-    interval = 48
-)

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - NEWS formatted according to [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - tests are now based on `testthat`
+- `all_burst_summary` view is now materialized as `all_burst_summary_shiny` for plotting
+- `step_geometry_\<pgtraj\>` is now materialized as `step_geometry_shiny_\<pgtraj\>`
+- all pgtraj must be projected in a `traj` schema
 
 
 ## [0.5.0] - 2017-06-20
