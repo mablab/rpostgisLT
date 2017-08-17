@@ -290,7 +290,7 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
 #' @param layers List. List of character vectors for each layer to include as a 
 #' base layer. 
 #'
-#' @return list of simple features as `list(name=sf object, name2=sf object)`
+#' @return list of simple features as \code{list(name=sf object, name2=sf object)}
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @examples 
@@ -330,7 +330,7 @@ getLayers <- function(conn, layers) {
 #' @param layers List. List of character vectors for each layer to include as a 
 #' base layer. 
 #'
-#' @return List of lists of database relations as `list(vect = list(), rast = list())`.
+#' @return List of lists of database relations as \code{list(vect = list(), rast = list())}.
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #'
 #' @examples
