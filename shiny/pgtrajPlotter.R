@@ -211,16 +211,17 @@ pgtrajPlotter <-
             observeEvent(input$step_mode, {
                 x$counter <- x$counter + 1
                 x$currStep <-
-                    get_step_window(conn,
-                                    schema,
-                                    view,
-                                    timeOut$currTime,
-                                    timeOut$interval,
-                                    input$step_mode,
-                                    info_cols,
-                                    time_params$tstamp_start,
-                                    time_params$tstamp_last)
-                print("is step mode on?")
+                    get_step_window(
+                        conn,
+                        schema,
+                        view,
+                        timeOut$currTime,
+                        timeOut$interval,
+                        input$step_mode,
+                        info_cols,
+                        time_params$tstamp_start,
+                        time_params$tstamp_last
+                    )
             },
             ignoreInit = TRUE)
             
@@ -305,6 +306,8 @@ pgtrajPlotter <-
                     timeOut$currTime <- stime
                     
                     timeOut$interval <- as.period(etime - stime)
+                    # for assigning alternating group names in order to 
+                    # remove the previous step from the plot
                     x$counter <- x$counter + 1
                     x$currStep <-
                         get_step_window(conn,
@@ -335,9 +338,6 @@ pgtrajPlotter <-
                 print(paste("input$n stime < etime", stime < etime))
                 
                 if(stime < etime) {
-                    # for assigning alternating group names
-                    x$counter <- x$counter + 1
-                    
                     # update time window slider
                     updateSliderInput(
                         session,
@@ -360,9 +360,6 @@ pgtrajPlotter <-
                 print(paste("input$b stime < etime", stime < etime))
                 
                 if(stime < etime) {
-                    # for assigning alternating group names
-                    x$counter <- x$counter + 1
-                    
                     # update time window slider
                     updateSliderInput(
                         session,

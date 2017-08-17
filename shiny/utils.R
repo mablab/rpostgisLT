@@ -30,6 +30,9 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
     
+    print(t)
+    print(t_interval)
+    
     if((time < tstamp_start | time > tstamp_last) |
        identical(i, 0)) {
         message("time window out of range")
@@ -74,7 +77,6 @@ get_step_window <- function(conn, schema, view, time, interval, step_mode,
                             t_interval, "::INTERVAL)
                             GROUP BY
                                 burst_name, animal_name;")
-        
     }
     return(st_read_db(conn, query=sql_query, geom_column = "step_geom"))
     }

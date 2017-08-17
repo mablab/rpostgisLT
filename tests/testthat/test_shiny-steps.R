@@ -208,7 +208,7 @@ test_that("wtf with get_step_window?!", {
         time = "2003-06-02 CEST",
         interval = lubridate::period(c(2, 57, 17.8380000591278),
                                      c("hour", "minute", "second")),
-        step_mode = TRUE,
+        step_mode = FALSE,
         info_cols = NULL,
         tstamp_start = as.POSIXct("2003-06-01 CEST"),
         tstamp_last = as.POSIXct("2003-06-14 16:00:00 CEST")
