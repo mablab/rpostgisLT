@@ -55,11 +55,6 @@ pgtrajPlotter <-
             interval <- time_params$tstamp_last - time_params$tstamp_start
         }
         
-        # Get initial set of trajectories
-        st <- get_step_window(conn, schema, view, time_params$tstamp_start,
-                              interval, FALSE, info_cols,
-                              time_params$tstamp_start, time_params$tstamp_last)
-        
         # Get full traj
         st_1 <- get_full_traj(conn, schema, view)
         
@@ -198,7 +193,7 @@ pgtrajPlotter <-
             w <- reactiveValues(data = st_1)
             x <-
                 reactiveValues(
-                    currStep = st,
+                    currStep = NULL,
                     counter = 0,
                     burst_counter = 0,
                     burst_name = NULL,
@@ -225,6 +220,7 @@ pgtrajPlotter <-
                                     info_cols,
                                     time_params$tstamp_start,
                                     time_params$tstamp_last)
+                print("is step mode on?")
             })
             
             # convert values in Increment to the selected unit
