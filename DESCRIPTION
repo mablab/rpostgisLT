@@ -25,7 +25,15 @@ Depends:
     DBI,
     RPostgreSQL,
     rpostgis (>= 1.0.3),
-    adehabitatLT (>= 0.3.12)
+    adehabitatLT (>= 0.3.12),
+    lubridate,
+    shiny,
+    leaflet,
+    htmltools,
+    mapview,
+    shinyWidgets,
+    dplyr,
+    sf
 License: GPL (>= 3)
 URL: https://github.com/mablab/rpostgisLT
 BugReports: https://github.com/mablab/rpostgisLT/issues
