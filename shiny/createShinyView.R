@@ -10,6 +10,7 @@
 #' @return nothing
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @keywords internal
 createShinyStepsView <- function(conn, schema, pgtraj) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
@@ -130,6 +131,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
 #' @return nothing
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
+#' @keywords internal
 createShinyBurstsView <- function(conn, schema) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
