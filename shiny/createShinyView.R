@@ -1,22 +1,38 @@
+#' Create a materialized view of the steps of a pgtraj for the shiny app
+#' 
+#' Steps are projected to EPSG:4326 thus there is no need for coordinate transformation
+#' for leaflet.
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#' @param pgtraj String. Pgtraj name.
+#'
+#' @return nothing
+#'
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 createShinyStepsView <- function(conn, schema, pgtraj) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ",
-                        dbQuoteIdentifier(conn, schema), ",public;")
+                        dbQuoteIdentifier(conn, schema),
+                        ",public;")
     invisible(dbExecute(conn, sql_query))
     
     pgtraj_s <- dbQuoteString(conn, pgtraj)
-    view <- dbQuoteIdentifier(conn, paste0("step_geometry_shiny_",pgtraj))
+    view <-
+        dbQuoteIdentifier(conn, paste0("step_geometry_shiny_", pgtraj))
     
     infolocs_table <- paste0("infolocs_", pgtraj)
     info_cols <- getInfolocsColumns(conn, schema, infolocs_table)
     
     # if there is an infolocs table
     if (nrow(info_cols) > 0) {
-        cols <- paste(paste(paste0("i.",
-                             dbQuoteIdentifier(conn, info_cols$column_name)),
-                      collapse = ", "),
-                      ",")
+        cols <- paste(paste(paste0(
+            "i.",
+            dbQuoteIdentifier(conn, info_cols$column_name)
+        ),
+        collapse = ", "),
+        ",")
         join <-
             paste0("JOIN ", infolocs_table, " i ON p.step_id = i.step_id")
     } else {
@@ -25,9 +41,12 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     }
     
     # Stop in case the relocations are not projected, because Leaflet cannot plot them
-    sql_query <- paste0("SELECT proj4string FROM pgtraj WHERE pgtraj_name = ", pgtraj_s,";")
+    sql_query <-
+        paste0("SELECT proj4string FROM pgtraj WHERE pgtraj_name = ",
+               pgtraj_s,
+               ";")
     srid <- dbGetQuery(conn, sql_query)$proj4string
-    if(is.na(srid)) {
+    if (is.na(srid)) {
         stop("Cannot plot unprojected geometries (0 SRID). Not creating MATERIALIZED VIEW.")
     }
     
@@ -99,20 +118,32 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
 }
 
 
-
+#' Create a materialized view of all bursts for the shiny app
+#'
+#' It is expected that *all* pgtrajes are projected in the schema in order to
+#' run. Bursts are projected to EPSG:4326 thus there is no need for coordinate transformation
+#' for leaflet.
+#'
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#'
+#' @return nothing
+#'
+#' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 createShinyBurstsView <- function(conn, schema) {
     ## Set database search path
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
     sql_query <- paste0("SET search_path TO ",
-                        dbQuoteIdentifier(conn, schema), ",public;")
+                        dbQuoteIdentifier(conn, schema),
+                        ",public;")
     invisible(dbExecute(conn, sql_query))
-
+    
     view <- dbQuoteIdentifier(conn, "all_burst_summary_shiny")
     
     # Stop in case the relocations are not projected, because Leaflet cannot plot them
     sql_query <- paste0("SELECT proj4string FROM pgtraj LIMIT 1;")
     srid <- dbGetQuery(conn, sql_query)$proj4string
-    if(is.na(srid)) {
+    if (is.na(srid)) {
         stop("Cannot plot unprojected geometries (0 SRID). Not creating MATERIALIZED VIEW.")
     }
     
