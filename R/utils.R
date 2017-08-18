@@ -1332,7 +1332,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
         dbQuoteIdentifier(conn, paste0("step_geometry_shiny_", pgtraj))
     
     infolocs_table <- paste0("infolocs_", pgtraj)
-    info_cols <- getInfolocsColumns(conn, schema, infolocs_table)
+    info_cols <- getInfolocsColumns(conn, schema, pgtraj, df=TRUE)
     
     # if there is an infolocs table
     if (nrow(info_cols) > 0) {

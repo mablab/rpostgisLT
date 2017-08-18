@@ -416,12 +416,13 @@ isRaster <- function(conn, layer) {
 #' @param conn DBI::DBIConnection
 #' @param schema String. Schema name.
 #' @param pgtraj String. Pgtraj name.
+#' @param df Boolean. Return a data frame or a string?
 #'
 #' @return character vector or NULL if there are no infolocs
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
-getInfolocsColumns <- function(conn, schema, pgtraj){
+getInfolocsColumns <- function(conn, schema, pgtraj, df=FALSE){
     schema_s <- dbQuoteString(conn, schema)
     table_s <- dbQuoteString(conn, paste0("infolocs_", pgtraj))
     
@@ -433,11 +434,15 @@ getInfolocsColumns <- function(conn, schema, pgtraj){
                         AND column_name != 'step_id';")
     ic <- dbGetQuery(conn, sql_query)
     
-    if(nrow(ic) > 0) {
-        info_cols <- paste(paste(ic$column_name, collapse = ", "), ",")
+    if(df) {
+        return(ic)
     } else {
-        info_cols <- NULL
+        if(nrow(ic) > 0) {
+            info_cols <- paste(paste(ic$column_name, collapse = ", "), ",")
+        } else {
+            info_cols <- NULL
+        }
+        return(info_cols)
     }
-    return(info_cols)
 }
 
