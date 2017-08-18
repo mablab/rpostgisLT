@@ -39,7 +39,7 @@ test_that("import from db with infolocs in other table", {
             #clauses = "where id = 'continental'",
             info_cols = c("info_day", "dummy", "NOT_HERE"),
             #columns not found are ignored
-            info_table = c("infoloc_test"),
+            info_table = c("public", "infoloc_test"),
             info_rids = "gid"
         )
     )
@@ -70,7 +70,7 @@ test_that("ltraj equality when transfer: db -> R-> db -> R", {
             #clauses = "where id = 'continental'",
             info_cols = c("info_day", "dummy", "NOT_HERE"),
             #columns not found are ignored
-            info_table = c("infoloc_test"),
+            info_table = c("public","infoloc_test"),
             info_rids = "gid"
         )
     )
