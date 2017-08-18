@@ -1321,12 +1321,13 @@ trajSummaryViews<- function(conn, schema) {
 #' @keywords internal
 createShinyStepsView <- function(conn, schema, pgtraj) {
     ## Set database search path
-    current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ",
-                        dbQuoteIdentifier(conn, schema),
-                        ",public;")
-    invisible(dbExecute(conn, sql_query))
+    # current_search_path <- dbGetQuery(conn, "SHOW search_path;")
+    # sql_query <- paste0("SET search_path TO ",
+    #                     dbQuoteIdentifier(conn, schema),
+    #                     ",public;")
+    # invisible(dbExecute(conn, sql_query))
     
+    schema_q <- dbQuoteIdentifier(conn, schema)
     pgtraj_s <- dbQuoteString(conn, pgtraj)
     view <-
         dbQuoteIdentifier(conn, paste0("step_geometry_shiny_", pgtraj))
@@ -1343,7 +1344,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
         collapse = ", "),
         ",")
         join <-
-            paste0("JOIN ", infolocs_table, " i ON p.step_id = i.step_id")
+            paste0("JOIN ",schema_q,".", infolocs_table, " i ON p.step_id = i.step_id")
     } else {
         cols <- NULL
         join <- NULL
@@ -1351,7 +1352,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     
     # Stop in case the relocations are not projected, because Leaflet cannot plot them
     sql_query <-
-        paste0("SELECT proj4string FROM pgtraj WHERE pgtraj_name = ",
+        paste0("SELECT proj4string FROM ",schema_q,".pgtraj WHERE pgtraj_name = ",
                pgtraj_s,
                ";")
     srid <- dbGetQuery(conn, sql_query)$proj4string
@@ -1360,7 +1361,7 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     }
     
     sql_query <- paste0("
-                        CREATE MATERIALIZED VIEW IF NOT EXISTS ", view, " AS
+                        CREATE MATERIALIZED VIEW IF NOT EXISTS ",schema_q,".", view, " AS
                         SELECT
                             p.step_id,
                             st_transform(st_makeline(r1.geom, r2.geom), 4326)::geometry(LineString,4326) AS step_geom,
@@ -1375,21 +1376,21 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
                             p.animal_name,
                             p.burst AS burst_name,
                             p.pgtraj AS pgtraj_name
-                        FROM parameters_",pgtraj," p
-                        JOIN step s ON p.step_id = s.id
-                        JOIN relocation r1 ON s.relocation_id_1 = r1.id
-                        JOIN relocation r2 ON s.relocation_id_2 = r2.id
+                        FROM ",schema_q,".parameters_",pgtraj," p
+                        JOIN ",schema_q,".step s ON p.step_id = s.id
+                        JOIN ",schema_q,".relocation r1 ON s.relocation_id_1 = r1.id
+                        JOIN ",schema_q,".relocation r2 ON s.relocation_id_2 = r2.id
                         ",join,"
                         WHERE st_makeline(r1.geom, r2.geom) NOTNULL;
                         
                         CREATE
                         INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_date_idx ON
-                        ", view, "
+                        ",schema_q,".", view, "
                         USING btree(date);
                         
                         CREATE
                         INDEX IF NOT EXISTS step_geometry_shiny_", pgtraj, "_step_geom_idx ON
-                        ", view, "
+                        ",schema_q,".", view, "
                         USING gist(step_geom);")
     
     create_sql_query <- gsub(pattern = '\\s', replacement = " ",
@@ -1401,17 +1402,17 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     }, warning = function(x) {
         message(x)
         message(" . Cannot CREATE MATERIALIZED VIEW")
-        ## Restore database search path
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-        invisible(dbExecute(conn, sql_query))
+        # ## Restore database search path
+        # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # invisible(dbExecute(conn, sql_query))
         stop("Returning from function")
         
     }, error = function(x) {
         message(x)
         message(". Cannot CREATE MATERIALIZED VIEW")
-        ## Restore database search path
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-        invisible(dbExecute(conn, sql_query))
+        # ## Restore database search path
+        # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # invisible(dbExecute(conn, sql_query))
         stop("Returning from function")
     })
     
@@ -1419,11 +1420,11 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
     message(paste0("MATERIALIZED VIEW 'step_geometry_shiny_",pgtraj,"' created in schema '",
                    schema, "'."))
     
-    dbVacuum(conn, name = paste0("step_geometry_shiny_",pgtraj), analyze = TRUE)
+    dbVacuum(conn, name = c(schema, paste0("step_geometry_shiny_",pgtraj)), analyze = TRUE)
     
     ## Restore database search path
-    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbExecute(conn, sql_query))
+    # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+    # invisible(dbExecute(conn, sql_query))
 }
 
 
@@ -1442,16 +1443,17 @@ createShinyStepsView <- function(conn, schema, pgtraj) {
 #' @keywords internal
 createShinyBurstsView <- function(conn, schema) {
     ## Set database search path
-    current_search_path <- dbGetQuery(conn, "SHOW search_path;")
-    sql_query <- paste0("SET search_path TO ",
-                        dbQuoteIdentifier(conn, schema),
-                        ",public;")
-    invisible(dbExecute(conn, sql_query))
+    # current_search_path <- dbGetQuery(conn, "SHOW search_path;")
+    # sql_query <- paste0("SET search_path TO ",
+    #                     dbQuoteIdentifier(conn, schema),
+    #                     ",public;")
+    # invisible(dbExecute(conn, sql_query))
     
+    schema_q <- dbQuoteIdentifier(conn, schema)
     view <- dbQuoteIdentifier(conn, "all_burst_summary_shiny")
     
     # Stop in case the relocations are not projected, because Leaflet cannot plot them
-    sql_query <- paste0("SELECT proj4string FROM pgtraj LIMIT 1;")
+    sql_query <- paste0("SELECT proj4string FROM ",schema_q,".pgtraj LIMIT 1;")
     srid <- dbGetQuery(conn, sql_query)$proj4string
     if (is.na(srid)) {
         stop("Cannot plot unprojected geometries (0 SRID). Not creating MATERIALIZED VIEW.")
@@ -1459,7 +1461,7 @@ createShinyBurstsView <- function(conn, schema) {
     
     sql_query <- paste0("
                         CREATE
-                        MATERIALIZED VIEW IF NOT EXISTS ", view, " AS SELECT
+                        MATERIALIZED VIEW IF NOT EXISTS ",schema_q,".", view, " AS SELECT
                            p.id AS pgtraj_id,
                             p.pgtraj_name,
                             ab.animal_name,
@@ -1476,11 +1478,11 @@ createShinyBurstsView <- function(conn, schema) {
                                     4326
                             ) AS burst_geom
                         FROM
-                            pgtraj p,
-                            animal_burst ab,
-                            relocation r,
-                            s_b_rel sb,
-                            step s
+                            ",schema_q,".pgtraj p,
+                            ",schema_q,".animal_burst ab,
+                            ",schema_q,".relocation r,
+                            ",schema_q,".s_b_rel sb,
+                            ",schema_q,".step s
                         WHERE
                             p.id = ab.pgtraj_id
                             AND ab.id = sb.animal_burst_id
@@ -1498,7 +1500,7 @@ createShinyBurstsView <- function(conn, schema) {
                         
                         CREATE
                         INDEX IF NOT EXISTS all_burst_summary_shiny_burst_name_idx ON
-                        all_burst_summary_shiny USING btree(burst_name);")
+                        ",schema_q,".all_burst_summary_shiny USING btree(burst_name);")
     
     create_sql_query <- gsub(pattern = '\\s', replacement = " ",
                              x = sql_query)
@@ -1509,17 +1511,17 @@ createShinyBurstsView <- function(conn, schema) {
     }, warning = function(x) {
         message(x)
         message(" . Cannot CREATE MATERIALIZED VIEW")
-        ## Restore database search path
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-        invisible(dbExecute(conn, sql_query))
+        # ## Restore database search path
+        # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # invisible(dbExecute(conn, sql_query))
         stop("Returning from function")
         
     }, error = function(x) {
         message(x)
         message(". Cannot CREATE MATERIALIZED VIEW")
-        ## Restore database search path
-        sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-        invisible(dbExecute(conn, sql_query))
+        # ## Restore database search path
+        # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+        # invisible(dbExecute(conn, sql_query))
         stop("Returning from function")
     })
     
@@ -1527,10 +1529,10 @@ createShinyBurstsView <- function(conn, schema) {
     message(paste0("MATERIALIZED VIEW all_burst_summary_shiny created in schema '",
                    schema, "'."))
     
-    dbVacuum(conn, name = "all_burst_summary_shiny", analyze = TRUE)
+    dbVacuum(conn, name = c(schema, "all_burst_summary_shiny"), analyze = TRUE)
     
     ## Restore database search path
-    sql_query <- paste0("SET search_path TO ", current_search_path, ";")
-    invisible(dbExecute(conn, sql_query))
+    # sql_query <- paste0("SET search_path TO ", current_search_path, ";")
+    # invisible(dbExecute(conn, sql_query))
 }
 
