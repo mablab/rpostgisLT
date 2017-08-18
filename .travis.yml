@@ -31,10 +31,8 @@ before_script:
   - psql -d rpglt_empty -c "create extension postgis;"
   - createdb rpglt_data
   - psql -d rpglt_data -c "create extension postgis;"
-  - psql -d rpglt_data -c "create schema example_data;"
-  - psql -d rpglt_data -c "create schema ibex_traj_materialized_bursts;"
-  - gzip -dc ./inst/sql/example_data.sql.gz | psql -d rpglt_data
-  - gzip -dc ./inst/sql/ibex_traj_materialized_bursts.sql.gz | psql -d rpglt_data
+  - gzip -dc ./inst/sql/rpglt_data.sql.gz | psql -d rpglt_data
+  - gzip -dc ./inst/sql/infoloc_test.sql.gz | psql -d rpglt_data
 
 after_success:
   - Rscript -e 'covr::codecov()'

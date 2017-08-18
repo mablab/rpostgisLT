@@ -26,10 +26,8 @@ build_script:
   - psql -d rpglt_empty -c "create extension postgis;"
   - createdb rpglt_data
   - psql -d rpglt_data -c "create extension postgis;"
-  - psql -d rpglt_data -c "create schema example_data;"
-  - psql -d rpglt_data -c "create schema ibex_traj_materialized_bursts;"
-  - 7z x .\inst\sql\example_data.sql.gz -so | psql -d rpglt_data
-  - 7z x .\inst\sql\ibex_traj_materialized_bursts.sql.gz -so | psql -d rpglt_data
+  - 7z x .\inst\sql\rpglt_data.sql.gz -so | psql -d rpglt_data
+  - 7z x .\inst\sql\infoloc_test.sql.gz -so | psql -d rpglt_data
 
 test_script:
   - travis-tool.sh run_tests
