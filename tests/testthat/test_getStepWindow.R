@@ -77,53 +77,53 @@ test_that("getStepWindow time ranges", {
     expect_equal(length(st_geometry(s_out3)), 1)
 })
 
-test_that("getStepWindow time input", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
-    
-    i <- lubridate::period(2, units = "days")
-    expect_error(
-        s_out <-
-            getStepWindow(
-                conn_data,
-                schema,
-                view = view,
-                time = NULL,
-                i,
-                step_mode = FALSE,
-                info_cols = NULL,
-                tstamp_start = as.POSIXct("2003-06-01 CEST"),
-                tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
-            )
-    )
-    expect_error(
-        s_out2 <-
-            getStepWindow(
-                conn_data,
-                schema,
-                view = view,
-                time = "",
-                i,
-                step_mode = FALSE,
-                info_cols = NULL,
-                tstamp_start = as.POSIXct("2003-06-01 CEST"),
-                tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
-            )
-    )
-    expect_error(
-        s_out3 <-
-            getStepWindow(
-                conn_data,
-                schema,
-                view = view,
-                time = NA,
-                i,
-                step_mode = FALSE,
-                info_cols = NULL,
-                tstamp_start = as.POSIXct("2003-06-01 CEST"),
-                tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
-            )
-    )
-})
+# test_that("getStepWindow time input", {
+#     skip_if_not(can_con(conn_data), "could not connect to postgis database")
+#     
+#     i <- lubridate::period(2, units = "days")
+#     expect_error(
+#         s_out <-
+#             getStepWindow(
+#                 conn_data,
+#                 schema,
+#                 view = view,
+#                 time = NULL,
+#                 i,
+#                 step_mode = FALSE,
+#                 info_cols = NULL,
+#                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
+#                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
+#             )
+#     )
+#     expect_error(
+#         s_out2 <-
+#             getStepWindow(
+#                 conn_data,
+#                 schema,
+#                 view = view,
+#                 time = "",
+#                 i,
+#                 step_mode = FALSE,
+#                 info_cols = NULL,
+#                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
+#                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
+#             )
+#     )
+#     expect_error(
+#         s_out3 <-
+#             getStepWindow(
+#                 conn_data,
+#                 schema,
+#                 view = view,
+#                 time = NA,
+#                 i,
+#                 step_mode = FALSE,
+#                 info_cols = NULL,
+#                 tstamp_start = as.POSIXct("2003-06-01 CEST"),
+#                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
+#             )
+#     )
+# })
 
 test_that("getStepWindow step_mode and info_cols input", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
