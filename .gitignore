@@ -1,7 +1,6 @@
 .gitignore.swp
 .swp
 Scripts
-.Rbuildignore
 .Rproj.user
 .Rhistory
 .RData
