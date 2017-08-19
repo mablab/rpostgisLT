@@ -27,7 +27,7 @@ test_that("getStepWindow time ranges", {
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
             )
     )
-    expect_equal(length(st_geometry(s)), 4)
+    expect_equal(length(sf::st_geometry(s)), 4)
     expect_warning(
         s_out <-
             getStepWindow(
@@ -72,9 +72,9 @@ test_that("getStepWindow time ranges", {
                 tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
             )
     )
-    expect_equal(length(st_geometry(s_out)), 0)
-    expect_equal(length(st_geometry(s_out2)), 0)
-    expect_equal(length(st_geometry(s_out3)), 1)
+    expect_equal(length(sf::st_geometry(s_out)), 0)
+    expect_equal(length(sf::st_geometry(s_out2)), 0)
+    expect_equal(length(sf::st_geometry(s_out3)), 1)
 })
 
 # test_that("getStepWindow time input", {
@@ -169,7 +169,7 @@ test_that("getStepWindow interval", {
         tstamp_start = as.POSIXct("2003-06-01 CEST"),
         tstamp_last = as.POSIXct("2003-06-14 14:25:39 CEST")
     ), "Didn't find any steps at")
-    expect_equal(length(st_geometry(s_out)), 0)
+    expect_equal(length(sf::st_geometry(s_out)), 0)
     expect_warning(
         s_out4 <-
             getStepWindow(
