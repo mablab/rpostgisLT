@@ -41,7 +41,7 @@ Imports:
     htmltools,
     mapview,
     shinyWidgets,
-    dplyr,
+    magrittr,
     sf
 Suggests:
     knitr,

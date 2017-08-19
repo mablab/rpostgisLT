@@ -30,6 +30,7 @@
 #'
 #' @return nothing
 #' @export
+#' @importFrom magrittr "%>%"
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #'
@@ -97,12 +98,12 @@ explorePgtraj <-
         st_1 <- getFullTraj(conn, schema, view)
         
         # color by animal_name
-        # factpal <- leaflet::colorFactor(leaflet::topo.colors(4), st$animal_name)
+        # factpal <- leaflet::colorFactor(grDevices::topo.colors(4), st$animal_name)
         
         # get animal list
         animals_df <- getAnimalsDf(conn, schema, view)
         colors_animal <-
-            leaflet::colorFactor(leaflet::topo.colors(nrow(animals_df)),
+            leaflet::colorFactor(grDevices::topo.colors(nrow(animals_df)),
                                  animals_df$animal_name,
                                  na.color = "#808080")
         
@@ -110,7 +111,7 @@ explorePgtraj <-
         bursts_df <- getBurstsDF(conn, schema, view)
         burst_len <- nrow(bursts_df)
         colors_burst <-
-            leaflet::colorFactor(leaflet::topo.colors(burst_len),
+            leaflet::colorFactor(grDevices::topo.colors(burst_len),
                                  bursts_df$burst_name,
                                  na.color = "#808080")
         
@@ -142,7 +143,7 @@ explorePgtraj <-
                 
                 shiny::sidebarLayout(
                     shiny::sidebarPanel(
-                        tags$script(
+                        shiny::tags$script(
                             '$(document).on("keydown",
                             function (e) {
                             if(e.which == 66) {
@@ -226,7 +227,7 @@ explorePgtraj <-
                     shiny::h5("press B or N")
                     ),
                     
-                    shiny::mainPanel(leafletOutput("map"))
+                    shiny::mainPanel(leaflet::leafletOutput("map"))
             ))
         
         server <- function(input, output, session) {
@@ -564,15 +565,15 @@ explorePgtraj <-
                             )
                         
                         if (x$counter %% 2 == 0) {
-                            proxy %>% leaflet::cleafGroup("trajnew")
+                            proxy %>% leaflet::clearGroup("trajnew")
                         } else {
-                            proxy %>% leaflet::cleafGroup("traj")
+                            proxy %>% leaflet::clearGroup("traj")
                         }
                         
                         # because observeEven doesn't pass value when all burst are
                         # deselected
                         if (is.null(input$burst_picker)) {
-                            proxy %>% leaflet::cleafGroup("bursts")
+                            proxy %>% leaflet::clearGroup("bursts")
                         }
                         
                     } else {

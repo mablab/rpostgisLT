@@ -1,2 +1,2 @@
 library(testthat)
-test_check(rpostgisLT)
+test_check("rpostgisLT")

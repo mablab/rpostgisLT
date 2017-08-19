@@ -19,9 +19,10 @@
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
+
 getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                             info_cols, tstamp_start, tstamp_last){
-    stopifnot(lubridate::is.lubridate::period(interval))
+    stopifnot(lubridate::period(interval))
     i <- lubridate::period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(i, "seconds"))
@@ -93,6 +94,7 @@ getStepWindow <- function(conn, schema, view, time, interval, step_mode,
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
+
 getBurstsDF <- function(conn, schema, view){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
@@ -292,6 +294,7 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
 #' base layer.
 #'
 #' @return list of simple features as \code{list(name=sf object, name2=sf object)}
+#' @importFrom magrittr "%>%"
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @examples
@@ -342,7 +345,7 @@ getLayers <- function(conn, layers) {
 #' }
 #' @keywords internal
 findGeoType <- function(conn, layers) {
-    expect_true((length(layers) >= 1))
+    testthat::expect_true((length(layers) >= 1))
     # geo_type <- data.frame(name = character(), type = character(),
     #                        schema = character(), table = character(),
     #                        stringsAsFactors = FALSE)
