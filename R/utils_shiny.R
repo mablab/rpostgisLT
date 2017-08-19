@@ -9,7 +9,7 @@
 #' @param schema String. Schema name.
 #' @param view String. View name.
 #' @param time String of the start time of the time window. Including time zone.
-#' @param interval lubridate::Period object of the time window
+#' @param interval lubridate::lubridate::period object of the time window
 #' @param step_mode Boolean. Detailed step info (TRUE) or aggregate
 #' @param info_cols Character vector of the infolocs columns of the pgtraj.
 #' @param tstamp_start POSIXct with timestamp. First time stamp in view.
@@ -21,8 +21,8 @@
 #' @keywords internal
 getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                             info_cols, tstamp_start, tstamp_last){
-    stopifnot(is.period(interval))
-    i <- period_to_seconds(interval)
+    stopifnot(lubridate::is.lubridate::period(interval))
+    i <- lubridate::period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(i, "seconds"))
     schema_q <- dbQuoteIdentifier(conn, schema)
@@ -74,7 +74,7 @@ getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                                 burst_name, animal_name;")
     }
     withCallingHandlers(
-        s <- st_read_db(conn, query = sql_query, geom_column = "step_geom"),
+        s <- sf::st_read_db(conn, query = sql_query, geom_column = "step_geom"),
         warning = function(w) {
             warning(paste("Didn't find any steps at", time, "+", interval))
         }
@@ -155,7 +155,7 @@ getBurstGeom <- function(conn, schema, view, burst_name){
                         FROM ", schema_q, ".all_burst_summary_shiny
                         WHERE burst_name = ", burst_sql, ";")
     
-    return(st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
+    return(sf::st_read_db(conn, query=sql_query, geom_column = "burst_geom"))
 }
 
 #' Get the complete trajectory of an animal as a single linestring
@@ -175,7 +175,7 @@ getFullTraj <- function(conn, schema, view){
                         animal_name
                         FROM ", schema, ".", view, "
                         GROUP BY animal_name;")
-    return(st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
+    return(sf::st_read_db(conn, query=sql_query, geom_column = "traj_geom"))
 }
 
 #' Get default time parameters for steps
@@ -220,80 +220,81 @@ getTrajDefaults <- function(conn, schema, view, pgtraj){
 #' @param session Shiny session
 #' @param inputUnit String. One of years, months, days, hours, minutes seconds
 #' @param inputId String. Id of the input slot.
-#' @param reactiveTime A lubridate::Period object stored in a Reactive Value
+#' @param reactiveTime A lubridate::lubridate::period object stored in a Reactive Value
 #'
 #' @return nothing
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
-updateNumericTimeInput <- function(session, inputUnit, inputId, reactiveTime){
-    if (inputUnit == "years") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@year)
-    } else if (inputUnit == "months") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@month)
-    } else if (inputUnit == "days") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@day)
-    } else if (inputUnit == "hours") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@hour)
-    } else if (inputUnit == "minutes") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@minute)
-    } else if (inputUnit == "seconds") {
-        updateNumericInput(session, inputId,
-                           value = reactiveTime@.Data)
+updateNumericTimeInput <-
+    function(session, inputUnit, inputId, reactiveTime) {
+        if (inputUnit == "years") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@year)
+        } else if (inputUnit == "months") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@month)
+        } else if (inputUnit == "days") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@day)
+        } else if (inputUnit == "hours") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@hour)
+        } else if (inputUnit == "minutes") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@minute)
+        } else if (inputUnit == "seconds") {
+            shiny::updateNumericInput(session, inputId,
+                                      value = reactiveTime@.Data)
+        }
     }
-}
 
-#' Set a lubridate::Period value from input$interval/increment
+#' Set a lubridate::lubridate::period value from input$interval/increment
 #'
 #' @param inputUnit String.
-#' @param inputTime lubridate::Period
+#' @param inputTime lubridate::lubridate::period
 #' @param reactiveTime Reactive value to set
 #'
 #' @return nothing
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
-setTimeInput <- function(inputUnit, inputTime, reactiveTime){
+setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
     if (inputUnit == "years") {
-        reactiveTime <- period(num = inputTime,
-                               units = "years")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "years")
     } else if (inputUnit == "months") {
-        reactiveTime <- period(num = inputTime,
-                               units = "months")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "months")
     } else if (inputUnit == "days") {
-        reactiveTime <- period(num = inputTime,
-                               units = "days")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "days")
     } else if (inputUnit == "hours") {
-        reactiveTime <- period(num = inputTime,
-                               units = "hours")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "hours")
     } else if (inputUnit == "minutes") {
-        reactiveTime <- period(num = inputTime,
-                               units = "minutes")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "minutes")
     } else if (inputUnit == "seconds") {
-        reactiveTime <- period(num = inputTime,
-                               units = "seconds")
+        reactiveTime <- lubridate::period(num = inputTime,
+                                          units = "seconds")
     }
     
     return(reactiveTime)
 }
 
 #' Get base layers from database
-#' 
+#'
 #' Not implemented for rasters
 #'
 #' @param conn DBI::DBIConnection
-#' @param layers List. List of character vectors for each layer to include as a 
-#' base layer. 
+#' @param layers List. List of character vectors for each layer to include as a
+#' base layer.
 #'
 #' @return list of simple features as \code{list(name=sf object, name2=sf object)}
 #'
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
-#' @examples 
+#' @examples
 #' \dontrun{
 #' layers <- list(c("schema1", "tableA"), c("schema2", "tableB"))
 #' }
@@ -301,18 +302,18 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime){
 getLayers <- function(conn, layers) {
     geo_type <- findGeoType(conn, layers)
     base <- list()
-    if(length(geo_type$vect) > 0) {
-        for(l in seq_along(geo_type$vect)) {
+    if (length(geo_type$vect) > 0) {
+        for (l in seq_along(geo_type$vect)) {
             relation <-  geo_type$vect[[l]]
             # project to EPSG:4326 for simpler handling
-            data <- st_read_db(conn, table = relation) %>% 
-                st_transform(4326)
+            data <- sf::st_read_db(conn, table = relation) %>%
+                sf::st_transform(4326)
             # add layer name
             # attr(data, "name") <- t[2]
             base[relation[2]] <- list(data)
         }
-    } else if(length(geo_type$rast) > 0) {
-        for(l in seq_along(geo_type$rast)) {
+    } else if (length(geo_type$rast) > 0) {
+        for (l in seq_along(geo_type$rast)) {
             relation <- geo_type$rast[[l]]
             # data <- pgGetRast(conn, relation)
             # base[relation[2]] <- list(data)

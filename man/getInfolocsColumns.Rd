@@ -4,7 +4,7 @@
 \alias{getInfolocsColumns}
 \title{Get all columns in the infolocs table but the step_id}
 \usage{
-getInfolocsColumns(conn, schema, pgtraj)
+getInfolocsColumns(conn, schema, pgtraj, df = FALSE)
 }
 \arguments{
 \item{conn}{DBI::DBIConnection}
@@ -12,6 +12,8 @@ getInfolocsColumns(conn, schema, pgtraj)
 \item{schema}{String. Schema name.}
 
 \item{pgtraj}{String. Pgtraj name.}
+
+\item{df}{Boolean. Return a data frame or a string?}
 }
 \value{
 character vector or NULL if there are no infolocs
