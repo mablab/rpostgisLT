@@ -22,7 +22,7 @@
 
 getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                             info_cols, tstamp_start, tstamp_last){
-    stopifnot(lubridate::period(interval))
+    stopifnot(lubridate::is.period(interval))
     i <- lubridate::period_to_seconds(interval)
     t <- dbQuoteString(conn, format(time, usetz = TRUE))
     t_interval <- dbQuoteString(conn, paste(i, "seconds"))
