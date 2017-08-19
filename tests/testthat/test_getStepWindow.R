@@ -1,4 +1,5 @@
 context("rpostgisLT: getStepWindow")
+library(lubridate)
 
 schema <- "ibex_traj_materialized_bursts"
 pgtraj <- "ibex_int_space"
