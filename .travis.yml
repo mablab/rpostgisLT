@@ -26,7 +26,7 @@ addons:
     packages:
       - postgresql-9.5-postgis-2.3
 
-before_script:
+before_install:
   # needed for sf
   - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable --yes
   - sudo apt-get --yes --force-yes update -qq
