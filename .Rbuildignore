@@ -7,7 +7,6 @@ utility
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^appveyor\.yml$
-^tests$
 ^utility$
 ^rpostgisLT\.pdf$
 ^cran-comments\.md$
