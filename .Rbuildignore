@@ -1,5 +1,4 @@
 .dbeaver-data-sources.xml
-./tests
 Scripts
 cran-comments.md
 rpostgisLT.pdf
@@ -16,3 +15,4 @@ utility
 shiny
 test_framework
 temp_data
+codecov.yml
