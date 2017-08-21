@@ -14,7 +14,7 @@ use_build_ignore("rpostgisLT.pdf")
 use_build_ignore("cran-comments.md")
 
 
-document()
+devtools::document()
 spell_check()
 
 run_examples()

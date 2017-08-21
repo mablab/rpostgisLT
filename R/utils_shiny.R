@@ -19,7 +19,6 @@
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
-
 getStepWindow <- function(conn, schema, view, time, interval, step_mode,
                             info_cols, tstamp_start, tstamp_last){
     stopifnot(lubridate::is.period(interval))
@@ -94,7 +93,6 @@ getStepWindow <- function(conn, schema, view, time, interval, step_mode,
 #' 
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}
 #' @keywords internal
-
 getBurstsDF <- function(conn, schema, view){
     schema_q <- dbQuoteIdentifier(conn, schema)
     view_q <- dbQuoteIdentifier(conn, view)
