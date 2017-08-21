@@ -13,7 +13,7 @@ test_that("get time defaults in time window with time zone", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     trajdef <-
-        getTrajDefaults(conn_data, schema, view = view,
+        rpostgisLT:::getTrajDefaults(conn_data, schema, view = view,
                           pgtraj)
     expect_equal(trajdef$tstamp_start, as.POSIXct("2003-06-01 CEST"))
     expect_equal(trajdef$tstamp_last, as.POSIXct("2003-06-14 14:25:39 CEST"))
@@ -24,7 +24,7 @@ test_that("get time defaults in time window with time zone", {
 test_that("getInfolocsTable", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
-    expect_silent(i <- getInfolocsColumns(conn_data, schema, pgtraj))
+    expect_silent(i <- rpostgisLT:::getInfolocsColumns(conn_data, schema, pgtraj))
     expect_equal(i, "pkey ,")
 })
 
