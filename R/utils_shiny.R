@@ -1,8 +1,3 @@
-# library(sf)
-# library(lubridate)
-# library(dplyr)
-# library(DBI)
-
 #' Get steps within a temporal window
 #'
 #' @param conn DBI::DBIConnection
