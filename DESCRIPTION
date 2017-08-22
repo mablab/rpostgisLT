@@ -1,6 +1,6 @@
 Package: rpostgisLT
 Title: Managing Animal Movement Data with 'PostGIS' and R
-Version: 0.6.0  
+Version: 0.6.0
 Date: 2017-08-29
 Authors@R: c(
     person("Balázs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut"),

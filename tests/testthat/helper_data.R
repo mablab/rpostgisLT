@@ -1,7 +1,7 @@
 # library(rpostgisLT)
 
 # test environment
-e <- test_env()
+e <- testthat::test_env()
 
 ### Get test datasets
 data(ibex, package = "adehabitatLT", envir = e)
