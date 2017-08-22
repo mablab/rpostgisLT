@@ -10,7 +10,6 @@ view <- "step_geometry_shiny_ibex_int_space"
 # createShinyBurstsView(conn_data, schema)
 
 test_that("get time defaults in time window with time zone", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     trajdef <-
         rpostgisLT:::getTrajDefaults(conn_data, schema, view = view,
@@ -22,7 +21,6 @@ test_that("get time defaults in time window with time zone", {
 })
 
 test_that("getInfolocsTable", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_silent(i <- rpostgisLT:::getInfolocsColumns(conn_data, schema, pgtraj))
     expect_equal(i, "pkey ,")
@@ -30,7 +28,6 @@ test_that("getInfolocsTable", {
 
 
 test_that("getLayers with POINT+MULTIPOINT", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_error(rpostgisLT:::getLayers(conn_data, c("example_data", "test_points_mixed")),
                  "layers_vector must be a list")
@@ -39,7 +36,6 @@ test_that("getLayers with POINT+MULTIPOINT", {
 })
 
 test_that("getLayers MULTIPOINT", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_error(l <-
                       rpostgisLT:::getLayers(conn_data, list(
@@ -54,7 +50,6 @@ test_that("getLayers MULTIPOINT", {
 })
 
 test_that("findGeoType handles missing layers", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_warning(rpostgisLT:::findGeoType(conn_data, list(c("my-imaginary", "layer"))),
                  "Couldn't find the table my-imaginary.layer in the database.")
@@ -62,7 +57,6 @@ test_that("findGeoType handles missing layers", {
 
 
 test_that("findGeoType geometry types", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_points_mixed")))
     expect_true(all(l$vect[[1]] == c("example_data", "test_points_mixed")),

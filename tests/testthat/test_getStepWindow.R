@@ -10,7 +10,6 @@ view <- "step_geometry_shiny_ibex_int_space"
 # createShinyBurstsView(conn_data, schema)
 
 test_that("getStepWindow time ranges", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     i <- lubridate::period(2, units = "days")
     expect_silent(
@@ -126,7 +125,6 @@ test_that("getStepWindow time ranges", {
 # })
 
 test_that("getStepWindow step_mode and info_cols input", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     i <- lubridate::period(2, units = "days")
     expect_silent(s_out <- getStepWindow(
@@ -156,7 +154,6 @@ test_that("getStepWindow step_mode and info_cols input", {
 })
 
 test_that("getStepWindow interval", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_warning(s_out <- getStepWindow(
         conn_data,

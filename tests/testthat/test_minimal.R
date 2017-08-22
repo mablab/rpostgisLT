@@ -3,7 +3,6 @@ context("rpostgisLT: minimal")
 # source_test_helpers(path = "tests/testthat", env = test_env())
 
 test_that("minimal ltraj transfer is equal and identical", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ib_min <- dl(ld(ibexraw[1])[1:10,]) # note that step parameters are recomputed on purpose
     expect_true(ltraj2pgtraj(conn_empty,
@@ -18,7 +17,6 @@ test_that("minimal ltraj transfer is equal and identical", {
 })
 
 test_that("overwrite with null proj4string", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ib_min <- dl(ld(ibexraw[1])[1:10, ])
     expect_true(ltraj2pgtraj(
@@ -43,7 +41,6 @@ test_that("overwrite with null proj4string", {
 })
 
 test_that("transfer with projection", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs)
     # note that step parameters are recomputed on purpose
@@ -67,7 +64,6 @@ test_that("ibexraw is not regular", {
 })
 
 test_that("pgtraj and schema defaults", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     expect_message(ltraj2pgtraj(conn_empty, ibex, overwrite = TRUE),
                    "('ibex')|('traj')", fixed = FALSE)

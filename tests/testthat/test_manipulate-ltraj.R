@@ -3,7 +3,6 @@ context("rpostgisLT: manipulate-ltraj")
 # test_equal() won't work for ltraj-es with infolocs due to the funky infolocs as factors...
 
 test_that("missing relocations", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_na))
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_na"),
@@ -14,7 +13,6 @@ test_that("missing relocations", {
 })
 
 test_that("rounding timestamps", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_4h))
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_4h"),
@@ -25,7 +23,6 @@ test_that("rounding timestamps", {
 })
 
 test_that("interpolate ltraj in space", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_int_space, infolocs = TRUE))
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_int_space"),
@@ -41,7 +38,6 @@ test_that("interpolate ltraj in space", {
 })
 
 test_that("interpolate ltraj in time", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_int_time, infolocs = TRUE))
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_int_time"),
@@ -52,7 +48,6 @@ test_that("interpolate ltraj in time", {
 })
 
 test_that("infolocs name change of step_id", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_int_time, infolocs = TRUE))
     infolocs(ibex_int_time)[[1]]$step_id <- 1
@@ -71,7 +66,6 @@ test_that("infolocs name change of step_id", {
 })
 
 test_that("add infolocs column DB manually", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     expect_true(ltraj2pgtraj(conn_empty, ibex_int_time, infolocs = TRUE))
     rpostgis::dbColumn(conn_empty,
@@ -90,7 +84,6 @@ test_that("add infolocs column DB manually", {
 })
 
 test_that("subset on given parameters", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ibex_ld <- adehabitatLT::ld(ibex)
     ## We work on the data frame from the trajectory, which we subset, and
@@ -109,7 +102,6 @@ test_that("subset on given parameters", {
 })
 
 test_that("subsample on the temporal sequence", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ibex_subsample <- adehabitatLT::subsample(ibex, 14400 * 2)
     expect_true(ltraj2pgtraj(conn_empty, ibex_subsample))
@@ -121,7 +113,6 @@ test_that("subsample on the temporal sequence", {
 })
 
 test_that("cut if there is a step greater than 3000 m", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     expect_true(ltraj2pgtraj(conn_empty, ibex_cut))
     expect_message(ibexTest <- pgtraj2ltraj(conn_empty, pgtraj = "ibex_cut"),
@@ -132,7 +123,6 @@ test_that("cut if there is a step greater than 3000 m", {
 })
 
 test_that("bind back by individual", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
 
     ibex_bind <- bindltraj(ibex_cut)
     expect_true(ltraj2pgtraj(conn_empty, ibex_bind))
@@ -144,7 +134,6 @@ test_that("bind back by individual", {
 })
 
 test_that("combine trajectories", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ibex2 <- ibex
     burst(ibex2) <- paste(burst(ibex2), "2", sep = "-")

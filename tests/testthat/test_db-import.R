@@ -1,7 +1,6 @@
 context("rpostgisLT: db-import")
 
 test_that("import from db with infolocs", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(as_pgtraj(
         conn_data,
@@ -22,7 +21,6 @@ test_that("import from db with infolocs", {
 })
 
 test_that("import from db with infolocs in other table", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -53,7 +51,6 @@ test_that("import from db with infolocs in other table", {
 })
 
 test_that("ltraj equality when transfer: db -> R-> db -> R", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -124,7 +121,6 @@ test_that("ltraj equality when transfer: db -> R-> db -> R", {
 })
 
 test_that("import from db typeI", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -143,7 +139,6 @@ test_that("import from db typeI", {
 })
 
 test_that("import from db a mix of Type I and Type II in the same schema", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -181,7 +176,6 @@ test_that("import from db a mix of Type I and Type II in the same schema", {
 })
 
 test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -214,7 +208,6 @@ test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
 })
 
 test_that("relocations are provided as X,Y coordinates", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
@@ -239,7 +232,6 @@ test_that("relocations are provided as X,Y coordinates", {
 })
 
 test_that("variables provided manually", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
     expect_true(
         as_pgtraj(
