@@ -82,6 +82,13 @@ explorePgtraj(
     layers_vector = list(c("example_data", "test_points"))
 )
 
+explorePgtraj(
+    conn,
+    "stork_traj",
+    "2004",
+    layers_vector = list(c("example_data", "colony"))
+)
+
 conn <- do.call(cs, args)
 explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector)
 dbDisconnect(conn)
