@@ -81,6 +81,7 @@ explorePgtraj <-
                                  bursts_df$burst_name,
                                  na.color = "#808080")
         
+        # initial unit for interval/increment
         unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
@@ -130,14 +131,21 @@ explorePgtraj <-
                     shinyWidgets::radioGroupButtons(inputId = "color_choice", 
                                       label = "Color",
                                       choices = c("Animals", "Bursts"),
-                                      selected = "Animals"),
-                    shinyWidgets::pickerInput(
+                                      selected = "Animals"
+                    ),
+                    # shinyWidgets::pickerInput(
+                    #     inputId = "burst_picker",
+                    #     label = "Bursts",
+                    #     choices = bursts_df$burst_name,
+                    #     options = list(`actions-box` = TRUE),
+                    #     multiple = TRUE,
+                    #     width = "100%"
+                    # ),
+                    shiny::selectizeInput(
                         inputId = "burst_picker",
                         label = "Bursts",
                         choices = bursts_df$burst_name,
-                        options = list(`actions-box` = TRUE),
-                        multiple = TRUE,
-                        width = "100%"
+                        multiple = TRUE
                     ),
                     shiny::fluidRow(
                         shiny::column(6,
@@ -485,6 +493,7 @@ explorePgtraj <-
             # only add/remove what is neccessary
             shiny::observeEvent(input$burst_picker, {
                 burst_get <- setdiff(input$burst_picker, x$burst_name)
+                
                 burst_remove <-
                     setdiff(x$burst_name, input$burst_picker)
                 
