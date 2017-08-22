@@ -1819,7 +1819,7 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
 
 #' Get base layers from database
 #'
-#' Not implemented for rasters
+#' Not implemented for rasters. Transforms coordinates to EPSG:4326. 
 #'
 #' @param conn DBI::DBIConnection
 #' @param layers List. List of character vectors for each layer to include as a
@@ -1835,6 +1835,9 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
 #' }
 #' @keywords internal
 getLayers <- function(conn, layers) {
+    if(!is.list(layers)){
+        stop("layers_vector must be a list")
+    }
     geo_type <- findGeoType(conn, layers)
     base <- list()
     if (length(geo_type$vect) > 0) {
@@ -1877,6 +1880,7 @@ getLayers <- function(conn, layers) {
 #' }
 #' @keywords internal
 findGeoType <- function(conn, layers) {
+    stopifnot(is.list(layers))
     testthat::expect_true((length(layers) >= 1))
     # geo_type <- data.frame(name = character(), type = character(),
     #                        schema = character(), table = character(),
