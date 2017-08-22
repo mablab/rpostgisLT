@@ -387,7 +387,7 @@ explorePgtraj <-
                     
                     if (!is.null(base)) {
                         for (l in names(base)) {
-                            geomtype <- as.character(st_geometry_type(base[[l]])[1])
+                            geomtype <- as.character(sf::st_geometry_type(base[[l]])[1])
                             if (geomtype == "raster") {
                                 warning("Please provide raster base layers as a layer_raster argument.")
                             } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {

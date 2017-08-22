@@ -32,25 +32,25 @@ test_that("getInfolocsTable", {
 test_that("getLayers with POINT+MULTIPOINT", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
-    expect_error(rpostgisLT:::getLayers(conn_data, c("example_data", "test_points")),
+    expect_error(rpostgisLT:::getLayers(conn_data, c("example_data", "test_points_mixed")),
                  "layers_vector must be a list")
-    expect_error(rpostgisLT:::getLayers(conn_data, list(c("example_data", "test_points"))),
+    expect_error(rpostgisLT:::getLayers(conn_data, list(c("example_data", "test_points_mixed"))),
                  "single type")
 })
 
 test_that("getLayers MULTIPOINT", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
-    expect_silent(l <-
+    expect_error(l <-
                       rpostgisLT:::getLayers(conn_data, list(
                           c("example_data", "test_points_multi")
-                      )))
-    expect_equal(length(sf::st_geometry(l$test_points_multi)), 14, info = "return MULTIPOINT")
-    expect_silent(l <-
+                      )),
+                 "Leaflet 1.1.0 doesn't support MULTIPOINT geometries. Please cast to POINT.")
+    expect_error(l <-
                       rpostgisLT:::getLayers(conn_data, list(
                           c("example_data", "test_points_multi_3395")
-                      )))
-    expect_equal(sf::st_crs(l$test_points_multi)$epsg, 4326, info = "CRS transform")
+                      )),
+                 "Leaflet 1.1.0 doesn't support MULTIPOINT geometries. Please cast to POINT.")
 })
 
 

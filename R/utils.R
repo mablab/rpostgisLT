@@ -1853,6 +1853,8 @@ getLayers <- function(conn, layers) {
                            "contains geometries of type",
                            paste(geom_type, collapse = " and "),
                            ". Please cast the geometries into a single type."))
+            } else if (grepl("multipoint", geom_type, ignore.case = TRUE)) {
+                stop("Leaflet 1.1.0 doesn't support MULTIPOINT geometries. Please cast to POINT.")
             }
             # add layer name
             # attr(data, "name") <- t[2]

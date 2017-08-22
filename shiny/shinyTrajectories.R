@@ -58,13 +58,28 @@ explorePgtraj(
     conn_data,
     "ibex_traj_materialized_bursts",
     "ibex_int_space",
-    layers_vector = list(c("example_data", "test_points"))
+    layers_vector = list(c("example_data", "test_points_mixed"))
 )
+
 explorePgtraj(
     conn_data,
     "ibex_traj_materialized_bursts",
     "ibex_int_space",
-    layers_vector = c("example_data", "test_polygons")
+    layers_vector = list(c("example_data", "test_points_multi_3395"))
+)
+
+explorePgtraj(
+    conn_data,
+    "ibex_traj_materialized_bursts",
+    "ibex_int_space",
+    layers_vector = list(c("example_data", "test_polygons"))
+)
+
+explorePgtraj(
+    conn,
+    "stork_traj",
+    "2004",
+    layers_vector = list(c("example_data", "test_points"))
 )
 
 conn <- do.call(cs, args)
