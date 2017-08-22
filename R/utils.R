@@ -1846,6 +1846,14 @@ getLayers <- function(conn, layers) {
             # project to EPSG:4326 for simpler handling
             data <- sf::st_read_db(conn, table = relation) %>%
                 sf::st_transform(4326)
+            # check geometry type
+            geom_type <- unique(sf::st_geometry_type(data))
+            if(length(geom_type) > 1) {
+                stop(paste("The layer", relation,
+                           "contains geometries of type",
+                           paste(geom_type, collapse = " and "),
+                           ". Please cast the geometries into a single type."))
+            }
             # add layer name
             # attr(data, "name") <- t[2]
             base[relation[2]] <- list(data)

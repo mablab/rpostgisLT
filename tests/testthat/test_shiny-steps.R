@@ -28,4 +28,33 @@ test_that("getInfolocsTable", {
     expect_equal(i, "pkey ,")
 })
 
+
+test_that("getLayers with POINT+MULTIPOINT", {
+    skip_if_not(can_con(conn_data), "could not connect to postgis database")
+    
+    expect_error(rpostgisLT:::getLayers(conn_data, c("example_data", "test_points")),
+                 "layers_vector must be a list")
+    expect_error(rpostgisLT:::getLayers(conn_data, list(c("example_data", "test_points"))),
+                 "single type")
+})
+
+test_that("findGeoType", {
+    skip_if_not(can_con(conn_data), "could not connect to postgis database")
+    
+    l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_points")))
+    expect_true(all(l$vect[[1]] == c("example_data", "test_points")),
+                info = "mix of POINT and MULTIPOINT")
+    l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_polygons")))
+    expect_true(all(l$vect[[1]] == c("example_data", "test_polygons")),
+                info = "POLYGON")
+    l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_line")))
+    expect_true(all(l$vect[[1]] == c("example_data", "test_line")),
+                info = "LINESTRING")
+})
+
+
+conn <- do.call(cs, args)
+explorePgtraj(conn_data, schema, pgtraj, c("example_data", "test_points"))
+dbDisconnect(conn)
+
 rm(schema, pgtraj, view)
