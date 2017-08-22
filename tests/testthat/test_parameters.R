@@ -1,7 +1,6 @@
 context("rpostgisLT: parameters")
 
 test_that("insert ibex with recomputed parameters", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     ibex_dl <- adehabitatLT::ld(ibex)
     rpostgis::pgInsert(
         conn_data,
@@ -42,7 +41,6 @@ test_that("insert ibex with recomputed parameters", {
 })
 
 test_that("insert albatross with recomputed parameters", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     albatross_dl <- ld(albatross)
     pgInsert(
         conn_data,
@@ -82,7 +80,6 @@ test_that("insert albatross with recomputed parameters", {
 })
 
 test_that("null timestamp, relocations x,y, note", {
-    skip_if_not(can_con(conn_data), "could not connect to postgis database")
     albatross_dl <- ld(albatross)
     pgInsert(
         conn_data,

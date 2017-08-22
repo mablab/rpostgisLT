@@ -1,7 +1,6 @@
 context("rpostgisLT: projected")
 
 test_that("test CRS on ibexraw", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(
         conn_empty,
         ltraj = ibexraw_srs,
@@ -16,7 +15,6 @@ test_that("test CRS on ibexraw", {
 })
 
 test_that("test CRS on puechcirc", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(
         ltraj2pgtraj(
             conn_empty,
@@ -34,7 +32,6 @@ test_that("test CRS on puechcirc", {
 })
 
 test_that("test CRS on albatross", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(
         ltraj2pgtraj(
             conn_empty,
@@ -52,7 +49,6 @@ test_that("test CRS on albatross", {
 })
 
 test_that("test CRS on porpoise", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(
         conn_empty,
         ltraj = porpoise_srs,
@@ -68,12 +64,10 @@ test_that("test CRS on porpoise", {
 })
 
 test_that("pgtrajDrop full clean with default schema", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(pgtrajDrop(conn_empty))
 })
 
 test_that("porpoise type I arbitrary crs", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(conn_empty,
                              ltraj = porpoise_I_srs,
                              schema = "type_I",
@@ -87,7 +81,6 @@ test_that("porpoise type I arbitrary crs", {
 })
 
 test_that("albatross type I arbitrary crs", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(conn_empty,
                  ltraj = albatross_I_srs,
                  schema = "type_I",
@@ -101,7 +94,6 @@ test_that("albatross type I arbitrary crs", {
 })
 
 test_that("ibexraw type I arbitrary crs", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     expect_true(ltraj2pgtraj(conn_empty,
                  ltraj = ibexraw_I_srs,
                  schema = "type_I",

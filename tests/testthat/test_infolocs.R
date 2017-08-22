@@ -1,7 +1,6 @@
 context("rpostgisLT: infolocs")
 
 test_that("example of an object with an attribute infolocs", {
-    skip_if_not(can_con(conn_empty), "could not connect to postgis database")
     
     ## Create an object of class "ltraj"
     cap <-
