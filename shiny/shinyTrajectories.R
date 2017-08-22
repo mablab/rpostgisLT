@@ -13,6 +13,9 @@ source("./utility/connect_db.R")
 schema <- "ibex_traj"
 pgtraj <- "ibex"
 
+schema <- "ibex_traj_materialized_bursts"
+pgtraj <- "ibex_int_space"
+
 # Storks
 schema <- "stork_traj"
 pgtraj <- "2004"
@@ -49,6 +52,42 @@ dbDisconnect(conn)
 conn <- do.call(cs, args)
 explorePgtraj(conn, schema, pgtraj, layers_vector)
 dbDisconnect(conn)
+
+
+explorePgtraj(
+    conn_data,
+    "ibex_traj_materialized_bursts",
+    "ibex_int_space",
+    layers_vector = list(c("example_data", "test_points_mixed"))
+)
+
+explorePgtraj(
+    conn_data,
+    "ibex_traj_materialized_bursts",
+    "ibex_int_space",
+    layers_vector = list(c("example_data", "test_points_multi_3395"))
+)
+
+explorePgtraj(
+    conn_data,
+    "ibex_traj_materialized_bursts",
+    "ibex_int_space",
+    layers_vector = list(c("example_data", "test_polygons"))
+)
+
+explorePgtraj(
+    conn,
+    "stork_traj",
+    "2004",
+    layers_vector = list(c("example_data", "test_points"))
+)
+
+explorePgtraj(
+    conn,
+    "stork_traj",
+    "2004",
+    layers_vector = list(c("example_data", "colony"))
+)
 
 conn <- do.call(cs, args)
 explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector)

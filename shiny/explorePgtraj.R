@@ -1,21 +1,3 @@
-# # library(sf)
-# library(lubridate)
-# library(shiny)
-# library(leaflet)
-# # library(dplyr)
-# # library(DBI)
-# library(htmltools)
-# library(mapview)
-# library(shinyWidgets)
-# library(testthat)
-# 
-# source("./shiny/utils.R")
-# source("./shiny/createShinyView.R")
-
-
-# Shiny App----------------------------------------------------------------
-
-
 #' Explore a pgtraj interactively in a Shiny app
 #'
 #' @param conn DBI::DBIConnection
@@ -67,19 +49,6 @@ explorePgtraj <-
         
         tzone <- time_params$time_zone
         
-        # tstamp_last <- as.POSIXct(time_params$tstamp_last,
-        #                           origin = "1970-01-01 00:00:00",
-        #                           tz = "UTC")
-        # 
-        # tstamp_start <- as.POSIXct(time_params$tstamp_start,
-        #                 origin = "1970-01-01 00:00:00",
-        #                 tz = "UTC")
-        # R uses time zone abbreviation to print time stamps,
-        # and also getStepWindow. On the other hand, pgtraj stores the "long" time zone
-        # format (e.g. America/New_York instead of EDT). Thus the warning
-        # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-        # attributes(time_params$tstamp_start)$tzone <- tzone
-        
         increment <- lubridate::period(num = time_params$increment,
                               units = "seconds")
         
@@ -94,9 +63,6 @@ explorePgtraj <-
         
         # Get full traj
         st_1 <- getFullTraj(conn, schema, view)
-        
-        # color by animal_name
-        # factpal <- colorFactor(topo.colors(4), st$animal_name)
         
         # get animal list
         animals_df <- getAnimalsDf(conn, schema, view)
@@ -159,8 +125,6 @@ explorePgtraj <-
                                       label = "Color",
                                       choices = c("Animals", "Bursts"),
                                       selected = "Animals"),
-                    # h4(strong("Steps")),
-                    # h5(textOutput("tstamp")),
                     pickerInput(
                         inputId = "burst_picker",
                         label = "Bursts",
@@ -423,7 +387,7 @@ explorePgtraj <-
                     
                     if (!is.null(base)) {
                         for (l in names(base)) {
-                            geomtype <- as.character(st_geometry_type(base[[l]])[1])
+                            geomtype <- as.character(sf::st_geometry_type(base[[l]])[1])
                             if (geomtype == "raster") {
                                 warning("Please provide raster base layers as a layer_raster argument.")
                             } else if (grepl("polygon", geomtype, ignore.case = TRUE)) {

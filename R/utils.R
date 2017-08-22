@@ -1819,7 +1819,7 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
 
 #' Get base layers from database
 #'
-#' Not implemented for rasters
+#' Not implemented for rasters. Transforms coordinates to EPSG:4326. 
 #'
 #' @param conn DBI::DBIConnection
 #' @param layers List. List of character vectors for each layer to include as a
@@ -1835,6 +1835,9 @@ setTimeInput <- function(inputUnit, inputTime, reactiveTime) {
 #' }
 #' @keywords internal
 getLayers <- function(conn, layers) {
+    if(!is.list(layers)){
+        stop("layers_vector must be a list")
+    }
     geo_type <- findGeoType(conn, layers)
     base <- list()
     if (length(geo_type$vect) > 0) {
@@ -1843,6 +1846,16 @@ getLayers <- function(conn, layers) {
             # project to EPSG:4326 for simpler handling
             data <- sf::st_read_db(conn, table = relation) %>%
                 sf::st_transform(4326)
+            # check geometry type
+            geom_type <- unique(sf::st_geometry_type(data))
+            if(length(geom_type) > 1) {
+                stop(paste("The layer", relation,
+                           "contains geometries of type",
+                           paste(geom_type, collapse = " and "),
+                           ". Please cast the geometries into a single type."))
+            } else if (grepl("multipoint", geom_type, ignore.case = TRUE)) {
+                stop("Leaflet 1.1.0 doesn't support MULTIPOINT geometries. Please cast to POINT.")
+            }
             # add layer name
             # attr(data, "name") <- t[2]
             base[relation[2]] <- list(data)
@@ -1877,6 +1890,7 @@ getLayers <- function(conn, layers) {
 #' }
 #' @keywords internal
 findGeoType <- function(conn, layers) {
+    stopifnot(is.list(layers))
     testthat::expect_true((length(layers) >= 1))
     # geo_type <- data.frame(name = character(), type = character(),
     #                        schema = character(), table = character(),
