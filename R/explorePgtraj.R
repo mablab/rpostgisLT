@@ -102,7 +102,9 @@ explorePgtraj <-
         }
         
         info_cols <- getInfolocsColumns(conn, schema, pgtraj)
-            
+        
+        # UI start -------------------------------------------------------------
+        
         ui <-
             shiny::fluidPage(
                 shiny::titlePanel(paste("pgtraj name:", pgtraj)),
@@ -194,6 +196,8 @@ explorePgtraj <-
                     shiny::mainPanel(leaflet::leafletOutput("map"))
             ))
         
+        # Server start ---------------------------------------------------------
+        
         server <- function(input, output, session) {
             w <- shiny::reactiveValues(data = st_1)
             x <-
@@ -229,6 +233,8 @@ explorePgtraj <-
                     )
             },
             ignoreInit = TRUE)
+            
+            # Interval/Increment input -----------------------------------------
             
             # convert values in Increment to the selected unit
             shiny::observeEvent(input$increment_unit, {
@@ -302,6 +308,8 @@ explorePgtraj <-
                 }
             })
             
+            # Time slider ------------------------------------------------------
+            
             # set Interval and Time Window from slider
             shiny::observeEvent(input$range, {
                 # the time window must be "open" in order to increment the time stamp
@@ -334,6 +342,8 @@ explorePgtraj <-
                     # ignore input
                 }
             })
+            
+            # Keyboard contol --------------------------------------------------
             
             # Only update timestamp on click
             shiny::observeEvent(input$n, {
@@ -374,13 +384,18 @@ explorePgtraj <-
                 }
             })
             
+            # Leaflet start ----------------------------------------------------
+            
             output$map <- leaflet::renderLeaflet({
                 if (is.null(w$data)) {
                     return()
                 } else {
                     map <- leaflet::leaflet() %>%
                         leaflet::addTiles(group = "OSM (default)")
-                    
+            
+            # Add base layers --------------------------------------------------
+            
+                    # raster layers
                     if (!is.null(layer_raster)) {
                         map <- do.call(leaflet::addRasterImage,
                                        c(
@@ -391,6 +406,7 @@ explorePgtraj <-
                                        ))
                     }
                     
+                    # vector layers
                     if (!is.null(base)) {
                         for (l in names(base)) {
                             geomtype <- as.character(sf::st_geometry_type(base[[l]])[1])
@@ -441,6 +457,8 @@ explorePgtraj <-
                             append(layer_names, names(base))
                     }
                     
+                    # Add full traj and legend -------------------------------
+                    
                     if (is.null(w$data)) {
                         return()
                     } else {
@@ -460,6 +478,8 @@ explorePgtraj <-
                     }
                 }
             })
+            
+            # Add bursts -------------------------------------------------------
             
             # add burst to map only when the burst picker is updated, and
             # only add/remove what is neccessary
@@ -495,7 +515,9 @@ explorePgtraj <-
                 }
             })
             
-            shiny::observe({
+            # leafletProxy -----------------------------------------------------
+            
+          shiny::observe({
                 # don't do anything when there is no geometry to display
                 if (!is.null(x$currStep)) {
                     # counter for adding/removing the next/previous set of steps
@@ -545,4 +567,5 @@ explorePgtraj <-
         }
         shiny::shinyApp(ui, server)
         }
+
 
