@@ -1867,6 +1867,8 @@ getLayers <- function(conn, layers) {
             # base[relation[2]] <- list(data)
             warning("raster layers not implemented yet")
         }
+    } else {
+        stop("Something went wrong in getLayers.")
     }
     return(base)
 }
@@ -1900,10 +1902,13 @@ findGeoType <- function(conn, layers) {
         layer <- layers[[i]]
         v <- isVector(conn, layer)
         r <- isRaster(conn, layer)
-        if(v){
+        if (v) {
             geo_type$vect <- append(geo_type$vect, layers[i])
-        } else {
+        } else if (r) {
             geo_type$rast <- append(geo_type$rast, layers[i])
+        } else {
+            warning(paste("Couldn't find the table", paste(layer, collapse = ".")
+                       , "in the database."))
         }
     }
     

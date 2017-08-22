@@ -53,12 +53,19 @@ test_that("getLayers MULTIPOINT", {
                  "Leaflet 1.1.0 doesn't support MULTIPOINT geometries. Please cast to POINT.")
 })
 
-
-test_that("findGeoType", {
+test_that("findGeoType handles missing layers", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
-    l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_points")))
-    expect_true(all(l$vect[[1]] == c("example_data", "test_points")),
+    expect_warning(rpostgisLT:::findGeoType(conn_data, list(c("my-imaginary", "layer"))),
+                 "Couldn't find the table my-imaginary.layer in the database.")
+})
+
+
+test_that("findGeoType geometry types", {
+    skip_if_not(can_con(conn_data), "could not connect to postgis database")
+    
+    l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_points_mixed")))
+    expect_true(all(l$vect[[1]] == c("example_data", "test_points_mixed")),
                 info = "mix of POINT and MULTIPOINT")
     l <- rpostgisLT:::findGeoType(conn_data, list(c("example_data", "test_polygons")))
     expect_true(all(l$vect[[1]] == c("example_data", "test_polygons")),
@@ -67,5 +74,6 @@ test_that("findGeoType", {
     expect_true(all(l$vect[[1]] == c("example_data", "test_line")),
                 info = "LINESTRING")
 })
+
 
 rm(schema, pgtraj, view)
