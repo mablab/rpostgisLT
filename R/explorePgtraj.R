@@ -1,21 +1,3 @@
-# # library(sf)
-# library(lubridate)
-# library(shiny)
-# library(leaflet)
-# # library(dplyr)
-# # library(DBI)
-# library(htmltools)
-# library(mapview)
-# library(shinyWidgets)
-# library(testthat)
-# 
-# source("./shiny/utils.R")
-# source("./shiny/createShinyView.R")
-# 
-# 
-# # Shiny App----------------------------------------------------------------
-
-
 #' Explore a pgtraj interactively in a Shiny app
 #'
 #' @param conn DBI::DBIConnection
@@ -68,19 +50,6 @@ explorePgtraj <-
         
         tzone <- time_params$time_zone
         
-        # tstamp_last <- as.POSIXct(time_params$tstamp_last,
-        #                           origin = "1970-01-01 00:00:00",
-        #                           tz = "UTC")
-        # 
-        # tstamp_start <- as.POSIXct(time_params$tstamp_start,
-        #                 origin = "1970-01-01 00:00:00",
-        #                 tz = "UTC")
-        # R uses time zone abbreviation to print time stamps,
-        # and also getStepWindow. On the other hand, pgtraj stores the "long" time zone
-        # format (e.g. America/New_York instead of EDT). Thus the warning
-        # of In check_tzones(e1, e2) : 'tzone' attributes are inconsistent
-        # attributes(time_params$tstamp_start)$tzone <- tzone
-        
         increment <- lubridate::period(num = time_params$increment,
                                        units = "seconds")
         
@@ -97,9 +66,6 @@ explorePgtraj <-
         # Get full traj
         st_1 <- getFullTraj(conn, schema, view)
         
-        # color by animal_name
-        # factpal <- leaflet::colorFactor(grDevices::topo.colors(4), st$animal_name)
-        
         # get animal list
         animals_df <- getAnimalsDf(conn, schema, view)
         colors_animal <-
@@ -115,6 +81,7 @@ explorePgtraj <-
                                  bursts_df$burst_name,
                                  na.color = "#808080")
         
+        # initial unit for interval/increment
         unit_init <- "seconds"
         
         # TODO: add validation for burst_len >= 1
@@ -136,9 +103,11 @@ explorePgtraj <-
         }
         
         info_cols <- getInfolocsColumns(conn, schema, pgtraj)
-            
+        
+        # UI start -------------------------------------------------------------
+        
         ui <-
-            shiny::fluidPage(# tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+            shiny::fluidPage(
                 shiny::titlePanel(paste("pgtraj name:", pgtraj)),
                 
                 shiny::sidebarLayout(
@@ -162,16 +131,21 @@ explorePgtraj <-
                     shinyWidgets::radioGroupButtons(inputId = "color_choice", 
                                       label = "Color",
                                       choices = c("Animals", "Bursts"),
-                                      selected = "Animals"),
-                    # h4(strong("Steps")),
-                    # h5(textOutput("tstamp")),
-                    shinyWidgets::pickerInput(
+                                      selected = "Animals"
+                    ),
+                    # shinyWidgets::pickerInput(
+                    #     inputId = "burst_picker",
+                    #     label = "Bursts",
+                    #     choices = bursts_df$burst_name,
+                    #     options = list(`actions-box` = TRUE),
+                    #     multiple = TRUE,
+                    #     width = "100%"
+                    # ),
+                    shiny::selectizeInput(
                         inputId = "burst_picker",
                         label = "Bursts",
                         choices = bursts_df$burst_name,
-                        options = list(`actions-box` = TRUE),
-                        multiple = TRUE,
-                        width = "100%"
+                        multiple = TRUE
                     ),
                     shiny::fluidRow(
                         shiny::column(6,
@@ -230,6 +204,8 @@ explorePgtraj <-
                     shiny::mainPanel(leaflet::leafletOutput("map"))
             ))
         
+        # Server start ---------------------------------------------------------
+        
         server <- function(input, output, session) {
             w <- shiny::reactiveValues(data = st_1)
             x <-
@@ -265,6 +241,8 @@ explorePgtraj <-
                     )
             },
             ignoreInit = TRUE)
+            
+            # Interval/Increment input -----------------------------------------
             
             # convert values in Increment to the selected unit
             shiny::observeEvent(input$increment_unit, {
@@ -338,6 +316,8 @@ explorePgtraj <-
                 }
             })
             
+            # Time slider ------------------------------------------------------
+            
             # set Interval and Time Window from slider
             shiny::observeEvent(input$range, {
                 # the time window must be "open" in order to increment the time stamp
@@ -366,14 +346,12 @@ explorePgtraj <-
                             time_params$tstamp_start,
                             time_params$tstamp_last
                         )
-                    
-                    # update the Interval numeric input
-                    # updateNumericTimeInput(session, input$interval_unit,
-                    #                        "interval", timeOut$interval)
                 } else {
                     # ignore input
                 }
             })
+            
+            # Keyboard contol --------------------------------------------------
             
             # Only update timestamp on click
             shiny::observeEvent(input$n, {
@@ -414,13 +392,18 @@ explorePgtraj <-
                 }
             })
             
+            # Leaflet start ----------------------------------------------------
+            
             output$map <- leaflet::renderLeaflet({
                 if (is.null(w$data)) {
                     return()
                 } else {
                     map <- leaflet::leaflet() %>%
                         leaflet::addTiles(group = "OSM (default)")
-                    
+            
+            # Add base layers --------------------------------------------------
+            
+                    # raster layers
                     if (!is.null(layer_raster)) {
                         map <- do.call(leaflet::addRasterImage,
                                        c(
@@ -431,6 +414,7 @@ explorePgtraj <-
                                        ))
                     }
                     
+                    # vector layers
                     if (!is.null(base)) {
                         for (l in names(base)) {
                             geomtype <- as.character(sf::st_geometry_type(base[[l]])[1])
@@ -481,6 +465,8 @@ explorePgtraj <-
                             append(layer_names, names(base))
                     }
                     
+                    # Add full traj and legend -------------------------------
+                    
                     if (is.null(w$data)) {
                         return()
                     } else {
@@ -501,10 +487,13 @@ explorePgtraj <-
                 }
             })
             
+            # Add bursts -------------------------------------------------------
+            
             # add burst to map only when the burst picker is updated, and
             # only add/remove what is neccessary
             shiny::observeEvent(input$burst_picker, {
                 burst_get <- setdiff(input$burst_picker, x$burst_name)
+                
                 burst_remove <-
                     setdiff(x$burst_name, input$burst_picker)
                 
@@ -535,7 +524,9 @@ explorePgtraj <-
                 }
             })
             
-            shiny::observe({
+            # leafletProxy -----------------------------------------------------
+            
+          shiny::observe({
                 # don't do anything when there is no geometry to display
                 if (!is.null(x$currStep)) {
                     # counter for adding/removing the next/previous set of steps
@@ -585,4 +576,5 @@ explorePgtraj <-
         }
         shiny::shinyApp(ui, server)
         }
+
 
