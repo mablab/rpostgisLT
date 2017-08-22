@@ -38,6 +38,22 @@ test_that("getLayers with POINT+MULTIPOINT", {
                  "single type")
 })
 
+test_that("getLayers MULTIPOINT", {
+    skip_if_not(can_con(conn_data), "could not connect to postgis database")
+    
+    expect_silent(l <-
+                      rpostgisLT:::getLayers(conn_data, list(
+                          c("example_data", "test_points_multi")
+                      )))
+    expect_equal(length(sf::st_geometry(l$test_points_multi)), 14, info = "return MULTIPOINT")
+    expect_silent(l <-
+                      rpostgisLT:::getLayers(conn_data, list(
+                          c("example_data", "test_points_multi_3395")
+                      )))
+    expect_equal(sf::st_crs(l$test_points_multi)$epsg, 4326, info = "CRS transform")
+})
+
+
 test_that("findGeoType", {
     skip_if_not(can_con(conn_data), "could not connect to postgis database")
     
@@ -51,10 +67,5 @@ test_that("findGeoType", {
     expect_true(all(l$vect[[1]] == c("example_data", "test_line")),
                 info = "LINESTRING")
 })
-
-
-conn <- do.call(cs, args)
-explorePgtraj(conn_data, schema, pgtraj, c("example_data", "test_points"))
-dbDisconnect(conn)
 
 rm(schema, pgtraj, view)
