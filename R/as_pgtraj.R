@@ -117,12 +117,29 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         stop("PostGIS is not enabled on this database.")
     }
     
+    if(length(relocations_table) > 0) {
+        if (!RPostgreSQL::dbExistsTable(conn_data, relocations_table)) {
+            stop(paste("Couldn't find the table",
+                       paste(relocations_table, collapse = "."),
+                       "in the database."))
+        }
+    } else {
+        stop("Please provide a value for relocations_table.")
+    }
+    
     # Ensure length-2 table names (search path changes throughout fn)
     relocations_table <- rpostgis:::dbTableNameFix(conn, relocations_table, 
         as.identifier = FALSE)
+    
     if (!is.null(info_table)) {
+        if (!RPostgreSQL::dbExistsTable(conn_data, info_table)) {
+                stop(paste("Couldn't find the table",
+                           paste(info_table, collapse = "."),
+                           "in the database."))
+        }
+        
         info_table <- rpostgis:::dbTableNameFix(conn, info_table, 
-            as.identifier = FALSE)
+                                                as.identifier = FALSE)
     }
     
     # sanitize table name
@@ -130,6 +147,11 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         relocations_table), collapse = ".")
     # sanitize column name strings used in queries
     relocations_q <- dbQuoteIdentifier(conn, relocations)
+    f <- DBI::dbListFields(conn, relocations_table)
+    if(!(relocations %in% f)) {
+        stop(paste("The field", relocations, "is not present in the table",
+                   relocations_table))
+    }
     
     # adjust for additional SQL in clauses
     if (!is.null(clauses)) {
