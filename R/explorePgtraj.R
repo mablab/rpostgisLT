@@ -115,7 +115,8 @@ explorePgtraj <-
                         class = "outer",
                         
                         shiny::tags$head(
-                            shiny::includeCSS("./R/styles.css")
+                            shiny::includeCSS("./R/styles.css"),
+                            shiny::includeScript("./R/keypress.js")
                         ),
                         
                         leaflet::leafletOutput("map", width = "100%", height = "100%"),
