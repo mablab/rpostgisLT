@@ -213,8 +213,18 @@ explorePgtraj <-
                                 step = increment,
                                 timezone = tzone
                             ),
-                            shiny::actionButton("b", "Back"),
-                            shiny::actionButton("n", "Next")
+                            
+                            shiny::tags$div(
+                                style="display:inline-block",
+                                title = "Press <-",
+                                shiny::actionButton("b", "Back")
+                            ),
+                            
+                            shiny::tags$div(
+                                style="display:inline-block",
+                                title = "Press ->",
+                                shiny::actionButton("n", "Next")
+                            )
                         )
                     )
                 ),
