@@ -200,7 +200,20 @@ explorePgtraj <-
                                         width = "100%"
                                     )
                                 )
-                            )
+                            ),
+                            
+                            shiny::sliderInput(
+                                "range",
+                                "Time window:",
+                                min = time_params$tstamp_start,
+                                max = time_params$tstamp_last,
+                                value = c(time_params$tstamp_start,
+                                          time_params$tstamp_start + interval),
+                                step = increment,
+                                timezone = tzone
+                            ),
+                            shiny::actionButton("b", "Back"),
+                            shiny::actionButton("n", "Next")
                         )
                     )
                 ),
