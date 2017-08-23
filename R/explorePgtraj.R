@@ -132,17 +132,82 @@ explorePgtraj <-
                             width = 330,
                             height = "auto",
                             
+                            shiny::h2(paste("pgtraj:", pgtraj)),
+                            
+                            shinyWidgets::switchInput(
+                                inputId = "step_mode",
+                                label = "Step mode",
+                                value = FALSE
+                            ),
+                            shinyWidgets::radioGroupButtons(
+                                inputId = "color_choice",
+                                label = "Color",
+                                choices = c("Animals", "Bursts"),
+                                selected = "Animals"
+                            ),
+                            
                             shiny::selectizeInput(
                                 inputId = "burst_picker",
                                 label = "Bursts",
                                 choices = bursts_df$burst_name,
                                 multiple = TRUE
+                            ),
+                            
+                            shiny::fluidRow(
+                                shiny::column(
+                                    6,
+                                    shiny::numericInput(
+                                        "increment",
+                                        "Increment",
+                                        value = increment@.Data,
+                                        width = "100%"
+                                    ),
+                                    shiny::numericInput(
+                                        "interval",
+                                        "Interval",
+                                        value = interval@.Data,
+                                        width = "100%"
+                                    )
+                                ),
+                                shiny::column(
+                                    6,
+                                    shiny::selectInput(
+                                        "increment_unit",
+                                        label = "units",
+                                        choices = c(
+                                            "years" = "years",
+                                            "months" = "months",
+                                            "days" = "days",
+                                            "hours" = "hours",
+                                            "minutes" = "minutes",
+                                            "seconds" = "seconds"
+                                        ),
+                                        selected = unit_init,
+                                        width = "100%"
+                                    ),
+                                    shiny::selectInput(
+                                        "interval_unit",
+                                        label = "units",
+                                        choices = c(
+                                            "years" = "years",
+                                            "months" = "months",
+                                            "days" = "days",
+                                            "hours" = "hours",
+                                            "minutes" = "minutes",
+                                            "seconds" = "seconds"
+                                        ),
+                                        selected = unit_init,
+                                        width = "100%"
+                                    )
+                                )
                             )
                         )
                     )
                 ),
                 shiny::tabPanel("Data explorer",
-                                shiny::h5("This is not implemented yet :( Wanna help?"))
+                                shiny::h5("This is not implemented yet :( Wanna help? Visit:"),
+                                shiny::h5(shiny::a("https://github.com/mablab/rpostgisLT"))
+                )
             )
 
         
@@ -518,6 +583,6 @@ explorePgtraj <-
             
         }
         shiny::shinyApp(ui, server)
-        }
+}
 
 
