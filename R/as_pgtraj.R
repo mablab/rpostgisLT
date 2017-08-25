@@ -118,7 +118,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
     }
     
     if(length(relocations_table) > 0) {
-        if (!RPostgreSQL::dbExistsTable(conn_data, relocations_table)) {
+        if (!RPostgreSQL::dbExistsTable(conn, relocations_table)) {
             stop(paste("Couldn't find the table",
                        paste(relocations_table, collapse = "."),
                        "in the database."))
@@ -132,7 +132,7 @@ as_pgtraj <- function(conn, relocations_table, schema = "traj",
         as.identifier = FALSE)
     
     if (!is.null(info_table)) {
-        if (!RPostgreSQL::dbExistsTable(conn_data, info_table)) {
+        if (!RPostgreSQL::dbExistsTable(conn, info_table)) {
                 stop(paste("Couldn't find the table",
                            paste(info_table, collapse = "."),
                            "in the database."))
