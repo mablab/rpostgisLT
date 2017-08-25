@@ -219,7 +219,7 @@ explorePgtraj <-
                             shiny::tags$div(
                                 style="display:inline-block",
                                 title = "Press <-",
-                                shiny::actionButton("b", "Back")
+                                shiny::actionButton("p", "Prev")
                             ),
 
                             shiny::tags$div(
@@ -407,7 +407,7 @@ explorePgtraj <-
                 }
             })
 
-            shiny::observeEvent(input$b, {
+            shiny::observeEvent(input$p, {
                 stime <- timeOut$currTime - timeOut$increment
                 etime <- stime + timeOut$interval
 
