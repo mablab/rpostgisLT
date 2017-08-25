@@ -36,6 +36,7 @@ before_scipt:
   # set up testing database
   - createdb rpglt_empty
   - psql -d rpglt_empty -c "create extension postgis;"
+  - psql -d rpglt_empty -c "create schema example_data;"
   - createdb rpglt_data
   - psql -d rpglt_data -c "create extension postgis;"
   - psql -d rpglt_data -c "create schema example_data; create schema ibex_traj_materialized_bursts;"
