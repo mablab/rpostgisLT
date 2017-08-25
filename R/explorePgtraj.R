@@ -44,6 +44,10 @@ explorePgtraj <-
              layer_param_vector=NULL,
              layer_raster=NULL,
              layer_param_raster=NULL) {
+        
+        # check if shiny views exist and create them if they don't
+        createShinyViews(conn, schema, pgtraj, force = FALSE)
+        
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- getTrajDefaults(conn, schema, view, pgtraj)

@@ -1,27 +1,55 @@
-#' Title
+#' Create database views that are suitable for explorePgtraj()
+#' 
+#' It is expected that *all* pgtrajes are projected in the schema in order to
+#' run.
 #'
-#' @param conn 
-#' @param schema 
-#' @param pgtraj 
+#' @param conn DBI::DBIConnection
+#' @param schema String. Schema name.
+#' @param pgtraj String. Pgtraj name.
 #' @param force Boolean. Drop and recreate the views if they already exist.
 #'
-#' @return
+#' @return nothing
 #' @export
 #'
 #' @examples
-createShinyViews <- function(conn, schema, pgtraj, force=FALSE) {
+#' \dontrun{
+#' createShinyViews(conn, schema="ibex_traj", pgtraj="ibex", force=TRUE)
+#' }
+createShinyViews <- function(conn, schema, pgtraj, force = FALSE) {
+    # step view
     sview <- paste0("step_geometry_shiny_", pgtraj)
+    # burst view
     bview <- paste0("all_burst_summary_shiny")
+    
     schema_s <- DBI::dbQuoteString(conn, schema)
     # list tables in schema
-    sql_query <- paste0("SELECT viewname FROM pg_views WHERE schemaname =", schema_s)
-    relations <- DBI::dbGetQuery(conn, sql_query)$viewname
-    # if force -> drop and recreate the views
-    if(!(sview %in% relations)){
-        rpostgisLT:::createShinyStepsView(conn, schema, pgtraj)
-    } else if (!(bview %in% relations)) {
-        rpostgisLT:::createShinyBurstsView(conn, schema)
+    sql_query <-
+        paste0("SELECT matviewname FROM pg_matviews WHERE schemaname =",
+               schema_s,";")
+    relations <- DBI::dbGetQuery(conn, sql_query)$matviewname
+    # if force==TRUE -> drop and recreate the views
+    if (!(sview %in% relations)) {
+        createShinyStepsView(conn, schema, pgtraj)
+    } else if (force) {
+        rpostgis::dbDrop(
+            conn,
+            name = c(schema, sview),
+            type = "materialized view",
+            cascade = TRUE,
+            display = TRUE
+        )
+        createShinyStepsView(conn, schema, pgtraj)
+    }
+    if (!(bview %in% relations)) {
+        createShinyBurstsView(conn, schema)
+    } else if (force) {
+        rpostgis::dbDrop(
+            conn,
+            name = c(schema, bview),
+            type = "materialized view",
+            cascade = TRUE,
+            display = TRUE
+        )
+        createShinyBurstsView(conn, schema)
     }
 }
-
-shinyViews(conn, "ibex_traj", "ibex")
