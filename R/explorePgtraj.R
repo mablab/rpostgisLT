@@ -516,7 +516,13 @@ explorePgtraj <-
                                 overlayGroups = layer_names,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topleft"
-                            )
+                            ) %>% 
+                            leaflet::addMeasure(
+                                position = "topleft",
+                                primaryLengthUnit = "meters",
+                                primaryAreaUnit = "sqmeters",
+                                activeColor = "#3D535D",
+                                completedColor = "#7D4479")
                     }
                 }
             })
