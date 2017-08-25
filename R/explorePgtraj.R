@@ -492,7 +492,7 @@ explorePgtraj <-
                     }
                     # prepare layer names for layer control (append() doesn't like NULL values)
                     layer_names <-
-                        c("OSM (default)", "Full trajectory", "Bursts")
+                        c("OSM (default)", "Bursts", "Full trajectory")
                     if (!is.null(raster_name)) {
                         layer_names <-
                             append(layer_names, raster_name)
@@ -562,7 +562,8 @@ explorePgtraj <-
                         fillOpacity = 1,
                         opacity = 1,
                         color = colorpal,
-                        weight = 4,
+                        weight = 2,
+                        dashArray = "5, 10",
                         popup = mapview::popupTable(x$bursts)
                     )
                 }
@@ -582,9 +583,9 @@ explorePgtraj <-
                     }
                     # colors
                     if (input$color_choice == "Bursts") {
-                        colorpal <- ~ colors_burst(burst_name)
+                        colorpal <- ~colors_burst(burst_name)
                     } else {
-                        colorpal <- ~ colors_animal(animal_name)
+                        colorpal <- ~colors_animal(animal_name)
                     }
                     # map
                     if (length(sf::st_geometry(x$currStep)) > 0) {

@@ -14,3 +14,5 @@ cran-comments.md
 test_framework
 temp_data
 codecov.yml
+^.*\.Rproj$
+^\.Rproj\.user$
