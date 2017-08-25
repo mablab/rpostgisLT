@@ -16,6 +16,7 @@ if(can_con(conn_empty)) {
         )
     ),
     silent = TRUE)
+    
     try(suppressMessages(
         rpostgis::dbDrop(
             conn_empty,
@@ -26,6 +27,7 @@ if(can_con(conn_empty)) {
         )
     ),
     silent = TRUE)
+    
     try(rpostgis::dbDrop(
         conn_empty,
         "type_I",
@@ -34,6 +36,7 @@ if(can_con(conn_empty)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     try(RPostgreSQL::dbDisconnect(conn_empty))
 }
 
@@ -46,6 +49,7 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     try(rpostgis::dbDrop(
         conn_data,
         "traj_db_t2",
@@ -54,6 +58,7 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     try(rpostgis::dbDrop(
         conn_data,
         "traj_t2",
@@ -62,6 +67,7 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     try(rpostgis::dbDrop(
         conn_data,
         "traj_t3",
@@ -70,6 +76,7 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     try(rpostgis::dbDrop(
         conn_data,
         "traj",
@@ -78,6 +85,7 @@ if (can_con(conn_data)) {
         display = FALSE
     ),
     silent = TRUE)
+    
     # try(rpostgis::dbDrop(
     #     conn_data,
     #     "ibex_traj_materialized_bursts",
@@ -86,5 +94,6 @@ if (can_con(conn_data)) {
     #     display = FALSE
     # ),
     # silent = TRUE)
+    
     try(RPostgreSQL::dbDisconnect(conn_data))
 }
