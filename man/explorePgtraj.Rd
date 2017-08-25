@@ -4,9 +4,9 @@
 \alias{explorePgtraj}
 \title{Explore a pgtraj interactively in a Shiny app}
 \usage{
-explorePgtraj(conn, schema, pgtraj, layers_vector = NULL,
-  layers_params_vector = NULL, layer_raster = NULL,
-  layers_params_raster = NULL)
+explorePgtraj(conn, schema, pgtraj, layer_vector = NULL,
+  layer_param_vector = NULL, layer_raster = NULL,
+  layer_param_raster = NULL)
 }
 \arguments{
 \item{conn}{DBI::DBIConnection}
@@ -15,15 +15,15 @@ explorePgtraj(conn, schema, pgtraj, layers_vector = NULL,
 
 \item{pgtraj}{String. Pgtraj name.}
 
-\item{layers_vector}{List of character vectors. As c(schema, table).}
+\item{layer_vector}{List of character vectors. As c(schema, table).}
 
-\item{layers_params_vector}{Named list of lists. Names need to map to the
-table names in layers_vector. Sub-lists contain parameters passed to
+\item{layer_param_vector}{Named list of lists. Names need to map to the
+table names in layer_vector. Sub-lists contain parameters passed to
 leaflet::add*. See example.}
 
 \item{layer_raster}{raster::RasterLayer object}
 
-\item{layers_params_raster}{List. Parameters passed to leaflet::addRasterImage()}
+\item{layer_param_raster}{List. Parameters passed to leaflet::addRasterImage()}
 }
 \value{
 nothing
@@ -34,10 +34,10 @@ Explore a pgtraj interactively in a Shiny app
 \examples{
 \dontrun{
 # Vectore base layers to include
-layers_vector <- list(c("example_data", "county_subdiv"),
+layer_vector <- list(c("example_data", "county_subdiv"),
                       c("example_data", "test_points")
                       )
-layers_params_vector <- list(test_points=list(color = "red",
+layer_param_vector <- list(test_points=list(color = "red",
                                               stroke = FALSE,
                                               fillOpacity = 0.5),
                              county_subdiv=list(color = "grey",
@@ -48,7 +48,7 @@ layers_params_vector <- list(test_points=list(color = "red",
 ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
 ras2 <- raster::raster(ras, 1)
 ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
-explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector,
+explorePgtraj(conn, schema, pgtraj, layer_vector, layer_param_vector,
               layer_raster=ras2_leaflet)
 }
 }

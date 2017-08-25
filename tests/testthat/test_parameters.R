@@ -3,15 +3,16 @@ context("rpostgisLT: parameters")
 test_that("insert ibex with recomputed parameters", {
     ibex_dl <- adehabitatLT::ld(ibex)
     rpostgis::pgInsert(
-        conn_data,
+        conn_empty,
         name = c("example_data", "ibex"),
         data.obj = ibex_dl,
+        overwrite = TRUE,
         df.mode = TRUE
     ) ## df mode converts times correctly
     
     expect_true(
         as_pgtraj(
-            conn_data,
+            conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "ibex"),
             pgtrajs = "ibex",
@@ -25,15 +26,15 @@ test_that("insert ibex with recomputed parameters", {
             srid = 3395
         )
     )
-    expect_message(ibex_re <- pgtraj2ltraj(conn_data, "ibex"),
+    expect_message(ibex_re <- pgtraj2ltraj(conn_empty, "ibex"),
                    "successfully")
     expect_match(all.equal(ibex, ibex_re),
                  "projargs")
     
-    try(pgtrajDrop(conn_data, schema = "traj", pgtraj = "ibex",
+    try(pgtrajDrop(conn_empty, schema = "traj", pgtraj = "ibex",
                    full_clean = TRUE))
     try(rpostgis::dbDrop(
-        conn_data,
+        conn_empty,
         name = c("example_data", "ibex"),
         type = "table",
         ifexists = TRUE
@@ -43,7 +44,7 @@ test_that("insert ibex with recomputed parameters", {
 test_that("insert albatross with recomputed parameters", {
     albatross_dl <- ld(albatross)
     pgInsert(
-        conn_data,
+        conn_empty,
         name = c("example_data", "albatross"),
         data.obj = albatross_dl,
         df.mode = TRUE
@@ -51,7 +52,7 @@ test_that("insert albatross with recomputed parameters", {
     
     expect_true(
         as_pgtraj(
-            conn_data,
+            conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),
             pgtraj = "albatross",
@@ -64,15 +65,15 @@ test_that("insert albatross with recomputed parameters", {
             srid = 3395
         )
     )
-    expect_message(albatross_re <- pgtraj2ltraj(conn_data, "albatross"),
+    expect_message(albatross_re <- pgtraj2ltraj(conn_empty, "albatross"),
                    "successfully")
     expect_match(all.equal(albatross, albatross_re),
                  "projargs")
     
-    try(pgtrajDrop(conn_data, schema = "traj", pgtraj = "albatross",
+    try(pgtrajDrop(conn_empty, schema = "traj", pgtraj = "albatross",
                    full_clean = TRUE))
     try(rpostgis::dbDrop(
-        conn_data,
+        conn_empty,
         name = c("example_data", "albatross"),
         type = "table",
         ifexists = TRUE
@@ -82,7 +83,7 @@ test_that("insert albatross with recomputed parameters", {
 test_that("null timestamp, relocations x,y, note", {
     albatross_dl <- ld(albatross)
     pgInsert(
-        conn_data,
+        conn_empty,
         name = c("example_data", "albatross"),
         data.obj = albatross_dl,
         df.mode = TRUE
@@ -90,7 +91,7 @@ test_that("null timestamp, relocations x,y, note", {
     
     expect_true(
         as_pgtraj(
-            conn_data,
+            conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),
             pgtraj = "albatross_type_I",
@@ -103,13 +104,13 @@ test_that("null timestamp, relocations x,y, note", {
             note = "albatross type I"
         )
     )
-    expect_message(albatross_re <- pgtraj2ltraj(conn_data, "albatross_type_I"),
+    expect_message(albatross_re <- pgtraj2ltraj(conn_empty, "albatross_type_I"),
                    "successfully")
     
-    try(pgtrajDrop(conn_data, schema = "traj", pgtraj = "albatross_type_I",
+    try(pgtrajDrop(conn_empty, schema = "traj", pgtraj = "albatross_type_I",
                    full_clean = TRUE))
     try(rpostgis::dbDrop(
-        conn_data,
+        conn_empty,
         name = c("example_data", "albatross"),
         type = "table",
         ifexists = TRUE

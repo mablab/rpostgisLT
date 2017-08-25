@@ -3,12 +3,12 @@
 #' @param conn DBI::DBIConnection
 #' @param schema String. Schema name of the pgtraj.
 #' @param pgtraj String. Pgtraj name.
-#' @param layers_vector List of character vectors. As c(schema, table).
-#' @param layers_params_vector Named list of lists. Names need to map to the
-#'  table names in layers_vector. Sub-lists contain parameters passed to
+#' @param layer_vector List of character vectors. As c(schema, table).
+#' @param layer_param_vector Named list of lists. Names need to map to the
+#'  table names in layer_vector. Sub-lists contain parameters passed to
 #'  leaflet::add*. See example.
 #' @param layer_raster raster::RasterLayer object
-#' @param layers_params_raster List. Parameters passed to leaflet::addRasterImage()
+#' @param layer_param_raster List. Parameters passed to leaflet::addRasterImage()
 #'
 #' @return nothing
 #' @export
@@ -19,10 +19,10 @@
 #' @examples
 #' \dontrun{
 #' # Vectore base layers to include
-#' layers_vector <- list(c("example_data", "county_subdiv"),
+#' layer_vector <- list(c("example_data", "county_subdiv"),
 #'                       c("example_data", "test_points")
 #'                       )
-#' layers_params_vector <- list(test_points=list(color = "red",
+#' layer_param_vector <- list(test_points=list(color = "red",
 #'                                               stroke = FALSE,
 #'                                               fillOpacity = 0.5),
 #'                              county_subdiv=list(color = "grey",
@@ -33,17 +33,21 @@
 #' ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
 #' ras2 <- raster::raster(ras, 1)
 #' ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
-#' explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector,
+#' explorePgtraj(conn, schema, pgtraj, layer_vector, layer_param_vector,
 #'               layer_raster=ras2_leaflet)
 #' }
 explorePgtraj <-
     function(conn,
              schema,
              pgtraj,
-             layers_vector=NULL,
-             layers_params_vector=NULL,
+             layer_vector=NULL,
+             layer_param_vector=NULL,
              layer_raster=NULL,
-             layers_params_raster=NULL) {
+             layer_param_raster=NULL) {
+        
+        # check if shiny views exist and create them if they don't
+        createShinyViews(conn, schema, pgtraj, force = FALSE)
+        
         view <- paste0("step_geometry_shiny_", pgtraj)
         # Get default time parameters
         time_params <- getTrajDefaults(conn, schema, view, pgtraj)
@@ -88,8 +92,8 @@ explorePgtraj <-
 
         # Get background layers
         base <- NULL
-        if (!is.null(layers_vector)) {
-            base <- getLayers(conn, layers_vector)
+        if (!is.null(layer_vector)) {
+            base <- getLayers(conn, layer_vector)
         }
         if (!is.null(layer_raster)) {
             if (class(layer_raster)[1] != "RasterLayer") {
@@ -443,7 +447,7 @@ explorePgtraj <-
                                            list(map = map,
                                                 x = layer_raster,
                                                 group = raster_name),
-                                           layers_params_raster
+                                           layer_param_raster
                                        ))
                     }
 
@@ -461,7 +465,7 @@ explorePgtraj <-
                                                        data = base[[l]],
                                                        group = l
                                                    ),
-                                                   layers_params_vector[[l]]
+                                                   layer_param_vector[[l]]
                                                ))
                             } else if (grepl("linestring", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addPolylines,
@@ -471,7 +475,7 @@ explorePgtraj <-
                                                        data = base[[l]],
                                                        group = l
                                                    ),
-                                                   layers_params_vector[[l]]
+                                                   layer_param_vector[[l]]
                                                ))
                             } else if (grepl("point", geomtype, ignore.case = TRUE)) {
                                 map <- do.call(leaflet::addCircleMarkers,
@@ -481,7 +485,7 @@ explorePgtraj <-
                                                        data = base[[l]],
                                                        group = l
                                                    ),
-                                                   layers_params_vector[[l]]
+                                                   layer_param_vector[[l]]
                                                ))
                             }
                         }
