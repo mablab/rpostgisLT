@@ -5,7 +5,6 @@ cache: packages
 sudo: required
 
 r:
-  - oldrel
   - release
 
 r_github_packages:
