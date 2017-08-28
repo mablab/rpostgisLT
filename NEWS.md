@@ -6,17 +6,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0] - 2017-08-29
+Final outcome of GSoC 2017.
+
 ### Changed
 - NEWS formatted according to [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - tests are now based on `testthat`
-- `all_burst_summary` view is now materialized as `all_burst_summary_shiny` for plotting
-- `step_geometry_\<pgtraj\>` is now materialized as `step_geometry_shiny_\<pgtraj\>`
-- all pgtraj must be projected in a `traj` schema
 
+### Added
+- `explorePgtraj` function and shiny app
+- `createShinyViews` function that create two materialized views, `all_burst_summary_shiny` and `step_geometry_shiny_<pgtraj>`
+- supporting functions for the two above in `utils_shiny.R`
+- continuous integration services (Travis CI and AppVeyor)
+- code coverage reporting
 
 ## [0.5.0] - 2017-06-20
 ### Changed
-- example datasets added (Roe deer GPS tracking dataset)
+- example data sets added (Roe deer GPS tracking data set)
 
 ### Added
 - `as_pgtraj`: new argument `tzone` allows for time zone specification, and 
@@ -63,6 +70,7 @@ attribute correctly
 - Bugfix version, no changes visible to the user.
 
 [Unreleased]: https://github.com/mablab/rpostgisLT/tree/dev
+[0.6.0]: https://github.com/mablab/rpostgisLT/releases/tag/v0.6.0
 [0.5.0]: https://github.com/mablab/rpostgisLT/releases/tag/v0.5.0
 [0.4]: https://github.com/mablab/rpostgisLT/releases/tag/v0.4
 [0.3]: https://github.com/mablab/rpostgisLT/releases/tag/0.3
