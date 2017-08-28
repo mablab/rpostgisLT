@@ -14,8 +14,8 @@ test_that("get time defaults in time window with time zone", {
     trajdef <-
         rpostgisLT:::getTrajDefaults(conn_data, schema, view = view,
                           pgtraj)
-    expect_equal(trajdef$tstamp_start, as.POSIXct("2003-06-01 CEST"))
-    expect_equal(trajdef$tstamp_last, as.POSIXct("2003-06-14 14:25:39 CEST"))
+    expect_equal(trajdef$tstamp_start, as.POSIXct("2003-06-01"))
+    expect_equal(trajdef$tstamp_last, as.POSIXct("2003-06-14 14:25:39"))
     expect_equal(trajdef$increment, 4534)
     expect_equal(trajdef$time_zone, "Europe/Paris")
 })
