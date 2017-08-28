@@ -14,9 +14,8 @@ r_github_packages:
 dist: trusty
 
 branches:
-  only:
-    - dev
-    - release/*
+  except:
+    - gsoc-2017_poc
 
 # set up postgres
 services:
