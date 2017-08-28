@@ -35,8 +35,8 @@ test_script:
   - travis-tool.sh run_tests
 
 branches:
-  only:
-    - dev
+  except:
+    - gsoc-2017_poc
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
