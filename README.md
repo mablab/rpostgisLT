@@ -67,7 +67,7 @@ We can now load a test dataset, and send it to the database using `ltraj2pgtraj`
 
 `pgtraj` stored in the database can be re-imported as `ltraj` using the `pgtraj2ltraj` function:
 
-    cap.db<-pgtraj2ltraj(con, "test_data")
+    cap.db <- pgtraj2ltraj(con, "test_data")
 
 `rpostgisLT` also can create pgtraj from data already stored in a database. Consider the following table storing animal relocations:
     
@@ -135,3 +135,45 @@ All pgtraj can be directly imported into R `ltraj` using `pgtraj2ltraj`:
     test_2013<-pgtraj2ltraj(con, pgtraj = "test_2013")
     
 To see more demonstrations on how `ltraj` can be modified, written to `pgtraj`, and re-imported into R without any data alteration, refer to the [Use Cases](https://github.com/mablab/rpostgisLT/wiki/Use-cases-for-the-rpostgisLT-package) vignette.
+
+## Explore a pgtraj
+
+Use the `explorePgtraj` function to start the Shiny app that allows you to interactively explore a `pgtraj`. **Note that in order to explore a pgtraj, all pgtrajes need to have and SRID assinged to them in the same traj schema.**
+
+    layer_vector <-
+        list(c("example_data", "county_subdiv"),
+             c("example_data", "test_points"))
+    layer_param_vector <-
+        list(
+            test_points = list(
+                color = "red",
+                stroke = FALSE,
+                fillOpacity = 0.5
+            ),
+            county_subdiv = list(
+                color = "grey",
+                fillOpacity = 0.2
+            )
+        )
+    explorePgtraj(con,
+                  schema = "traj_schema",
+                  pgtraj = "pgtraj_name",
+                  layer_vector,
+                  layer_param_vector
+                  )
+
+By default, `explorePgtraj` includes OpenStreetMap as a base layer. However, you can also add your own base layers (`layer_vector` and `layer_raster`). If you are adding a **vector layer**, it need to be stored in a database, thus you provide the `c(schema_name, table_name)` of this layer. If you are adding a **raster layer** it has to be `raster::RasterLayer` object.
+
+    ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
+    ras2 <- raster::raster(ras, 1)
+    ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
+    explorePgtraj(con,
+                  schema = "traj_schema",
+                  pgtraj = "pgtraj_name",
+                  layer_raster = ras2_leaflet)
+
+Both vector and raster layers accept a `layer_param_*` argument where you control how these layers are displayed by `Leaflet`. The parameter `layer_param_vector` accepts a named list of lists. Where names need to map to the table names in `layer_vector`. Sub-lists contain parameters passed to `leaflet::addCircleMarkers/addPolylines/addPolygons()`. The parameter `layer_param_raster` accepts a list of parameters passed to `leaflet::addRasterImage()`.
+
+![The explorePgtraj shiny app](https://github.com/mablab/rpostgisLT/blob/master/vignettes/fig/explorePgtraj.png)
+
+
