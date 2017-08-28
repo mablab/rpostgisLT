@@ -34,9 +34,20 @@ pgtraj <- "rendena"
 rpostgisLT:::createShinyStepsView(conn, schema, pgtraj)
 rpostgisLT:::createShinyBurstsView(conn, schema)
 
-layers_vector <- list(c("example_data", "county_subdiv"), c("example_data", "test_points"))
-layers_params_vector <- list(test_points=list(color = "red", stroke = FALSE, fillOpacity = 0.5),
-                      county_subdiv=list(color = "grey", fillOpacity = 0.2))
+layer_vector <-
+    list(c("example_data", "county_subdiv"),
+         c("example_data", "test_points"))
+layer_param_vector <-
+    list(
+        test_points = list(
+            color = "red",
+            stroke = FALSE,
+            fillOpacity = 0.5
+        ),
+        county_subdiv = list(
+            color = "grey",
+            fillOpacity = 0.2)
+    )
 
 # Run ---------------------------------------------------------------------
 
@@ -97,7 +108,9 @@ ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
 ras2 <- raster::raster(ras, 1)
 ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
 conn <- do.call(cs, args)
-explorePgtraj(conn, schema, pgtraj, layers_vector, layers_params_vector,
-              layer_raster=ras2_leaflet)
+explorePgtraj(conn,
+              schema,
+              pgtraj,
+              layer_raster = ras2_leaflet)
 dbDisconnect(conn)
 

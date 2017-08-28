@@ -73,7 +73,7 @@ explorePgtraj <-
         # get animal list
         animals_df <- getAnimalsDf(conn, schema, view)
         colors_animal <-
-            leaflet::colorFactor(grDevices::topo.colors(nrow(animals_df)),
+            leaflet::colorFactor(grDevices::rainbow(nrow(animals_df)),
                                  animals_df$animal_name,
                                  na.color = "#808080")
 
@@ -81,7 +81,7 @@ explorePgtraj <-
         bursts_df <- getBurstsDF(conn, schema, view)
         burst_len <- nrow(bursts_df)
         colors_burst <-
-            leaflet::colorFactor(grDevices::topo.colors(burst_len),
+            leaflet::colorFactor(grDevices::rainbow(burst_len),
                                  bursts_df$burst_name,
                                  na.color = "#808080")
 
