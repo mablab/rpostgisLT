@@ -30,6 +30,8 @@ build_script:
   - psql -d rpglt_data -c "create schema example_data; create schema ibex_traj_materialized_bursts;"
   - 7z x .\inst\extdata\rpglt_data.sql.gz -so | psql -d rpglt_data
   - 7z x .\inst\extdata\ibex_traj_materialized_bursts.sql.gz -so | psql -d rpglt_data
+  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.all_bursts_summary_shiny;"
+  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.step_geometry_shiny_ibex_int_space;"
 
 test_script:
   - travis-tool.sh run_tests
