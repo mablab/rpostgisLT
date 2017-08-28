@@ -43,7 +43,7 @@ before_install:
   - psql -d rpglt_data -c "create schema example_data; create schema ibex_traj_materialized_bursts;"
   - gzip -dc ./inst/extdata/rpglt_data.sql.gz | psql -d rpglt_data
   - gzip -dc ./inst/extdata/ibex_traj_materialized_bursts.sql.gz | psql -d rpglt_data
-  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.all_bursts_summary_shiny;"
+  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.all_burst_summary_shiny;"
   - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.step_geometry_shiny_ibex_int_space;"
 
 after_success:
