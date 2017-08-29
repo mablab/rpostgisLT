@@ -1,4 +1,6 @@
 #' Explore a pgtraj interactively in a Shiny app
+#' 
+#' See vignette for details.
 #'
 #' @param conn DBI::DBIConnection
 #' @param schema String. Schema name of the pgtraj.
@@ -492,7 +494,7 @@ explorePgtraj <-
                     }
                     # prepare layer names for layer control (append() doesn't like NULL values)
                     layer_names <-
-                        c("OSM (default)", "Bursts", "Full trajectory")
+                        c("OSM (default)", "Steps-1", "Steps-2", "Bursts", "Full trajectory")
                     if (!is.null(raster_name)) {
                         layer_names <-
                             append(layer_names, raster_name)
@@ -577,9 +579,9 @@ explorePgtraj <-
                     # counter for adding/removing the next/previous set of steps
                     # when plotting a trajectory
                     if (x$counter %% 2 == 0) {
-                        gname <- "traj"
+                        gname <- "Steps-1"
                     } else {
-                        gname <- "trajnew"
+                        gname <- "Steps-2"
                     }
                     # colors
                     if (input$color_choice == "Bursts") {
@@ -601,9 +603,9 @@ explorePgtraj <-
                             )
 
                         if (x$counter %% 2 == 0) {
-                            proxy %>% leaflet::clearGroup("trajnew")
+                            proxy %>% leaflet::clearGroup("Steps-2")
                         } else {
-                            proxy %>% leaflet::clearGroup("traj")
+                            proxy %>% leaflet::clearGroup("Steps-1")
                         }
 
                         # because observeEven doesn't pass value when all burst are
