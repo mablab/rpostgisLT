@@ -18,7 +18,7 @@ ltraj2pgtraj(conn_local, ltraj = stork_2004, schema = "stork_traj",
 
 # Create a pgtraj with infolocs -------------------------------------------
 
-as_pgtraj(conn, relocations_table = c("example_data", "stork_gps"),
+asPgtraj(conn, relocations_table = c("example_data", "stork_gps"),
           schema = "stork_traj", pgtrajs = "pgtraj", animals = "animal_id",
           bursts = "burst", info_cols = "gps_data_animals_id",
           relocations = "geom", timestamps = "acquisition_time",

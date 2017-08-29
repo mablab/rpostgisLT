@@ -24,7 +24,7 @@
 #'     otherwise it is ignored.
 #' @param infolocs Logical. Whether to write infolocs to database.
 #' @return \code{TRUE} on success.
-#' @seealso \code{\link{as_pgtraj}} to create a \code{pgtraj} with
+#' @seealso \code{\link{asPgtraj}} to create a \code{pgtraj} with
 #'     data already stored in the database.
 #' @aliases writeTraj
 #' @author Balázs Dukai \email{balazs.dukai@@gmail.com}

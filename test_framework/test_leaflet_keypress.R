@@ -46,7 +46,7 @@ library(leaflet)
 # Storks
 # need to create column "year" in "strok_gps" first
 #
-# as_pgtraj(conn, relocations_table = c("example_data", "stork_gps"),
+# asPgtraj(conn, relocations_table = c("example_data", "stork_gps"),
 #           schema = "stork_traj", pgtrajs = "year", animals = "animal_id",
 #           relocations = "geom", timestamps = "acquisition_time",
 #           rids = "gps_data_animals_id")

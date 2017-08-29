@@ -34,11 +34,11 @@ cs(pw="gsoc", drv = drv, host = "ufl")
 # if you are using the basille-flrec.ad.ufl.edu server, this is already prepared:
 # pgtrajSchema(conn, schema = "roe_traj")
 # 
-# as_pgtraj(conn, relocations_table = c("example_data", "roe"), schema = "roe_traj",
+# asPgtraj(conn, relocations_table = c("example_data", "roe"), schema = "roe_traj",
 #           pgtrajs = "study_area", animals = "animal_id", relocations = "geom",
 #           timestamps = "acquisition_time", info_cols = c("sex", "age"),
 #           rids = "loc_id")
-# as_pgtraj(conn, relocations_table = c("example_data", "roe"), schema = "roe_traj",
+# asPgtraj(conn, relocations_table = c("example_data", "roe"), schema = "roe_traj",
 #           pgtrajs = "both_area", animals = "animal_id", relocations = "geom",
 #           timestamps = "acquisition_time", info_cols = c("sex", "age"),
 #           rids = "loc_id")

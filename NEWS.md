@@ -13,6 +13,7 @@ Final outcome of GSoC 2017.
 ### Changed
 - NEWS formatted according to [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - tests are now based on `testthat`
+- `as_pgtraj()` -> `asPgtraj()` for consistent function names
 
 ### Added
 - `explorePgtraj` function and shiny app

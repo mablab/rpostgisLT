@@ -1,8 +1,8 @@
-context("rpostgisLT: as_pgtraj")
+context("rpostgisLT: asPgtraj")
 
-test_that("as_pgtraj handles missing tables", {
+test_that("asPgtraj handles missing tables", {
     
-    expect_error(as_pgtraj(
+    expect_error(asPgtraj(
         conn_data,
         schema = "traj_db_t1",
         relocations_table = c("example_data", "relocations_plus"),
@@ -21,7 +21,7 @@ test_that("as_pgtraj handles missing tables", {
     ), "Couldn't find the table my-imaginary.table in the database.",
     info = "missing info_table")
     
-    expect_error(as_pgtraj(
+    expect_error(asPgtraj(
         conn_data,
         schema = "traj_db_t1",
         relocations_table = c("my-imaginary", "table"),
@@ -40,7 +40,7 @@ test_that("as_pgtraj handles missing tables", {
     ), "Couldn't find the table my-imaginary.table in the database.",
     info = "missing relocations table")
     
-    expect_error(as_pgtraj(
+    expect_error(asPgtraj(
         conn_data,
         schema = "traj_db_t1",
         relocations_table = c("example_data", "relocations_plus"),

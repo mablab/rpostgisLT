@@ -84,9 +84,9 @@ We can now load a test dataset, and send it to the database using `ltraj2pgtraj`
       land_cover int                                -- land cover code for the relocation
     );
 
-To create one pgtraj named "test" from all the data in this table, you could use the `as_pgtraj` function with the following arguments:
+To create one pgtraj named "test" from all the data in this table, you could use the `asPgtraj` function with the following arguments:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test",
               animals = "animal_id",
@@ -97,7 +97,7 @@ To create one pgtraj named "test" from all the data in this table, you could use
               
 Alternatively, you could create one pgtraj for each distinct animal_id in the table, by specifying the `pgtraj` argument as a column name, e.g.:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "animal_id",
               animals = "animal_id",
@@ -108,7 +108,7 @@ Alternatively, you could create one pgtraj for each distinct animal_id in the ta
               
 You can also provide a column storing burst names, to further subdivide single animal's trajectories. Also, if you wish to only create pgtraj from a subset of the table, you can specify additional SQL using the `clauses` argument, as in this example, where only data from the year 2013 is selected:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test_2013",
               animals = "animal_id",
@@ -120,7 +120,7 @@ You can also provide a column storing burst names, to further subdivide single a
 
 Finally, you can also attach information on locations (`infolocs` in an ltraj) using the `info_cols` argument. By default, the function assumes that these columns are also in `relocations_table`, but you can specify an alternate table (`info_table`) and its ID column (`info_rids`) that matches (JOINs) with the `rids` column in `relocations_table`.
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test_winfolocs",
               animals = "animal_id",

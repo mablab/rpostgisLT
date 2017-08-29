@@ -99,7 +99,7 @@ dl_opt <- function(x, rnames = TRUE) {
 # pgTrajDB2TempT
 
 #' Insert relocations from a source table into the table 'zgaqtsn_temp', 
-#' used in as_pgtraj 
+#' used in asPgtraj 
 #' 
 #' If relocations are given as X,Y coordinates, they are converted into 
 #' a POINT geometry in PostGIS.

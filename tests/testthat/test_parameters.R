@@ -11,7 +11,7 @@ test_that("insert ibex with recomputed parameters", {
     ) ## df mode converts times correctly
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "ibex"),
@@ -51,7 +51,7 @@ test_that("insert albatross with recomputed parameters", {
     ) ## df mode converts times correctly
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),
@@ -90,7 +90,7 @@ test_that("null timestamp, relocations x,y, note", {
     ) ## df mode converts times correctly
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_empty,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),

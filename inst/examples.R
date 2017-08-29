@@ -339,7 +339,7 @@ tryCatch({
         ## all variables stored with the raw data
         ## infolocs in same relocations_table
 
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_db_t1",
             relocations_table = c("example_data", "relocations_plus"),
@@ -359,7 +359,7 @@ tryCatch({
                cascade = TRUE)
 
         ## infolocs in other table
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_db_t1",
             relocations_table = c("example_data", "relocations_plus"),
@@ -378,7 +378,7 @@ tryCatch({
         )
 
         ## Type I trajectories
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "reloc_t1"),
@@ -389,7 +389,7 @@ tryCatch({
         )
 
         ## mix Type I and Type II in the same schema
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "relocations_plus"),
@@ -452,7 +452,7 @@ tryCatch({
         Sys.sleep(2)
 
         ## relocations are provided as X,Y coordinates
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_t2",
             relocations_table = c("example_data", "relocations_plus"),
@@ -470,7 +470,7 @@ tryCatch({
         medium <- pgtraj2ltraj(conn, "medium", "traj_t2")
 
         ## variables provided manually
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj_t3",
             relocations_table = c("example_data", "reloc_medium"),
@@ -546,7 +546,7 @@ tryCatch({
             df.mode = TRUE
         ) ## df mode converts times correctly
 
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj",
             relocations_table = c("example_data", "ibex"),
@@ -579,7 +579,7 @@ tryCatch({
             df.mode = TRUE
         ) ## df mode converts times correctly
 
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),
@@ -598,7 +598,7 @@ tryCatch({
         Sys.sleep(2)
 
         # null timestamp, relocations x,y, note
-        as_pgtraj(
+        asPgtraj(
             conn,
             schema = "traj",
             relocations_table = c("example_data", "albatross"),
