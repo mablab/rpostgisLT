@@ -29,7 +29,7 @@ leaflet::add*. See example.}
 nothing
 }
 \description{
-Explore a pgtraj interactively in a Shiny app
+See vignette for details.
 }
 \examples{
 \dontrun{
