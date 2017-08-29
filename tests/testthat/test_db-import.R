@@ -2,7 +2,7 @@ context("rpostgisLT: db-import")
 
 test_that("import from db with infolocs", {
     
-    expect_true(as_pgtraj(
+    expect_true(asPgtraj(
         conn_data,
         schema = "traj_db_t1",
         relocations_table = c("example_data", "relocations_plus"),
@@ -23,7 +23,7 @@ test_that("import from db with infolocs", {
 test_that("import from db with infolocs in other table", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t1",
             relocations_table = c("example_data", "relocations_plus"),
@@ -53,7 +53,7 @@ test_that("import from db with infolocs in other table", {
 test_that("ltraj equality when transfer: db -> R-> db -> R", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t1",
             relocations_table = c("example_data", "relocations_plus"),
@@ -123,7 +123,7 @@ test_that("ltraj equality when transfer: db -> R-> db -> R", {
 test_that("import from db typeI", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "reloc_t1"),
@@ -141,7 +141,7 @@ test_that("import from db typeI", {
 test_that("import from db a mix of Type I and Type II in the same schema", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "reloc_t1"),
@@ -152,7 +152,7 @@ test_that("import from db a mix of Type I and Type II in the same schema", {
         )
     )
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "relocations_plus"),
@@ -178,7 +178,7 @@ test_that("import from db a mix of Type I and Type II in the same schema", {
 test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_db_t2",
             relocations_table = c("example_data", "reloc_t1"),
@@ -210,7 +210,7 @@ test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
 test_that("relocations are provided as X,Y coordinates", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_t2",
             relocations_table = c("example_data", "relocations_plus"),
@@ -234,7 +234,7 @@ test_that("relocations are provided as X,Y coordinates", {
 test_that("variables provided manually", {
     
     expect_true(
-        as_pgtraj(
+        asPgtraj(
             conn_data,
             schema = "traj_t3",
             relocations_table = c("example_data", "reloc_medium"),

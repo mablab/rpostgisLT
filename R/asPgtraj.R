@@ -1,10 +1,10 @@
-# as_pgtraj
+# asPgtraj
 
 #' Imports location data from a database table into the pgtraj database model
 #' 
-#' \code{as_pgtraj} populates a \code{pgtraj} schema from the data provided
+#' \code{asPgtraj} populates a \code{pgtraj} schema from the data provided
 #' in \code{relocations_table}. If the provided schema doesn't exist, it will 
-#' be created. On successful data input, \code{as_pgtraj} creates two database 
+#' be created. On successful data input, \code{asPgtraj} creates two database 
 #' views for each new pgtraj. These views are named parameters_<pgtraj_name>, 
 #' step_geometry_<pgtraj_name> and described in more detail in the package 
 #' vignette.
@@ -81,7 +81,7 @@
 #' 
 #' @examples 
 #' \dontrun{
-#' as_pgtraj(conn, 
+#' asPgtraj(conn, 
 #'         relocations_table = c("example_data","relocations_plus"),
 #'         pgtrajs = "id",
 #'         animals = "animal",
@@ -96,7 +96,7 @@
 #' }
 #' 
 #' \dontrun{
-#' as_pgtraj(conn, 
+#' asPgtraj(conn, 
 #'         relocations_table = c("example_data","relocations_plus"),
 #'         schema = "traj_t4",
 #'         pgtrajs = "id",
@@ -107,7 +107,7 @@
 #'         rids = "gid")
 #' }
 
-as_pgtraj <- function(conn, relocations_table, schema = "traj", 
+asPgtraj <- function(conn, relocations_table, schema = "traj", 
     pgtrajs = "pgtraj", animals = "animal", bursts = NULL, relocations, 
     timestamps = NULL, rids = "rid", srid = NULL, tzone = NULL, note = NULL, 
     clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {

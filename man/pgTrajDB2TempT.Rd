@@ -3,7 +3,7 @@
 \name{pgTrajDB2TempT}
 \alias{pgTrajDB2TempT}
 \title{Insert relocations from a source table into the table 'zgaqtsn_temp', 
-used in as_pgtraj}
+used in asPgtraj}
 \usage{
 pgTrajDB2TempT(conn, schema, relocations_table, pgtrajs, animals,
   bursts = NULL, relocations, timestamps, rids, srid, proj4string, note,
