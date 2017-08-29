@@ -16,3 +16,5 @@ temp_data
 codecov.yml
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^CODE_OF_CONDUCT.md$
+^CONTRIBUTING.md$
