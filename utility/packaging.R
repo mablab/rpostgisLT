@@ -38,7 +38,7 @@ x<-package_coverage(quiet = FALSE)
 report(x)
 
 #release to CRAN
-release()
+devtools::release()
 
 
 ################

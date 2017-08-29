@@ -7,7 +7,7 @@ output:
         fig_caption: yes
         toc: true
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{rpostgisLT: Explore a pgtraj}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
