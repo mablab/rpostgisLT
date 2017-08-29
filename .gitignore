@@ -1,7 +1,6 @@
 .gitignore.swp
 .swp
 Scripts
-.Rbuildignore
 .Rproj.user
 .Rhistory
 .RData
@@ -13,4 +12,9 @@ rpostgisLT.Rproj
 adehabitatLT
 /utility_functions.R
 inst/doc
-
+rpostgisLT_rhub.txt
+ibex_traj.gif
+.*~
+*~
+utility/balazs_db.R
+temp_data/usgsdem

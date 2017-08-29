@@ -48,7 +48,7 @@ database.
 }
 }
 \seealso{
-\code{\link{as_pgtraj}} to create a \code{pgtraj} with
+\code{\link{asPgtraj}} to create a \code{pgtraj} with
     data already stored in the database.
 }
 \author{

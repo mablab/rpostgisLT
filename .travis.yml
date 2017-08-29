@@ -1,0 +1,52 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
+language: r
+cache: packages
+sudo: required
+
+r:
+  - release
+
+r_github_packages:
+  - jimhester/covr
+
+dist: trusty
+
+branches:
+  except:
+    - gsoc-2017_poc
+
+# set up postgres
+addons:
+  postgresql: "9.6"
+
+before_install:
+  - # needed for sf
+  - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable --yes
+  - sudo apt-get --yes --force-yes update -qq
+  - sudo apt-get install --yes libudunits2-dev libproj-dev libgeos-dev libgdal-dev
+  - # install postgis from source:
+  - sudo apt-get --yes install libjson-c-dev postgresql-server-dev-9.6
+  - wget http://download.osgeo.org/postgis/source/postgis-2.3.2.tar.gz
+  - (mv postgis* /tmp; cd /tmp; tar xzf postgis-2.3.2.tar.gz)
+  - (cd /tmp/postgis-2.3.2 ; ./configure; make; sudo make install)
+  - # activate liblwgeom:
+  - sudo ldconfig 
+  - # set up testing database
+  - sudo service postgresql restart
+  - createdb rpglt_empty
+  - psql -d rpglt_empty -c "create extension postgis;"
+  - psql -d rpglt_empty -c "create schema example_data;"
+  - createdb rpglt_data
+  - psql -d rpglt_data -c "create extension postgis;"
+  - psql -d rpglt_data -c "create schema example_data; create schema ibex_traj_materialized_bursts;"
+  - gzip -dc ./inst/extdata/rpglt_data.sql.gz | psql -d rpglt_data
+  - gzip -dc ./inst/extdata/ibex_traj_materialized_bursts.sql.gz | psql -d rpglt_data
+  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.all_burst_summary_shiny;"
+  - psql -d rpglt_data -c "refresh materialized view ibex_traj_materialized_bursts.step_geometry_shiny_ibex_int_space;"
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+  - dropdb rpglt_empty
+  - dropdb rpglt_data
+

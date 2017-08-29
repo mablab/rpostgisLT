@@ -4,6 +4,12 @@ rpostgisLT
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rpostgisLT)](https://CRAN.R-project.org/package=rpostgisLT)
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 ![](http://cranlogs.r-pkg.org/badges/rpostgisLT)
+[![Build Status](https://travis-ci.org/mablab/rpostgisLT.svg?branch=dev)](https://travis-ci.org/mablab/rpostgisLT)
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/i4udcibut1wih4bn/branch/dev?svg=true)](https://ci.appveyor.com/project/balazsdukai/rpostgislt/branch/master)
+[![codecov](https://codecov.io/gh/mablab/rpostgisLT/branch/dev/graph/badge.svg)](https://codecov.io/gh/mablab/rpostgisLT)
+
+
+
 
 This is the development area for the package `rpostgisLT`, a companion package to [`rpostgis`](https://github.com/mablab/rpostgis) and [`adehabitatLT`](https://CRAN.R-project.org/package=adehabitatLT), which provides functions to store `ltraj` (the trajectory data object from `adehabitatLT`) in a PostGIS-enabled PostgreSQL database.
 
@@ -61,7 +67,7 @@ We can now load a test dataset, and send it to the database using `ltraj2pgtraj`
 
 `pgtraj` stored in the database can be re-imported as `ltraj` using the `pgtraj2ltraj` function:
 
-    cap.db<-pgtraj2ltraj(con, "test_data")
+    cap.db <- pgtraj2ltraj(con, "test_data")
 
 `rpostgisLT` also can create pgtraj from data already stored in a database. Consider the following table storing animal relocations:
     
@@ -78,9 +84,9 @@ We can now load a test dataset, and send it to the database using `ltraj2pgtraj`
       land_cover int                                -- land cover code for the relocation
     );
 
-To create one pgtraj named "test" from all the data in this table, you could use the `as_pgtraj` function with the following arguments:
+To create one pgtraj named "test" from all the data in this table, you could use the `asPgtraj` function with the following arguments:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test",
               animals = "animal_id",
@@ -91,7 +97,7 @@ To create one pgtraj named "test" from all the data in this table, you could use
               
 Alternatively, you could create one pgtraj for each distinct animal_id in the table, by specifying the `pgtraj` argument as a column name, e.g.:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "animal_id",
               animals = "animal_id",
@@ -102,7 +108,7 @@ Alternatively, you could create one pgtraj for each distinct animal_id in the ta
               
 You can also provide a column storing burst names, to further subdivide single animal's trajectories. Also, if you wish to only create pgtraj from a subset of the table, you can specify additional SQL using the `clauses` argument, as in this example, where only data from the year 2013 is selected:
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test_2013",
               animals = "animal_id",
@@ -114,7 +120,7 @@ You can also provide a column storing burst names, to further subdivide single a
 
 Finally, you can also attach information on locations (`infolocs` in an ltraj) using the `info_cols` argument. By default, the function assumes that these columns are also in `relocations_table`, but you can specify an alternate table (`info_table`) and its ID column (`info_rids`) that matches (JOINs) with the `rids` column in `relocations_table`.
 
-    as_pgtraj(con,
+    asPgtraj(con,
               relocations_table = c("gps_data","relocations"),
               pgtrajs = "test_winfolocs",
               animals = "animal_id",
@@ -129,3 +135,45 @@ All pgtraj can be directly imported into R `ltraj` using `pgtraj2ltraj`:
     test_2013<-pgtraj2ltraj(con, pgtraj = "test_2013")
     
 To see more demonstrations on how `ltraj` can be modified, written to `pgtraj`, and re-imported into R without any data alteration, refer to the [Use Cases](https://github.com/mablab/rpostgisLT/wiki/Use-cases-for-the-rpostgisLT-package) vignette.
+
+## Explore a pgtraj
+
+Use the `explorePgtraj` function to start the Shiny app that allows you to interactively explore a `pgtraj`. **Note that in order to explore a pgtraj, all pgtrajes need to have and SRID assinged to them in the same traj schema.**
+
+    layer_vector <-
+        list(c("example_data", "county_subdiv"),
+             c("example_data", "test_points"))
+    layer_param_vector <-
+        list(
+            test_points = list(
+                color = "red",
+                stroke = FALSE,
+                fillOpacity = 0.5
+            ),
+            county_subdiv = list(
+                color = "grey",
+                fillOpacity = 0.2
+            )
+        )
+    explorePgtraj(con,
+                  schema = "traj_schema",
+                  pgtraj = "pgtraj_name",
+                  layer_vector,
+                  layer_param_vector
+                  )
+
+By default, `explorePgtraj` includes OpenStreetMap as a base layer. However, you can also add your own base layers (`layer_vector` and `layer_raster`). If you are adding a **vector layer**, it need to be stored in a database, thus you provide the `c(schema_name, table_name)` of this layer. If you are adding a **raster layer** it has to be `raster::RasterLayer` object.
+
+    ras <- rgdal::readGDAL("./temp_data/florida_dem_county099.tif")
+    ras2 <- raster::raster(ras, 1)
+    ras2_leaflet <- leaflet::projectRasterForLeaflet(ras2)
+    explorePgtraj(con,
+                  schema = "traj_schema",
+                  pgtraj = "pgtraj_name",
+                  layer_raster = ras2_leaflet)
+
+Both vector and raster layers accept a `layer_param_*` argument where you control how these layers are displayed by `Leaflet`. The parameter `layer_param_vector` accepts a named list of lists. Where names need to map to the table names in `layer_vector`. Sub-lists contain parameters passed to `leaflet::addCircleMarkers/addPolylines/addPolygons()`. The parameter `layer_param_raster` accepts a list of parameters passed to `leaflet::addRasterImage()`.
+
+![The explorePgtraj shiny app](https://github.com/mablab/rpostgisLT/blob/master/vignettes/fig/explorePgtraj.png)
+
+

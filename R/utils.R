@@ -99,7 +99,7 @@ dl_opt <- function(x, rnames = TRUE) {
 # pgTrajDB2TempT
 
 #' Insert relocations from a source table into the table 'zgaqtsn_temp', 
-#' used in as_pgtraj 
+#' used in asPgtraj 
 #' 
 #' If relocations are given as X,Y coordinates, they are converted into 
 #' a POINT geometry in PostGIS.
@@ -155,7 +155,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
     sql_query <- paste0("SET search_path TO ", schema_q, ",public;")
     invisible(dbExecute(conn, sql_query))
     
-    # Populate 'zgaqtsn_temp'-------------------------------------------------
+    # Populate 'zgaqtsn_temp'
     # Insert relocations if trajectory Type I
     if (is.null(timestamps)) {
         # Relocations provided as point geometry
@@ -353,8 +353,6 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
 #' 
 #' @examples
 #' \dontrun{pgTrajTempT(conn, "traj_1")}
-#' 
-###############################################################################
 pgTrajTempT <- function(conn, schema) {
     # Check if table already exists
     sql_query <- paste0("SELECT * FROM pg_tables WHERE schemaname = ", dbQuoteString(conn,schema), ";")
@@ -429,7 +427,6 @@ pgTrajTempT <- function(conn, schema) {
 #' 
 #' @keywords internal
 #' 
-##############################################################################
 pgTrajViewParams <- function(conn, schema, pgtraj, epsg, db = TRUE) {
     
     current_search_path <- dbGetQuery(conn, "SHOW search_path;")
@@ -705,18 +702,29 @@ pgTrajViewStepGeom <- function(conn, schema, pgtraj) {
     sql_query <- paste0("SET search_path TO ", dbQuoteIdentifier(conn,schema), ",public;")
     invisible(dbExecute(conn, sql_query))
     
+    sql_query <- paste0(
+        "SELECT public.st_srid(r.geom)
+        FROM relocation r
+        JOIN step s ON s.relocation_id_1 = r.id
+        JOIN s_b_rel rel ON rel.step_id = s.id
+        JOIN animal_burst ab ON ab.id = rel.animal_burst_id
+        JOIN pgtraj p ON p.id = ab.pgtraj_id
+        WHERE p.pgtraj_name = ",dbQuoteString(conn,pgtraj),"
+        AND r.geom NOTNULL
+        LIMIT 1;")
+    srid <- dbGetQuery(conn, sql_query)[1, 1]
+    
+    
     view <- dbQuoteIdentifier(conn,paste0("step_geometry_",pgtraj))
     
     sql_query <- paste0(
     "CREATE OR REPLACE VIEW ",view," AS
     SELECT
         s.id AS step_id,
-        ST_Makeline(r1.geom, r2.geom) AS step_geom,
+        ST_Makeline(r1.geom, r2.geom)::geometry(LINESTRING,",srid,") AS step_geom,
         r1.relocation_time,
         s.dt,
         s.r_rowname,
-        r1.geom AS relocation1_geom,
-        r2.geom AS relocation2_geom,
         ab.burst_name,
         ab.animal_name,
         p.pgtraj_name,
@@ -1296,3 +1304,4 @@ trajSummaryViews<- function(conn, schema) {
   dbExecute(conn, sql_query)
   return(invisible())
 }
+

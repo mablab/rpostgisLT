@@ -1,10 +1,10 @@
 Package: rpostgisLT
 Title: Managing Animal Movement Data with 'PostGIS' and R
-Version: 0.5.0  
-Date: 2017-06-20
+Version: 0.6.0
+Date: 2017-08-29
 Authors@R: c(
     person("Balázs", "Dukai", email = "balazs.dukai@gmail.com", role = c("aut"),
-          comment =  "Package creator during Google Summer of Code 2016"),
+          comment =  "Package creator during Google Summer of Code 2016 and 2017"),
     person("Mathieu", "Basille", email = "basille@ufl.edu", role =
            c("aut")),
     person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
@@ -34,9 +34,17 @@ LazyData: true
 RoxygenNote: 6.0.1
 Imports:
     sp,
-    testthat
+    lubridate,
+    shiny,
+    leaflet,
+    htmltools,
+    mapview,
+    shinyWidgets,
+    magrittr,
+    sf
 Suggests:
     knitr,
     raster,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr

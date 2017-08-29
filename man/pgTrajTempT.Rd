@@ -23,7 +23,6 @@ user generated tables.
 }
 \examples{
 \dontrun{pgTrajTempT(conn, "traj_1")}
-
 }
 \author{
 Balázs Dukai \email{balazs.dukai@gmail.com}
