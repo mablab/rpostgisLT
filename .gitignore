@@ -17,4 +17,5 @@ ibex_traj.gif
 .*~
 *~
 utility/balazs_db.R
+utility/balazs_dev.R
 temp_data/usgsdem
