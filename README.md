@@ -13,7 +13,7 @@ rpostgisLT
 
 This is the development area for the package `rpostgisLT`, a companion package to [`rpostgis`](https://github.com/mablab/rpostgis) and [`adehabitatLT`](https://CRAN.R-project.org/package=adehabitatLT), which provides functions to store `ltraj` (the trajectory data object from `adehabitatLT`) in a PostGIS-enabled PostgreSQL database.
 
-The package was originally developed during Google Summer of Code 2016 by [Balázs Dukai](https://github.com/balazsdukai), with mentors Clément Calenge, [David Bucklin](https://github.com/dnbucklin), and [Mathieu Basille](https://github.com/basille).
+The package was originally developed during Google Summer of Code 2016, 2017 by [Balázs Dukai](https://github.com/balazsdukai), with mentors Clément Calenge, [David Bucklin](https://github.com/dnbucklin), and [Mathieu Basille](https://github.com/basille).
 
 ## Installation of the released versions
 
