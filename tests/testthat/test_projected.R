@@ -1,6 +1,7 @@
 context("rpostgisLT: projected")
 
 test_that("test CRS on ibexraw", {
+    testthat::skip_on_cran()
     expect_true(ltraj2pgtraj(
         conn_empty,
         ltraj = ibexraw_srs,
@@ -15,6 +16,7 @@ test_that("test CRS on ibexraw", {
 })
 
 test_that("test CRS on puechcirc", {
+    testthat::skip_on_cran()
     expect_true(
         ltraj2pgtraj(
             conn_empty,
@@ -32,6 +34,7 @@ test_that("test CRS on puechcirc", {
 })
 
 test_that("test CRS on albatross", {
+    testthat::skip_on_cran()
     expect_true(
         ltraj2pgtraj(
             conn_empty,
@@ -49,6 +52,7 @@ test_that("test CRS on albatross", {
 })
 
 test_that("test CRS on porpoise", {
+    testthat::skip_on_cran()
     expect_true(ltraj2pgtraj(
         conn_empty,
         ltraj = porpoise_srs,
@@ -64,10 +68,12 @@ test_that("test CRS on porpoise", {
 })
 
 test_that("pgtrajDrop full clean with default schema", {
+    testthat::skip_on_cran()
     expect_true(pgtrajDrop(conn_empty))
 })
 
 test_that("porpoise type I arbitrary crs", {
+    testthat::skip_on_cran()
     expect_true(ltraj2pgtraj(conn_empty,
                              ltraj = porpoise_I_srs,
                              schema = "type_I",
@@ -81,6 +87,7 @@ test_that("porpoise type I arbitrary crs", {
 })
 
 test_that("albatross type I arbitrary crs", {
+    testthat::skip_on_cran()
     expect_true(ltraj2pgtraj(conn_empty,
                  ltraj = albatross_I_srs,
                  schema = "type_I",
@@ -94,6 +101,7 @@ test_that("albatross type I arbitrary crs", {
 })
 
 test_that("ibexraw type I arbitrary crs", {
+    testthat::skip_on_cran()
     expect_true(ltraj2pgtraj(conn_empty,
                  ltraj = ibexraw_I_srs,
                  schema = "type_I",

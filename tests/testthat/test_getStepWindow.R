@@ -10,7 +10,7 @@ view <- "step_geometry_shiny_ibex_int_space"
 # createShinyBurstsView(conn_data, schema)
 
 test_that("getStepWindow time ranges", {
-    
+    testthat::skip_on_cran()
     i <- lubridate::period(2, units = "days")
     expect_silent(
         s <-
@@ -125,7 +125,7 @@ test_that("getStepWindow time ranges", {
 # })
 
 test_that("getStepWindow step_mode and info_cols input", {
-    
+    testthat::skip_on_cran()
     i <- lubridate::period(2, units = "days")
     expect_silent(s_out <- getStepWindow(
         conn_data,
@@ -154,7 +154,7 @@ test_that("getStepWindow step_mode and info_cols input", {
 })
 
 test_that("getStepWindow interval", {
-    
+    testthat::skip_on_cran()
     expect_warning(s_out <- getStepWindow(
         conn_data,
         schema,
