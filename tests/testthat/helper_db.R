@@ -1,3 +1,4 @@
+# See .travis.yml on how to set up the testing DBs
 can_con <- function(x) {
     inherits(x, "PostgreSQLConnection")
 }
