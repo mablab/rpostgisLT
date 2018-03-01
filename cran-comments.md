@@ -12,8 +12,10 @@ There was 1 NOTE:
      ‘rpostgis:::dbExistsTable’ ‘rpostgis:::dbTableNameFix’
      See the note in ?`:::` about the use of this operator.
 
-rpostgisLT is developed by the same people as rpostgis, and the unexported objects
+* rpostgisLT is developed by the same people as rpostgis, and the unexported objects
 are not part of the rpostgis release yet
+
+* the maintainer of the package changed to Balázs Dukai
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package.
