@@ -7,7 +7,7 @@ Authors@R: c(
           comment =  "Package creator during Google Summer of Code 2016 and 2017"),
     person("Mathieu", "Basille", email = "basille@ufl.edu", role =
            c("aut")),
-    person("David", "Bucklin", email = "dbucklin@ufl.edu", role =
+    person("David", "Bucklin", email = "david.bucklin@gmail.com", role =
            c("aut")),
     person("Clément", "Calenge", email = "clement.calenge@oncfs.gouv.fr",
           role = c("ctb")) )
