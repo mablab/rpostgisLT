@@ -28,7 +28,7 @@
 pgtrajDrop <- function(conn, pgtraj = NULL, schema = "traj", full_clean = TRUE) {
     
     ## check PostgreSQL connection
-    rpostgis:::dbConnCheck(conn)
+    dbConnCheck(conn)
     ## check that action is requested
     if (is.null(pgtraj) && !full_clean) stop("No action specified: either pgtraj must be specified, or full_clean must be TRUE.")
     ## Set database search path
@@ -68,7 +68,7 @@ pgtrajDrop <- function(conn, pgtraj = NULL, schema = "traj", full_clean = TRUE) 
         for (sq in sql_query){
           invisible(dbExecute(conn, sq))
         }
-        if (rpostgis:::dbExistsTable(conn, paste0("infolocs_", 
+        if (dbExistsTable(conn, paste0("infolocs_", 
             pgtraj))) {
             dbDrop(conn, c(schema, paste0("infolocs_", pgtraj)), 
                 type = "table", display = FALSE)

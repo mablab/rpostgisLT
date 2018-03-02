@@ -6,16 +6,9 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
-There was 1 NOTE:
-    Unexported objects imported by ':::' calls:
-     ‘rpostgis:::dbBuildTableQuery’ ‘rpostgis:::dbConnCheck’
-     ‘rpostgis:::dbExistsTable’ ‘rpostgis:::dbTableNameFix’
-     See the note in ?`:::` about the use of this operator.
+There was 1 NOTE because:
 
-* rpostgisLT is developed by the same people as rpostgis, and the unexported objects
-are not part of the rpostgis release yet
-
-* the maintainer of the package changed to Balázs Dukai
+* the maintainer of the package changed from David Bucklin to Balázs Dukai
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package.
