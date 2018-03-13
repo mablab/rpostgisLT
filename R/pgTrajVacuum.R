@@ -28,7 +28,7 @@
 pgtrajVacuum <- function(conn, schema = "traj", full = FALSE, 
     verbose = FALSE, analyze = TRUE) {
     ## check PostgreSQL connection
-    rpostgis:::dbConnCheck(conn)
+    dbConnCheck(conn)
     # Get all the tables in the schema
     sql_query <- paste0("SELECT tablename, schemaname FROM pg_tables WHERE schemaname = ", 
         dbQuoteString(conn, schema), ";")

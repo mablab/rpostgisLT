@@ -140,7 +140,7 @@ pgTrajDB2TempT <- function(conn, schema, relocations_table, pgtrajs, animals,
         bursts = NULL, relocations, timestamps, rids, srid, proj4string,
         note, clauses, time_zone) {
     # check table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn,relocations_table),
+    relocations_table_q <- paste(dbTableNameFix(conn,relocations_table),
                                  collapse = ".")
     # sanitize schema, rids, relocations 
     schema_q <- dbQuoteIdentifier(conn,schema)
@@ -967,7 +967,7 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
     iloc_df$step_id <- as.integer(1)
     
     # insert into new table (just columns)
-    ctq<-rpostgis:::dbBuildTableQuery(conn,c(schema, iloc_nm), iloc_df)
+    ctq<-dbBuildTableQuery(conn,c(schema, iloc_nm), iloc_df)
     invisible(dbExecute(conn, ctq))
     
     tztypes <- unlist(lapply(iloc_df, function(x) {
@@ -1303,5 +1303,179 @@ trajSummaryViews<- function(conn, schema) {
                   ORDER BY p.id, ab.id;"
   dbExecute(conn, sql_query)
   return(invisible())
+}
+
+
+# from rpostgis ------------------------
+
+## dbTableNameFix
+
+##' Format input for database schema/table names.
+##'
+##' Internal rpostgis function to return common (length = 2) schema
+##' and table name vector from various table and schema + table name
+##' inputs.
+##' 
+##' @param conn A connection object. Must be provided but can be set NULL,
+##' where a dummy connection will be used.
+##' @param t.nm Table name string, length 1-2.
+##' @param as.identifier Boolean whether to return (schema,table) name as database
+##' sanitized identifiers (TRUE) or as regular character (FALSE)
+##' @return character vector of length 2. Each character element is in
+##'     (escaped) double-quotes when as.identifier = TRUE.
+##' @keywords internal
+##' @author David Bucklin
+##' @importFrom DBI dbQuoteIdentifier
+##' @importFrom DBI dbQuoteString
+##' @examples
+##' \dontrun{
+##' name<-c("schema","table")
+##' dbTableNameFix(conn,name)
+##' 
+##' #current search path schema is added to single-length character object (if only table is given)
+##' name<-"table"
+##' dbTableNameFix(conn,name)
+##' 
+##' #schema or table names with double quotes should be given exactly as they are 
+##' (make sure to wrap in single quotes in R):
+##' name<-c('sch"ema','"table"')
+##' dbTableNameFix(conn,name)
+##' }
+
+dbTableNameFix <- function(conn=NULL, t.nm, as.identifier = TRUE) {
+    ## case of no schema provided
+      if (length(t.nm) == 1 && !is.null(conn) && !inherits(conn, what = "AnsiConnection")) {
+        schemalist<-dbGetQuery(conn,"select nspname as s from pg_catalog.pg_namespace;")$s
+        user<-dbGetQuery(conn,"SELECT current_user as user;")$user
+        schema<-dbGetQuery(conn,"SHOW search_path;")$search_path
+        schema<-gsub(" ","",unlist(strsplit(schema,",",fixed=TRUE)),fixed=TRUE)
+        # use user schema if available
+        if ("\"$user\"" == schema[1] && user %in% schemalist) {
+          sch<-user
+        } else {
+          sch<-schema[!schema=="\"$user\""][1]
+        } 
+        t.nm <- c(sch, t.nm)
+      }
+      if (length(t.nm) > 2)
+      {
+        stop("Invalid PostgreSQL table/view name. Must be provided as one ('table') or two-length c('schema','table') character vector.")
+      }
+    if (is.null(conn)) {conn<-DBI::ANSI()}
+    if (!as.identifier) {return(t.nm)} else {
+    t.nm<-DBI::dbQuoteIdentifier(conn, t.nm)
+    return(t.nm)
+    }
+}
+
+
+## dbBuildTableQuery
+##' Builds CREATE TABLE query for a data frame object.
+##' 
+##' @param conn A PostgreSQL connection
+##' @param name Table name string, length 1-2.
+##' @param obj A data frame object.
+##' @param field.types optional named list of the types for each field in \code{obj}
+##' @param row.names logical, should row.name of \code{obj} be exported as a row_names field? Default is FALSE
+##' 
+##' @note Adapted from RPostgreSQL::postgresqlBuildTableDefinition
+##' @keywords internal
+##' @author David Bucklin
+
+dbBuildTableQuery <- function (conn = NULL, name, obj, field.types = NULL, row.names = FALSE) {
+    if (is.null(conn)) {
+      conn <- DBI::ANSI()
+      nameque <- dbQuoteIdentifier(conn,name)
+    } else {
+      nameque<-paste(dbTableNameFix(conn, name),collapse = ".")
+    }
+  
+    if (!is.data.frame(obj)) 
+        obj <- as.data.frame(obj)
+    if (!is.null(row.names) && row.names) {
+        obj <- cbind(row.names(obj), obj)
+        names(obj)[1] <- "row_names"
+    }
+    if (is.null(field.types)) {
+        field.types <- sapply(obj, dbDataType, dbObj = conn)
+    }
+    i <- match("row_names", names(field.types), nomatch = 0)
+    if (i > 0) 
+        field.types[i] <- dbDataType(conn, row.names(obj))
+    flds <- paste(dbQuoteIdentifier(conn ,names(field.types)), field.types)
+    
+    paste("CREATE TABLE ", nameque , "\n(", paste(flds, 
+        collapse = ",\n\t"), "\n);")
+}
+
+## dbVersion
+
+##' Returns major.minor version of PostgreSQL (for version checking)
+##'
+##' @param conn A PostgreSQL connection
+##' @return numeric vector of length 3 of major,minor,bug version.
+##' @keywords internal
+##' @author David Bucklin
+
+dbVersion<- function (conn) {
+    pv<-dbGetQuery(conn,"SHOW server_version;")$server_version
+    nv<-unlist(strsplit(pv,".",fixed=TRUE))
+    return(as.numeric(nv))
+}
+
+
+## dbExistsTable
+##' Check if a PostgreSQL table/view exists
+##' 
+##' @param conn A PostgreSQL connection
+##' @param name Table/view name string, length 1-2.
+##' 
+##' @keywords internal
+##' @author David Bucklin
+
+dbExistsTable <- function (conn, name, table.only = FALSE) {
+    if (!table.only) to<-NULL else to<-" AND table_type = 'BASE TABLE'"
+    full.name<-dbTableNameFix(conn,name, as.identifier = FALSE)
+    chk<-dbGetQuery(conn, paste0("SELECT 1 FROM information_schema.tables 
+               WHERE table_schema = ",dbQuoteString(conn,full.name[1]),
+               " AND table_name = ",dbQuoteString(conn,full.name[2]),to,";"))[1,1]
+    if (is.null(chk)) {
+      exists.t <- FALSE
+      # check version (matviews >= 9.3)
+      ver<-dbVersion(conn)
+      if (!table.only & !(ver[1] < 9 | (ver[1] == 9 && ver[2] < 3))) {
+        # matview case - not in information_schema
+        chk2<-dbGetQuery(conn, paste0("SELECT oid::regclass::text, relname
+                FROM pg_class
+                WHERE relkind = 'm'
+                AND relname = ",dbQuoteString(conn,full.name[2]),";"))
+        if (length(names(chk2)) > 0) {
+          sch<-gsub(paste0(".",chk2[1,2]),"",chk2[,1])
+          if (full.name[1] %in% sch) exists.t<-TRUE else exists.t<-FALSE
+        } else {
+          exists.t<-FALSE
+        }
+      }
+    } else {
+    exists.t<-TRUE
+    }
+  return(exists.t)
+}
+
+
+## dbConnCheck
+##' Check if a supported PostgreSQL connection
+##' 
+##' @param conn A PostgreSQL connection
+##' 
+##' @keywords internal
+##' @author David Bucklin
+
+dbConnCheck <- function(conn) {
+  if (inherits(conn, c("PostgreSQLConnection"))) {
+          return(TRUE)
+      } else {
+        return(stop("'conn' must be a <PostgreSQLConnection> object."))
+      }
 }
 

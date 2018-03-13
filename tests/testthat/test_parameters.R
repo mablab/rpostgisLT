@@ -1,6 +1,7 @@
 context("rpostgisLT: parameters")
 
 test_that("insert ibex with recomputed parameters", {
+    testthat::skip_on_cran()
     ibex_dl <- adehabitatLT::ld(ibex)
     rpostgis::pgInsert(
         conn_empty,
@@ -42,6 +43,7 @@ test_that("insert ibex with recomputed parameters", {
 })
 
 test_that("insert albatross with recomputed parameters", {
+    testthat::skip_on_cran()
     albatross_dl <- ld(albatross)
     pgInsert(
         conn_empty,
@@ -81,6 +83,7 @@ test_that("insert albatross with recomputed parameters", {
 })
 
 test_that("null timestamp, relocations x,y, note", {
+    testthat::skip_on_cran()
     albatross_dl <- ld(albatross)
     pgInsert(
         conn_empty,

@@ -44,7 +44,7 @@ ltraj2pgtraj <-
              overwrite = FALSE,
              infolocs = TRUE) {
         ## check PostgreSQL connection and PostGIS
-        rpostgis:::dbConnCheck(conn)
+        dbConnCheck(conn)
         if (!suppressMessages(pgPostGIS(conn))) {
             stop("PostGIS is not enabled on this database.")
         }

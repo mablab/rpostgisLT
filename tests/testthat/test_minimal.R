@@ -3,7 +3,7 @@ context("rpostgisLT: minimal")
 # source_test_helpers(path = "tests/testthat", env = test_env())
 
 test_that("minimal ltraj transfer is equal and identical", {
-    
+    testthat::skip_on_cran()
     ib_min <- dl(ld(ibexraw[1])[1:10,]) # note that step parameters are recomputed on purpose
     expect_true(ltraj2pgtraj(conn_empty,
                  ltraj = ib_min,
@@ -17,7 +17,7 @@ test_that("minimal ltraj transfer is equal and identical", {
 })
 
 test_that("overwrite with null proj4string", {
-    
+    testthat::skip_on_cran()
     ib_min <- dl(ld(ibexraw[1])[1:10, ])
     expect_true(ltraj2pgtraj(
         conn_empty,
@@ -41,7 +41,7 @@ test_that("overwrite with null proj4string", {
 })
 
 test_that("transfer with projection", {
-    
+    testthat::skip_on_cran()
     ib_min_srs <- dl(ld(ibexraw[2])[1:10, ], proj4string = srs)
     # note that step parameters are recomputed on purpose
     expect_true(ltraj2pgtraj(
@@ -60,11 +60,12 @@ test_that("transfer with projection", {
 })
 
 test_that("ibexraw is not regular", {
+    testthat::skip_on_cran()
     expect_false(is.regular(ibexraw))
 })
 
 test_that("pgtraj and schema defaults", {
-    
+    testthat::skip_on_cran()
     expect_message(ltraj2pgtraj(conn_empty, ibex, overwrite = TRUE),
                    "('ibex')|('traj')", fixed = FALSE)
     

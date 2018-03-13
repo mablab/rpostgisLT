@@ -1,7 +1,7 @@
 context("rpostgisLT: infolocs")
 
 test_that("example of an object with an attribute infolocs", {
-    
+    testthat::skip_on_cran()
     ## Create an object of class "ltraj"
     cap <-
         adehabitatLT::as.ltraj(
