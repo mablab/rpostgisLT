@@ -1,7 +1,7 @@
 context("rpostgisLT: asPgtraj")
 
 test_that("asPgtraj handles missing tables", {
-    
+    testthat::skip_on_cran()
     expect_error(asPgtraj(
         conn_data,
         schema = "traj_db_t1",

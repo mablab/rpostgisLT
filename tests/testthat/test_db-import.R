@@ -2,6 +2,7 @@ context("rpostgisLT: db-import")
 
 test_that("import from db with infolocs", {
     
+    testthat::skip_on_cran()
     expect_true(asPgtraj(
         conn_data,
         schema = "traj_db_t1",
@@ -22,6 +23,7 @@ test_that("import from db with infolocs", {
 
 test_that("import from db with infolocs in other table", {
     
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -52,6 +54,7 @@ test_that("import from db with infolocs in other table", {
 
 test_that("ltraj equality when transfer: db -> R-> db -> R", {
     
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -71,6 +74,7 @@ test_that("ltraj equality when transfer: db -> R-> db -> R", {
             info_rids = "gid"
         )
     )
+    
     expect_message(continental <- pgtraj2ltraj(conn_data, "continental" , "traj_db_t1"),
                    "successfully")
     expect_message(large <- pgtraj2ltraj(conn_data, "large" , "traj_db_t1"),
@@ -121,7 +125,7 @@ test_that("ltraj equality when transfer: db -> R-> db -> R", {
 })
 
 test_that("import from db typeI", {
-    
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -139,7 +143,7 @@ test_that("import from db typeI", {
 })
 
 test_that("import from db a mix of Type I and Type II in the same schema", {
-    
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -176,7 +180,7 @@ test_that("import from db a mix of Type I and Type II in the same schema", {
 })
 
 test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
-    
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -208,7 +212,7 @@ test_that("ltraj typeI equality when transfer: db -> R-> db -> R", {
 })
 
 test_that("relocations are provided as X,Y coordinates", {
-    
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,
@@ -232,7 +236,7 @@ test_that("relocations are provided as X,Y coordinates", {
 })
 
 test_that("variables provided manually", {
-    
+    testthat::skip_on_cran()
     expect_true(
         asPgtraj(
             conn_data,

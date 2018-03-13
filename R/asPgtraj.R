@@ -112,7 +112,7 @@ asPgtraj <- function(conn, relocations_table, schema = "traj",
     timestamps = NULL, rids = "rid", srid = NULL, tzone = NULL, note = NULL, 
     clauses = NULL, info_cols = NULL, info_table = NULL, info_rids = NULL) {
     ## check PostgreSQL connection and PostGIS
-    rpostgis:::dbConnCheck(conn)
+    dbConnCheck(conn)
     if (!suppressMessages(pgPostGIS(conn))) {
         stop("PostGIS is not enabled on this database.")
     }
@@ -128,7 +128,7 @@ asPgtraj <- function(conn, relocations_table, schema = "traj",
     }
     
     # Ensure length-2 table names (search path changes throughout fn)
-    relocations_table <- rpostgis:::dbTableNameFix(conn, relocations_table, 
+    relocations_table <- dbTableNameFix(conn, relocations_table, 
         as.identifier = FALSE)
     
     if (!is.null(info_table)) {
@@ -138,12 +138,12 @@ asPgtraj <- function(conn, relocations_table, schema = "traj",
                            "in the database."))
         }
         
-        info_table <- rpostgis:::dbTableNameFix(conn, info_table, 
+        info_table <- dbTableNameFix(conn, info_table, 
                                                 as.identifier = FALSE)
     }
     
     # sanitize table name
-    relocations_table_q <- paste(rpostgis:::dbTableNameFix(conn, 
+    relocations_table_q <- paste(dbTableNameFix(conn, 
         relocations_table), collapse = ".")
     # sanitize column name strings used in queries
     relocations_q <- dbQuoteIdentifier(conn, relocations)
