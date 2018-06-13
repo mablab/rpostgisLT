@@ -5,7 +5,7 @@ library(basr)
 #library(rhub) # for testing on a variety of system configs
 
 setwd("C:/David/git/rpostgisLT")
-install()
+devtools::install()
 
 # R build ignore files/folders
 use_build_ignore("tests")

@@ -948,7 +948,7 @@ writeInfoFromLtraj <- function(conn, ltraj, pgtraj, schema) {
       
       # write info_nm to animal_burst.info_cols
       sql_query <- paste0("UPDATE ", schemaq, ".animal_burst 
-                          SET (info_cols) = (",info_nm, ")
+                          SET (info_cols) = ROW(",info_nm, ")
                           FROM ", schemaq, ".pgtraj
                           WHERE pgtraj.id = animal_burst.pgtraj_id
                           AND pgtraj.pgtraj_name = ",dbQuoteString(conn, pgtraj),
